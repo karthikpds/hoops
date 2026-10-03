@@ -1,0 +1,39 @@
+{
+  "name": "Give & Go",
+  "emoji": "🏃",
+  "level": 1,
+  "tags": ["passing", "cutting", "layup"],
+  "idea": "Pass the ball, then sprint to the basket for a pass right back.",
+  "why": "Defenders love to watch the ball. The moment your defender turns to look at it, you can sneak right past them.",
+  "tryit": "Pass to a partner, then run hard to the hoop with your hand up high as a target. Your partner passes it back for the layup.",
+  "cast": ["d1", "d2", "o1", "o2"],
+  "frames": [
+    {
+      "pos": { "o1": "TOP", "o2": "RW" },
+      "ball": "o1",
+      "say": "{1} has the ball at the top. {2} is waiting on the wing."
+    },
+    {
+      "pos": { "d1": [280, 284] },
+      "ball": { "pass": ["o1", "o2"] },
+      "bub": { "d1": "Ooh, the ball!" },
+      "say": "*Give:* {1} passes to {2}. Look! {X1} turns to watch the ball instead of {1}."
+    },
+    {
+      "pos": { "o1": [228, 128, 214, 252], "d1": [262, 212] },
+      "ball": "o2",
+      "bub": { "o1": "Go!", "d1": "Huh?!" },
+      "say": "*Go:* Right after passing, {1} sprints to the basket. {X1} never saw it coming!"
+    },
+    {
+      "pos": { "o1": [242, 86], "d1": [254, 158] },
+      "ball": { "pass": ["o2", "o1"] },
+      "say": "{2} passes it right back to {1}."
+    },
+    {
+      "pos": { "d1": [254, 135] },
+      "ball": { "shot": "o1" },
+      "say": "Layup! Pass, then cut to the basket. That’s a Give & Go."
+    }
+  ]
+}

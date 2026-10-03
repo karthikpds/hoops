@@ -1,0 +1,47 @@
+{
+  "name": "Pick & Roll",
+  "emoji": "🔁",
+  "level": 3,
+  "tags": ["screen", "pick", "dribbling", "two-player game", "layup"],
+  "idea": "A screen for the dribbler, then the screener rolls to the basket.",
+  "why": "Two players attack together. If the defense stops the dribbler, the roller is open. If they stop the roller, the dribbler is open.",
+  "tryit": "Dribbler: wait until the pick is set, then brush right past it, shoulder to shoulder. Screener: turn and run to the rim with your hands ready.",
+  "cast": ["d1", "d5", "o1", "o5"],
+  "frames": [
+    {
+      "pos": { "o1": [250, 345], "d1": [250, 310], "o5": [335, 125], "d5": [310, 102] },
+      "ball": { "dribble": "o1" },
+      "say": "{1} is dribbling at the top. {5} is our big player, down near the basket."
+    },
+    {
+      "pos": { "o5": [284, 302], "d5": [314, 238] },
+      "ball": { "dribble": "o1" },
+      "scr": [["o5", "d1"]],
+      "bub": { "o5": "Pick!" },
+      "say": "{5} runs up and stands next to {X1}. A screen for the player with the ball is called a *pick*."
+    },
+    {
+      "pos": { "o1": [352, 248, 338, 352], "d1": [258, 323], "d5": [372, 220] },
+      "ball": { "dribble": "o1" },
+      "scr": [["o5", "d1"]],
+      "bub": { "d1": "Stuck!", "d5": "Stop!" },
+      "say": "{1} dribbles around the pick. {X1} gets stuck, so {X5} jumps out to stop {1}."
+    },
+    {
+      "pos": { "o5": [262, 120, 248, 232], "d1": [312, 290, 290, 325] },
+      "ball": { "dribble": "o1" },
+      "bub": { "o5": "Open!" },
+      "say": "*Roll:* {5} turns and rolls to the basket. Nobody is guarding {5}!"
+    },
+    {
+      "pos": { "o5": [258, 84], "d5": [318, 165], "d1": [326, 276] },
+      "ball": { "pass": ["o1", "o5"], "bounce": true },
+      "say": "{1} bounce-passes to {5}, who is rolling to the rim."
+    },
+    {
+      "pos": { "d5": [296, 128] },
+      "ball": { "shot": "o5" },
+      "say": "Two points! The pick & roll is one of the most famous plays in basketball."
+    }
+  ]
+}

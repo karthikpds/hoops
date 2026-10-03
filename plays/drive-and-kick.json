@@ -1,0 +1,40 @@
+{
+  "name": "Drive & Kick",
+  "emoji": "💨",
+  "level": 2,
+  "tags": ["dribbling", "driving", "passing", "three-pointer"],
+  "idea": "Dribble hard to the basket, then pass out to the teammate who gets left open.",
+  "why": "When a defender leaves their player to help stop the drive, the player they were guarding is suddenly open.",
+  "tryit": "Drive with your eyes up! Look for the teammate whose defender just left them.",
+  "cast": ["d1", "d2", "d3", "o1", "o2", "o3"],
+  "frames": [
+    {
+      "pos": { "o1": "TOP", "o2": "RW", "o3": "LC" },
+      "ball": { "dribble": "o1" },
+      "say": "{3} is way out in the corner. Watch what happens when {1} attacks!"
+    },
+    {
+      "pos": { "o1": [222, 170, 205, 270], "d1": [258, 212, 268, 262] },
+      "ball": { "dribble": "o1" },
+      "bub": { "o1": "Drive!" },
+      "say": "*Drive:* {1} dribbles hard toward the basket and zooms past {X1}."
+    },
+    {
+      "pos": { "d3": [200, 128], "d2": [365, 195] },
+      "ball": "o1",
+      "bub": { "d3": "Stop!", "o3": "I’m open!" },
+      "say": "{X3} leaves the corner to stop {1}. Now {3} is all alone!"
+    },
+    {
+      "pos": { "d3": [125, 100] },
+      "ball": { "pass": ["o1", "o3"] },
+      "say": "*Kick:* {1} passes out to {3} in the corner."
+    },
+    {
+      "pos": { "d3": [62, 100] },
+      "ball": { "shot": "o3" },
+      "bub": { "d3": "Too late!" },
+      "say": "Corner three! Drive in, pass out. That’s a Drive & Kick."
+    }
+  ]
+}

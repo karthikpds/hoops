@@ -1,0 +1,39 @@
+{
+  "name": "Pass It Around",
+  "emoji": "🔄",
+  "level": 1,
+  "tags": ["passing", "ball movement", "teamwork", "three-pointer"],
+  "idea": "Move the ball with quick passes until a teammate gets open.",
+  "why": "The ball flies faster than any defender can run. Quick passes make the defense scramble, and soon someone gets left open.",
+  "tryit": "Play hot potato with a friend: pass the moment you catch it. Can you make 10 passes in a row without a drop?",
+  "cast": ["d1", "d2", "d3", "o1", "o2", "o3"],
+  "frames": [
+    {
+      "pos": { "o1": "TOP", "o2": "RW", "o3": "LW" },
+      "ball": "o1",
+      "say": "Meet the team! Blue {1} has the ball. Each red defender guards one blue player."
+    },
+    {
+      "pos": { "d1": [272, 272], "d3": [168, 178] },
+      "ball": { "pass": ["o1", "o2"] },
+      "say": "{1} passes to {2}. Zoom! The ball moves faster than anyone can run."
+    },
+    {
+      "pos": { "d1": [250, 301], "d3": [150, 192] },
+      "ball": { "pass": ["o2", "o1"] },
+      "say": "{2} passes it back to {1}. The defenders have to keep sliding to keep up."
+    },
+    {
+      "pos": { "d1": [240, 276], "d3": [128, 206], "d2": [365, 205] },
+      "ball": { "pass": ["o1", "o3"] },
+      "bub": { "o3": "Open!" },
+      "say": "{1} swings it to {3}. {X3} was helping in the middle and is still running back!"
+    },
+    {
+      "pos": { "d3": [110, 214] },
+      "ball": { "shot": "o3" },
+      "bub": { "d3": "Too late!" },
+      "say": "{3} has lots of space, so {3} shoots! Good passing finds the open player."
+    }
+  ]
+}

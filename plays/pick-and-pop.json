@@ -1,0 +1,48 @@
+{
+  "name": "Pick & Pop",
+  "emoji": "🍿",
+  "level": 3,
+  "tags": ["screen", "pick", "dribbling", "two-player game", "three-pointer"],
+  "idea": "Same pick, but the screener pops out to shoot instead of rolling.",
+  "why": "Everyone expects the screener to roll to the basket. Popping out to the 3-point line finds open space away from the crowd.",
+  "tryit": "After you set the pick, step back behind the 3-point line with your hands up, ready to catch and shoot.",
+  "cast": ["d1", "d4", "o1", "o4"],
+  "frames": [
+    {
+      "pos": { "o1": [250, 345], "d1": [250, 310], "o4": [165, 125], "d4": [190, 102] },
+      "ball": { "dribble": "o1" },
+      "say": "This time our big player is {4}, who can also shoot from far away."
+    },
+    {
+      "pos": { "o4": [216, 302], "d4": [186, 238] },
+      "ball": { "dribble": "o1" },
+      "scr": [["o4", "d1"]],
+      "bub": { "o4": "Pick!" },
+      "say": "{4} runs up and sets a *pick* on {X1}."
+    },
+    {
+      "pos": { "o1": [148, 248, 162, 352], "d1": [242, 323], "d4": [128, 220] },
+      "ball": { "dribble": "o1" },
+      "scr": [["o4", "d1"]],
+      "bub": { "d1": "Stuck!", "d4": "Stop!" },
+      "say": "{1} dribbles around the pick. {X4} leaves {4} to help stop {1}."
+    },
+    {
+      "pos": { "o4": [188, 334] },
+      "ball": { "dribble": "o1" },
+      "bub": { "o4": "Open!" },
+      "say": "*Pop:* Instead of rolling to the basket, {4} steps out to the 3-point line."
+    },
+    {
+      "pos": { "d4": [166, 290, 95, 290], "d1": [232, 298] },
+      "ball": { "pass": ["o1", "o4"] },
+      "say": "{1} passes to {4}. {X4} is way too far away!"
+    },
+    {
+      "pos": { "d4": [174, 302] },
+      "ball": { "shot": "o4" },
+      "bub": { "d4": "Too late!" },
+      "say": "{4} drains the three! One pick, two choices: roll to the rim or pop out and shoot."
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "name": "Set a Screen",
+  "emoji": "🧱",
+  "level": 2,
+  "tags": ["screen", "off the ball", "passing"],
+  "idea": "Stand still like a wall so your teammate’s defender bumps into you.",
+  "why": "A defender can’t run through a teammate. The screen slows them down and gives your teammate a step of open space.",
+  "tryit": "When you set a screen, stand still with your feet wide and arms in. No pushing or moving, or it’s a foul!",
+  "cast": ["d1", "d2", "d3", "o1", "o2", "o3"],
+  "frames": [
+    {
+      "pos": { "o1": "TOP", "o2": [160, 100], "o3": "LW", "d2": [192, 118] },
+      "ball": "o1",
+      "say": "{2} is stuck down low with {X2} right next to them. Let’s help {2} get free!"
+    },
+    {
+      "pos": { "o3": [165, 155], "d3": [205, 188, 165, 225] },
+      "ball": "o1",
+      "scr": [["o3", "d2"]],
+      "bub": { "o3": "Screen!" },
+      "say": "{3} runs over and stands still next to {X2}, like a wall. That wall is called a *screen*."
+    },
+    {
+      "pos": { "o2": [86, 238, 90, 112], "d2": [184, 130] },
+      "ball": "o1",
+      "scr": [["o3", "d2"]],
+      "bub": { "o2": "Free!", "d2": "Stuck!" },
+      "say": "{2} races around the screen. {X2} bumps into {3} and gets stuck!"
+    },
+    {
+      "pos": { "d2": [130, 185, 125, 95] },
+      "ball": { "pass": ["o1", "o2"] },
+      "say": "{1} passes to {2}, who is wide open."
+    },
+    {
+      "pos": { "d2": [112, 212] },
+      "ball": { "shot": "o2" },
+      "bub": { "d2": "Too late!" },
+      "say": "Swish! A good screen helps your teammate get open."
+    }
+  ]
+}

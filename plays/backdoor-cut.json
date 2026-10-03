@@ -1,0 +1,40 @@
+{
+  "name": "Backdoor Cut",
+  "emoji": "🚪",
+  "level": 2,
+  "tags": ["cutting", "off the ball", "bounce pass", "layup"],
+  "idea": "If a defender blocks your pass, cut behind them to the basket.",
+  "why": "When a defender jumps in front of you to stop a pass, the space behind them is wide open. Go there!",
+  "tryit": "Take two steps toward the ball like you want it, then plant your foot and burst to the basket.",
+  "cast": ["d1", "d2", "o1", "o2"],
+  "frames": [
+    {
+      "pos": { "o1": "TOP", "o2": "RW", "d1": [232, 306], "d2": [384, 263] },
+      "ball": "o1",
+      "bub": { "d2": "No pass!" },
+      "say": "{2} wants the ball, but {X2} is standing right in the way so {1} can’t pass."
+    },
+    {
+      "pos": { "o2": [420, 296], "d2": [388, 310] },
+      "ball": "o1",
+      "bub": { "o2": "Fake!" },
+      "say": "{2} pretends to come get the ball. {X2} follows, still blocking the pass."
+    },
+    {
+      "pos": { "o2": [300, 100, 448, 188], "d2": [372, 242] },
+      "ball": "o1",
+      "bub": { "o2": "Backdoor!", "d2": "Uh oh!" },
+      "say": "*Backdoor!* {2} suddenly cuts behind {X2}, straight to the basket."
+    },
+    {
+      "pos": { "o2": [268, 80], "d2": [330, 150] },
+      "ball": { "pass": ["o1", "o2"], "bounce": true },
+      "say": "{1} throws a bounce pass to the cutter."
+    },
+    {
+      "pos": { "d2": [312, 120] },
+      "ball": { "shot": "o2" },
+      "say": "Easy layup! When a defender blocks the pass, go behind them."
+    }
+  ]
+}
