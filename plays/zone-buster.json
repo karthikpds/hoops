@@ -1,0 +1,42 @@
+{
+  "name": "Zone Buster",
+  "emoji": "🧩",
+  "level": 2,
+  "tags": ["zone offense", "passing", "gaps", "high post", "three-pointer"],
+  "idea": "Against a zone, stand in the gaps and pass fast until a shooter is wide open.",
+  "why": "In a zone, each defender guards an area, not a player. Quick passes make the zone slide back and forth, and a pass into the middle pulls everyone in. Then a shooter on the outside is left all alone.",
+  "tryit": "Put out five cones as the zone. Stand in a gap between two cones, never right next to one. Pass into the middle, then kick it out to the shooter.",
+  "cast": ["d1", "d2", "d3", "d4", "d5", "o1", "o2", "o3", "o4", "o5"],
+  "frames": [
+    {
+      "pos": { "o1": "TOP", "o2": "RW", "o3": "LW", "o4": "RC", "o5": "HP", "d1": [185, 262], "d2": [315, 262], "d3": [135, 135], "d4": [365, 135], "d5": [250, 95] },
+      "ball": "o1",
+      "bub": { "d1": "My area!" },
+      "say": "Red is playing a *zone*: each defender guards an area, not a player. Blue stands in the *gaps* between them."
+    },
+    {
+      "pos": { "d1": [200, 215], "d2": [390, 210], "d3": [185, 130], "d4": [440, 110], "d5": [300, 100] },
+      "ball": { "pass": ["o1", "o2"] },
+      "bub": { "d2": "Slide over!" },
+      "say": "{1} passes to {2}. The whole zone slides over toward the ball."
+    },
+    {
+      "pos": { "d1": [212, 178], "d2": [376, 190], "d5": [262, 145] },
+      "ball": { "pass": ["o2", "o5"] },
+      "bub": { "o3": "I’m open!" },
+      "say": "{2} passes into the middle to {5}. The defenders crowd {5}, and nobody is near {3}!"
+    },
+    {
+      "pos": { "d3": [125, 200] },
+      "ball": { "pass": ["o5", "o3"] },
+      "bub": { "d3": "Uh oh!" },
+      "say": "*Kick it out:* {5} passes to {3}. {X3} has a long way to run!"
+    },
+    {
+      "pos": { "d3": [110, 214] },
+      "ball": { "shot": "o3" },
+      "bub": { "d3": "Too late!" },
+      "say": "{3} shoots a three! Quick passes and finding the gaps beat a zone."
+    }
+  ]
+}
