@@ -109,13 +109,14 @@ function fillInfo(){
   $("piTry").textContent=pl.tryit;
 }
 
-function selectPlay(i){
+/* updateUrl=false leaves the address bar alone (used on first load, so a bare URL stays bare) */
+function selectPlay(i,updateUrl=true){
   cur=i;p=0;target=0;playing=false;holdUntil=0;
   buildPlayers();buildDots();fillInfo();
   lyFx.innerHTML="";lastPathKey="";lastCapKey="";lastUI="";
   playsEl.querySelectorAll(".pick").forEach(c=>c.setAttribute("aria-pressed",String(c.dataset.id===plays[i].id)));
   revealChip(plays[i],true);
-  history.replaceState(null,"","#"+plays[i].id);
+  if(updateUrl)history.replaceState(null,"","#"+plays[i].id);
   document.title=`${plays[i].name} · Hoops Playbook`;
 }
 function indexFromHash(){
@@ -427,8 +428,8 @@ $("piTags").addEventListener("click",e=>{
 });
 shareBtn.addEventListener("click",async()=>{
   const tip=$("shareTip");
-  try{await navigator.clipboard.writeText(location.href);tip.textContent="Link copied!";}
-  catch{tip.textContent="Copy it from the address bar";}
+  try{await navigator.clipboard.writeText(location.href.split("#")[0]+"#"+plays[cur].id);tip.textContent="Link copied!";}
+  catch{history.replaceState(null,"","#"+plays[cur].id);tip.textContent="Copy it from the address bar";}
   shareBtn.classList.add("copied");
   clearTimeout(shareTimer);shareTimer=setTimeout(()=>shareBtn.classList.remove("copied"),1800);
 });
@@ -453,7 +454,7 @@ if(!plays.length){
   countEl.textContent="0 plays";
 } else {
   refreshList();
-  const i=indexFromHash();selectPlay(i>=0?i:0);
+  const i=indexFromHash();selectPlay(Math.max(i,0),false);
   btnPlay.disabled=false;btnRestart.disabled=false;shareBtn.hidden=false;
   requestAnimationFrame(t=>{lastT=t;tick(t);});
 }
