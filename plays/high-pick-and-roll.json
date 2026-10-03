@@ -1,0 +1,54 @@
+{
+  "name": "High Pick & Roll",
+  "emoji": "🔝",
+  "level": 3,
+  "tags": ["screen", "pick and roll", "elbow", "jump shot", "dribbling", "reading the defense"],
+  "idea": "A pick at the top of the key with three ways to score: drive, pass to the roller, or pass to the elbow.",
+  "why": "The pick makes the defense choose. If they stop the dribbler, the roller is open. If they stop the roller, the player at the elbow is open. Everyone else spreads out, so there's room for all of it.",
+  "tryit": "Screener: set the pick just above the 3-point line, feet wide and still. Dribbler: wait for it, then brush past shoulder to shoulder. Look at the hoop first, then the roller, then the elbow.",
+  "cast": ["d1", "d2", "d3", "d4", "d5", "o1", "o2", "o3", "o4", "o5"],
+  "frames": [
+    {
+      "pos": { "o1": [250, 345], "d1": [250, 310], "o2": "RC", "o3": "LC", "o4": "RB", "o5": "LB" },
+      "ball": { "dribble": "o1" },
+      "say": "{1} has the ball up high. {2} and {3} wait in the corners, and {4} and {5} start down by the basket."
+    },
+    {
+      "pos": { "o4": [284, 300, 360, 220], "d4": [318, 240] },
+      "ball": { "dribble": "o1" },
+      "scr": [["o4", "d1"]],
+      "bub": { "o4": "Pick!" },
+      "say": "{4} runs up and sets a *pick* on {X1}, just above the 3-point line."
+    },
+    {
+      "pos": { "o1": [352, 248, 338, 352], "d1": [258, 323], "d4": [372, 220] },
+      "ball": { "dribble": "o1" },
+      "scr": [["o4", "d1"]],
+      "bub": { "d1": "Stuck!", "d4": "Stop!" },
+      "say": "{1} dribbles right past {4}'s shoulder. {X1} gets stuck, so {X4} jumps out to stop {1}."
+    },
+    {
+      "pos": { "o4": [262, 120, 248, 232], "d1": [312, 290, 290, 325], "d5": [240, 85] },
+      "ball": { "dribble": "o1" },
+      "say": "*Roll:* {4} rolls to the basket. {X5} leaves {5} to stop {4}."
+    },
+    {
+      "pos": { "o5": "LE" },
+      "ball": { "dribble": "o1" },
+      "bub": { "o5": "Open!" },
+      "say": "{5} pops up to the corner of the free-throw line, called the *elbow*. Nobody is guarding {5}!"
+    },
+    {
+      "pos": { "d5": [205, 150], "d4": [318, 160] },
+      "ball": { "pass": ["o1", "o5"] },
+      "bub": { "d5": "Uh oh!" },
+      "say": "{1} passes to {5} at the elbow. {X5} has to run all the way back out!"
+    },
+    {
+      "pos": { "d5": [195, 163] },
+      "ball": { "shot": "o5" },
+      "bub": { "d5": "Too late!" },
+      "say": "{5} makes the elbow jump shot! Drive, roll, or elbow: the defense can't stop them all."
+    }
+  ]
+}
