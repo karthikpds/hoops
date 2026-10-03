@@ -1,0 +1,47 @@
+{
+  "name": "Beat the Box-and-One",
+  "emoji": "📦",
+  "level": 3,
+  "tags": ["box-and-one", "box plus 1", "screen", "shooter", "three-pointer"],
+  "idea": "When one defender chases your best shooter everywhere, set a screen on that chaser to get your shooter open.",
+  "why": "In a box-and-one, four defenders guard a box near the basket and one chases your best shooter. A screen stops the chaser, and the box defenders don't leave their spots to help, so your shooter gets a wide-open shot.",
+  "tryit": "Shooter: run your defender toward the basket first, then come back hard off the screen with your hands ready. Screener: stand still with your feet wide so the chaser bumps into you.",
+  "cast": ["d1", "d2", "d3", "d4", "d5", "o1", "o2", "o3", "o4", "o5"],
+  "frames": [
+    {
+      "pos": { "o1": "TOP", "o2": "RW", "o3": "LW", "o4": "HP", "o5": "LC", "d1": [180, 205], "d2": [384, 258], "d3": [320, 205], "d4": [180, 110], "d5": [320, 110] },
+      "ball": "o1",
+      "say": "Red is playing a *box-and-one*. Four defenders guard a box by the basket, and {X2} follows our best shooter, {2}, everywhere."
+    },
+    {
+      "pos": { "o2": [430, 110], "d2": [400, 135] },
+      "ball": "o1",
+      "bub": { "o2": "Can’t get open!" },
+      "say": "{2} runs toward the basket, but {X2} sticks to {2} the whole way."
+    },
+    {
+      "pos": { "o4": [405, 172, 330, 150] },
+      "ball": "o1",
+      "scr": [["o4", "d2"]],
+      "say": "{4} runs over and sets a *screen* on {X2}. Screens work great on a defender who chases one player."
+    },
+    {
+      "pos": { "o2": [410, 270, 470, 190], "d2": [388, 140] },
+      "ball": "o1",
+      "scr": [["o4", "d2"]],
+      "bub": { "o2": "Open!", "d2": "Stuck!", "d3": "Not my player!" },
+      "say": "{2} runs around the screen and {X2} gets stuck. The box defenders stay in their box, so {2} is open!"
+    },
+    {
+      "pos": { "d2": [390, 222, 350, 180] },
+      "ball": { "pass": ["o1", "o2"] },
+      "say": "{1} passes to {2}. {X2} has to run all the way around {4}!"
+    },
+    {
+      "pos": { "d2": [392, 238] },
+      "ball": { "shot": "o2" },
+      "bub": { "d2": "Too late!" },
+      "say": "{2} drains the three! When a defender chases your best shooter, a screen sets the shooter free."
+    }
+  ]
+}
