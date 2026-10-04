@@ -1,6 +1,6 @@
 # Checks every play, rebuilds plays/index.json, and publishes the site to GitHub Pages.
 # One-time setup: repo Settings → Pages → Build and deployment → Source: "GitHub Actions".
-# Pull requests only run the play checks.
+# Pull requests only run the tests and play checks.
 name: Deploy to GitHub Pages
 
 on:
@@ -23,6 +23,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+
+      # Unit tests for the play engine and court drawing (node:test, no dependencies).
+      - name: Run unit tests
+        run: npm test
 
       # Fails the run (with the file and problem shown in the Actions log) if any play is broken.
       # Also adds plays that were committed without updating plays/index.json.

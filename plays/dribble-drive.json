@@ -1,0 +1,40 @@
+{
+  "name": "Dribble Drive",
+  "emoji": "🏎️",
+  "level": 1,
+  "tags": ["dribbling", "driving", "fake", "one on one", "layup"],
+  "idea": "Fake one way, then dribble hard the other way, right past your defender.",
+  "why": "A quick fake makes your defender lean the wrong way. While they get their balance back, you are already gone.",
+  "tryit": "Practice a jab step: a quick little step one way, then push off and dribble the other way with your eyes up.",
+  "cast": ["d1", "d2", "o1", "o2"],
+  "frames": [
+    {
+      "pos": { "o1": "TOP", "o2": "RC" },
+      "ball": "o1",
+      "say": "{1} has the ball at the top, and {X1} is guarding close. {2} waits in the corner to give {1} room."
+    },
+    {
+      "pos": { "o1": [272, 330], "d1": [272, 300] },
+      "ball": "o1",
+      "bub": { "o1": "Fake!" },
+      "say": "*Fake:* {1} takes a quick step to the right. {X1} leans that way too."
+    },
+    {
+      "pos": { "o1": [200, 205, 200, 330], "d1": [262, 280] },
+      "ball": { "dribble": "o1" },
+      "bub": { "o1": "Go!" },
+      "say": "*Drive:* Then {1} pushes off and dribbles hard the other way, right past {X1}."
+    },
+    {
+      "pos": { "o1": [232, 95], "d1": [262, 160] },
+      "ball": { "dribble": "o1" },
+      "say": "{1} keeps dribbling all the way to the basket. {X1} is a step behind."
+    },
+    {
+      "pos": { "d1": [255, 125] },
+      "ball": { "shot": "o1" },
+      "bub": { "d1": "Too late!" },
+      "say": "Layup! Fake one way, go the other way. That’s a dribble drive."
+    }
+  ]
+}

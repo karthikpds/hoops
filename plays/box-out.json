@@ -1,0 +1,31 @@
+{
+  "name": "Box Out",
+  "emoji": "📦",
+  "level": 1,
+  "side": "defense",
+  "tags": ["defense", "box out", "rebounding", "rebound", "team defense"],
+  "idea": "When a shot goes up, find your player, put your back on them, then grab the rebound.",
+  "why": "If you keep your player behind you, they can’t get to the ball. The ball bounces to you instead of them.",
+  "tryit": "Play “Box out” with a partner: when the coach yells “Shot!”, turn, find your partner, and keep them behind you for three seconds.",
+  "cast": ["d1", "d4", "d5", "o1", "o4", "o5"],
+  "frames": [
+    {
+      "pos": { "o1": "TOP", "o4": [150, 150], "o5": [350, 150], "d4": [190, 175], "d5": [310, 175] },
+      "ball": "o1",
+      "say": "This time you’re on defense! {1} has the ball. {X4} and {X5} step toward the middle to watch the ball."
+    },
+    {
+      "pos": { "d1": [250, 306], "o4": [165, 128], "d4": [187, 108], "o5": [335, 128], "d5": [313, 108] },
+      "ball": { "shot": "o1", "miss": true },
+      "scr": [["d4", "o4"], ["d5", "o5"]],
+      "bub": { "d1": "Hands up!", "d5": "Box out!" },
+      "say": "{1} shoots and misses! {X4} and {X5} turn, find their player, and push back with their backs. That’s a *box out*."
+    },
+    {
+      "pos": { "d5": [298, 92] },
+      "ball": { "rebound": "d5" },
+      "bub": { "d5": "Got it!" },
+      "say": "The ball bounces off the rim, and {X5} grabs it. {5} never had a chance!"
+    }
+  ]
+}

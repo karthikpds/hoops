@@ -1,0 +1,43 @@
+{
+  "name": "Help Side",
+  "emoji": "🛡️",
+  "level": 2,
+  "side": "defense",
+  "tags": ["defense", "help defense", "help side", "recover", "team defense"],
+  "idea": "Stand between the ball and your player, so you can help a teammate who gets beaten.",
+  "why": "When you are far from the ball, your player can’t score right away. Standing in the middle lets you stop a drive and still get back to your player.",
+  "tryit": "Point one hand at the ball and one hand at your player. If you can see both, you’re in the right spot.",
+  "cast": ["d1", "d2", "d3", "o1", "o2", "o3"],
+  "frames": [
+    {
+      "pos": { "o1": "RW", "o2": "LW", "o3": "TOP", "d2": [195, 170] },
+      "ball": "o1",
+      "bub": { "d2": "I see both!" },
+      "say": "You’re on defense. {2} is far from the ball, so {X2} stands in the middle and watches the ball and {2}. That’s *help side*."
+    },
+    {
+      "pos": { "o1": [320, 85, 455, 120], "d1": [380, 150] },
+      "ball": { "dribble": "o1" },
+      "bub": { "o1": "Drive!" },
+      "say": "{1} beats {X1} and drives along the baseline."
+    },
+    {
+      "pos": { "d2": [286, 72] },
+      "ball": "o1",
+      "bub": { "d2": "Help!" },
+      "say": "*Help!* {X2} slides over and stops {1} before the layup."
+    },
+    {
+      "pos": { "d2": [175, 165, 200, 80], "d1": [345, 105] },
+      "ball": { "pass": ["o1", "o2"] },
+      "bub": { "d2": "Recover!" },
+      "say": "{1} throws it over to {2}. {X2} runs right back toward {2}."
+    },
+    {
+      "pos": { "d2": [108, 215] },
+      "ball": "o2",
+      "bub": { "d2": "Hands up!" },
+      "say": "{X2} gets there in time with a hand up. Help, then recover. That’s team defense!"
+    }
+  ]
+}

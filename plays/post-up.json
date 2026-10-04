@@ -1,0 +1,39 @@
+{
+  "name": "Post Up",
+  "emoji": "💪",
+  "level": 1,
+  "tags": ["post", "post up", "entry pass", "bounce pass", "big player", "layup"],
+  "idea": "Get low near the basket, keep your defender on your back, and call for the ball.",
+  "why": "Close to the basket is the easiest place to score. When your defender is stuck on your back, one big step gets you to the hoop.",
+  "tryit": "Bend your knees, keep your elbows out, and hold one hand up as a target. When you catch it, peek over your shoulder before you turn.",
+  "cast": ["d1", "d5", "o1", "o5"],
+  "frames": [
+    {
+      "pos": { "o1": "RW", "o5": "RE", "d5": [298, 180] },
+      "ball": "o1",
+      "say": "{5} is our big player. {1} has the ball on the wing."
+    },
+    {
+      "pos": { "o5": [358, 112], "d5": [335, 135] },
+      "ball": "o1",
+      "bub": { "o5": "Ball here!" },
+      "say": "*Post up:* {5} runs to the block, gets low and wide, and keeps {X5} on their back."
+    },
+    {
+      "ball": { "pass": ["o1", "o5"], "bounce": true },
+      "say": "*Entry pass:* {1} throws a bounce pass to {5}, on the side away from {X5}."
+    },
+    {
+      "pos": { "o5": [298, 68, 360, 55], "d5": [318, 105] },
+      "ball": { "dribble": "o5" },
+      "bub": { "d5": "Huh?" },
+      "say": "*Drop step:* {5} turns toward the baseline with one big step and one dribble. {X5} is on the wrong side."
+    },
+    {
+      "pos": { "d5": [305, 100] },
+      "ball": { "shot": "o5" },
+      "bub": { "d5": "Too late!" },
+      "say": "Layup! Get low, show your hands, and finish strong."
+    }
+  ]
+}

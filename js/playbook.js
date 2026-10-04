@@ -29,8 +29,9 @@ export function guardSpot(q, d = 34) {
 
 /* ---------- Checking a play file ---------- */
 
-const PLAY_KEYS = ["name", "emoji", "level", "tags", "idea", "why", "tryit", "cast", "frames"];
-const FRAME_KEYS = ["pos", "ball", "scr", "bub", "ask", "say"];
+const PLAY_KEYS = ["name", "emoji", "level", "side", "tags", "idea", "why", "tryit", "cast", "frames"];
+const FRAME_KEYS = ["pos", "ball", "ask", "scr", "bub", "say"];
+const BALL_KEYS = { dribble: ["dribble"], pass: ["pass", "bounce"], handoff: ["handoff"], shot: ["shot", "miss"], rebound: ["rebound"] };
 const isObj = v => !!v && typeof v === "object" && !Array.isArray(v);
 const isText = v => typeof v === "string" && v.trim() !== "";
 const isNum = v => typeof v === "number" && Number.isFinite(v);
@@ -42,9 +43,11 @@ function pointError(v) {
   return "";
 }
 
-/* Who has the ball when a step starts, and when it ends. */
-export const startHolder = b => typeof b === "string" ? b : b.dribble || b.shot || b.pass[0];
-const endHolder = b => typeof b === "string" ? b : b.dribble || b.shot || b.pass[1];
+/* What a frame's ball does: "hold", "dribble", "pass", "handoff", "shot" or "rebound". */
+export const ballKind = b => typeof b === "string" ? "hold" : Object.keys(BALL_KEYS).find(k => k in b);
+/* Who has the ball when a step starts, and when it ends. Nobody has it during a rebound's start or after a miss. */
+export const startHolder = b => typeof b === "string" ? b : b.dribble || b.shot || (b.pass || b.handoff || [null])[0];
+export const endHolder = b => typeof b === "string" ? b : b.dribble || b.rebound || (b.shot ? (b.miss ? null : b.shot) : (b.pass || b.handoff)[1]);
 
 /* A frame's "ask" as a list: the open player (or players) to tap before the step plays. */
 export const askList = ask => ask === undefined ? [] : Array.isArray(ask) ? ask : [ask];
@@ -56,6 +59,7 @@ export function checkPlay(p) {
   Object.keys(p).filter(k => !PLAY_KEYS.includes(k)).forEach(k => errs.push(`unknown field "${k}" (fields are ${PLAY_KEYS.join(", ")})`));
   ["name", "emoji", "idea", "why", "tryit"].forEach(k => need(isText(p[k]), `"${k}" must be some text`));
   need([1, 2, 3].includes(p.level), `"level" must be 1 (Easy), 2 (Medium) or 3 (Tricky)`);
+  if (p.side !== undefined) need(p.side === "offense" || p.side === "defense", `"side" must be "offense" or "defense"`);
   if (p.tags !== undefined) need(Array.isArray(p.tags) && p.tags.every(isText), `"tags" must be a list of words, like ["passing", "layup"]`);
   if (!need(Array.isArray(p.cast) && p.cast.length > 0 && p.cast.every(id => /^[od][1-5]$/.test(id)), `"cast" must list players like "o1" (offense) and "d1" (defense)`)) return errs;
   need(new Set(p.cast).size === p.cast.length, `"cast" lists a player twice`);
@@ -64,6 +68,8 @@ export function checkPlay(p) {
   const inCast = id => p.cast.includes(id);
   const off = id => typeof id === "string" && id[0] === "o" && inCast(id);
   const def = id => typeof id === "string" && id[0] === "d" && inCast(id);
+  const two = v => Array.isArray(v) && v.length === 2 && v.every(off) && v[0] !== v[1];
+  const last = p.frames.length - 1;
   let prevBall = null;
   p.frames.forEach((fr, j) => {
     const at = j === 0 ? "frame 0 (setup)" : `frame ${j}`;
@@ -84,20 +90,32 @@ export function checkPlay(p) {
       });
     }
 
-    const b = fr.ball;
+    const b = fr.ball, kind = b === undefined ? undefined : ballKind(b);
     let ok = false;
-    if (typeof b === "string") ok = need(off(b), `${at}: ball holder "${b}" must be an offensive player in the cast`);
-    else if (isObj(b) && "dribble" in b) ok = need(off(b.dribble), `${at}: dribbler "${b.dribble}" must be an offensive player in the cast`);
-    else if (isObj(b) && "pass" in b) ok = need(Array.isArray(b.pass) && b.pass.length === 2 && b.pass.every(off) && b.pass[0] !== b.pass[1], `${at}: "pass" must be [from, to] with two different offensive players in the cast`);
-    else if (isObj(b) && "shot" in b) ok = need(off(b.shot), `${at}: shooter "${b.shot}" must be an offensive player in the cast`);
-    else errs.push(`${at}: "ball" must be a player like "o1", or { "dribble": "o1" }, { "pass": ["o1", "o2"] } or { "shot": "o1" }`);
-    if (ok && j === 0) need(typeof b === "string" || b.dribble, `${at}: the setup can't pass or shoot; give the ball to a player`);
-    if (ok && b.shot) need(j === p.frames.length - 1, `${at}: a shot must be the last step`);
-    if (ok && prevBall) need(startHolder(b) === endHolder(prevBall), `${at}: ${startHolder(b)} starts with the ball, but ${endHolder(prevBall)} had it after the step before`);
+    if (kind === "hold") ok = need(off(b), `${at}: ball holder "${b}" must be an offensive player in the cast`);
+    else if (kind === "dribble") ok = need(off(b.dribble), `${at}: dribbler "${b.dribble}" must be an offensive player in the cast`);
+    else if (kind === "pass") ok = need(two(b.pass), `${at}: "pass" must be [from, to] with two different offensive players in the cast`);
+    else if (kind === "handoff") ok = need(two(b.handoff), `${at}: "handoff" must be [from, to] with two different offensive players in the cast`);
+    else if (kind === "shot") ok = need(off(b.shot), `${at}: shooter "${b.shot}" must be an offensive player in the cast`);
+    else if (kind === "rebound") ok = need(inCast(b.rebound), `${at}: rebounder "${b.rebound}" must be a player in the cast`);
+    else errs.push(`${at}: "ball" must be a player like "o1", or { "dribble": "o1" }, { "pass": ["o1", "o2"] }, { "handoff": ["o1", "o2"] }, { "shot": "o1" } or { "rebound": "d5" }`);
+    if (ok && kind !== "hold") {
+      const extra = Object.keys(b).filter(k => !BALL_KEYS[kind].includes(k));
+      ok = need(!extra.length, `${at}: "ball" has unknown field "${extra[0]}" (a ${kind} can have ${BALL_KEYS[kind].join(", ")})`);
+    }
+    if (ok && j === 0) ok = need(kind === "hold" || kind === "dribble", `${at}: the setup can't pass or shoot; give the ball to a player`);
+    if (ok && kind === "shot" && !b.miss) need(j === last, `${at}: a shot must be the last step (add "miss": true for a shot that misses)`);
+    if (ok && kind === "shot" && b.miss) need(j < last, `${at}: a missed shot needs a rebound step after it`);
+    if (ok && kind === "rebound" && def(b.rebound)) need(j === last, `${at}: a defensive rebound ends the play, so it must be the last step`);
+    if (ok && prevBall) {
+      if (kind === "rebound") need(prevBall.miss, `${at}: a rebound must come right after a missed shot`);
+      else if (prevBall.miss) need(false, `${at}: after a missed shot, the next step must be a rebound, like { "rebound": "d5" }`);
+      else need(startHolder(b) === endHolder(prevBall), `${at}: ${startHolder(b)} starts with the ball, but ${endHolder(prevBall)} had it after the step before`);
+    }
     prevBall = ok ? b : null;
 
-    if (fr.scr !== undefined) need(Array.isArray(fr.scr) && fr.scr.every(s => Array.isArray(s) && s.length === 2 && off(s[0]) && def(s[1])),
-      `${at}: "scr" must be a list of [screener, defender] pairs, like [["o3", "d2"]]`);
+    if (fr.scr !== undefined) need(Array.isArray(fr.scr) && fr.scr.every(s => Array.isArray(s) && s.length === 2 && ((off(s[0]) && def(s[1])) || (def(s[0]) && off(s[1])))),
+      `${at}: "scr" must be a list of [screener, defender] pairs, like [["o3", "d2"]] (or [defender, player] for a box out)`);
     if (fr.bub !== undefined) need(isObj(fr.bub) && Object.entries(fr.bub).every(([id, t]) => inCast(id) && isText(t)),
       `${at}: "bub" must map players in the cast to short text, like { "o2": "Open!" }`);
     if (fr.ask !== undefined && need(j > 0, `${at}: the setup can't have "ask"; put it on the step that passes to the open player`)) {
@@ -112,10 +130,11 @@ export function checkPlay(p) {
 
 /* ---------- Resolving a play for animation ---------- */
 
-/* Fills in every player's spot for every frame (res) plus curve control points (ctrl).
+/* Fills in every player's spot for every frame (res) plus curve control points (ctrl), when each handoff
+   happens (handoffT: the moment giver and taker are closest), and where a missed shot bounces to (missAt).
    Call only on a play that passed checkPlay. */
 export function resolvePlay(raw, id) {
-  const play = { id, tags: [], ...raw, res: [], ctrl: [] };
+  const play = { id, tags: [], side: "offense", ...raw, res: [], ctrl: [], handoffT: [], missAt: [] };
   play.frames.forEach((fr, j) => {
     const r = {}, c = {}, pos = fr.pos || {};
     play.cast.forEach(pid => {
@@ -126,6 +145,18 @@ export function resolvePlay(raw, id) {
     if (j === 0) play.cast.forEach(pid => { if (!r[pid]) { r[pid] = guardSpot(r["o" + pid.slice(1)]); c[pid] = null; } });
     play.res.push(r); play.ctrl.push(c);
   });
+  play.frames.forEach((fr, k) => {
+    const b = fr.ball;
+    if (k > 0 && b.handoff) {
+      let best = 0, bd = Infinity;
+      for (let i = 0; i <= 40; i++) { const d = dist(posAt(play, k, i / 40, b.handoff[0]), posAt(play, k, i / 40, b.handoff[1])); if (d < bd) { bd = d; best = i / 40; } }
+      play.handoffT[k] = Math.min(.85, Math.max(.15, best));
+    }
+    if (b.miss) {
+      const q = play.res[k + 1][play.frames[k + 1].ball.rebound], dx = q[0] - BASKET[0], dy = q[1] - BASKET[1], L = Math.hypot(dx, dy) || 1;
+      play.missAt[k] = [BASKET[0] + dx / L * 40, BASKET[1] + dy / L * 40];
+    }
+  });
   play.index = searchIndex(play);
   return play;
 }
@@ -135,6 +166,85 @@ export function posAt(play, k, t, id) {
   const a = play.res[k - 1][id], b = play.res[k][id], c = play.ctrl[k][id], e = ease(t);
   if (c) { const u = 1 - e; return [u * u * a[0] + 2 * u * e * c[0] + e * e * b[0], u * u * a[1] + 2 * u * e * c[1] + e * e * b[1]]; }
   return [a[0] + (b[0] - a[0]) * e, a[1] + (b[1] - a[1]) * e];
+}
+
+/* ---------- Lint: checks that need a resolved play ---------- */
+
+export const MIN_GAP = 26;     // closest two player centers may get (circles have radius 17)
+export const MAX_BUBBLE = 16;  // speech bubbles get too wide past this many characters
+export const MAX_HANDOFF = 50; // giver and taker must get at least this close to hand the ball over
+
+/* Who is out of bounds, caption chips, bubble length, handoff distance, "Who's open?" answers,
+   and players overlapping mid-move. Returns { errors, warnings } as lists of messages. */
+export function lintPlay(play) {
+  const errors = [], warnings = [];
+  // Only the inbounder (holding the ball off the court in the setup) may be out of bounds, and only until they step on.
+  const b0 = play.frames[0].ball, inbounder = typeof b0 === "string" ? b0 : null;
+  let stepped = false;
+  play.res.forEach((r, j) => play.cast.forEach(pid => {
+    if (pid === inbounder && onCourt(r[pid])) stepped = true;
+    if (onCourt(r[pid])) return;
+    if (pid !== inbounder) errors.push(`frame ${j}: ${pid} is out of bounds; only the inbounder (the player holding the ball in the setup) can stand off the court`);
+    else if (stepped) errors.push(`frame ${j}: ${pid} steps back out of bounds after coming onto the court`);
+  }));
+  if (b0.dribble && !onCourt(play.res[0][b0.dribble])) errors.push(`frame 0: ${b0.dribble} can't dribble out of bounds; give them the ball as "${b0.dribble}" to inbound it`);
+
+  // A "Who's open?" answer should have more space (distance to the nearest defender) than every other
+  // teammate without the ball at the moment the question pops up: the end of the step before.
+  const defenders = play.cast.filter(pid => pid[0] === "d");
+  const space = (r, pid) => Math.min(...defenders.map(d => dist(r[pid], r[d])));
+  play.frames.forEach((fr, j) => {
+    const open = askList(fr.ask);
+    if (!open.length || !defenders.length) return;
+    const r = play.res[j - 1], least = Math.min(...open.map(pid => space(r, pid)));
+    const rival = play.cast.find(pid => pid[0] === "o" && pid !== startHolder(fr.ball) && !open.includes(pid) && space(r, pid) >= least);
+    if (rival) warnings.push(`frame ${j}: "ask" says ${open.join(" or ")} is open, but ${rival} has as much space when the question pops up`);
+  });
+
+  play.frames.forEach((fr, j) => {
+    for (const [, x, n] of fr.say.matchAll(/\{(X?)(\d)\}/g)) {
+      const pid = (x ? "d" : "o") + n;
+      if (!play.cast.includes(pid)) errors.push(`frame ${j}: caption mentions {${x}${n}} but ${pid} is not in the cast`);
+    }
+    Object.entries(fr.bub || {}).forEach(([pid, text]) => {
+      if (text.length > MAX_BUBBLE) warnings.push(`frame ${j}: ${pid}'s bubble "${text}" is long; keep bubbles to ${MAX_BUBBLE} characters`);
+    });
+    const h = fr.ball && fr.ball.handoff;
+    if (h && j > 0) {
+      const t = play.handoffT[j], d = dist(posAt(play, j, t, h[0]), posAt(play, j, t, h[1]));
+      if (d > MAX_HANDOFF) warnings.push(`step ${j}: ${h[0]} and ${h[1]} are ${d.toFixed(0)} apart at their closest; bring them within ${MAX_HANDOFF} to hand the ball over`);
+    }
+  });
+  for (let k = 1; k < play.frames.length; k++) {
+    const close = {};
+    for (let i = 0; i <= 20; i++) {
+      const t = i / 20, P = {};
+      play.cast.forEach(pid => { P[pid] = posAt(play, k, t, pid); });
+      play.cast.forEach((a, ai) => play.cast.slice(ai + 1).forEach(b => {
+        const d = dist(P[a], P[b]), key = a + b;
+        if (d < MIN_GAP && (!close[key] || d < close[key].d)) close[key] = { a, b, d, t };
+      }));
+    }
+    Object.values(close).forEach(({ a, b, d, t }) => errors.push(
+      `step ${k}: ${a} and ${b} overlap (${d.toFixed(0)} apart at t=${t.toFixed(2)}); keep players at least ${MIN_GAP} apart, ideally 34`));
+  }
+  return { errors, warnings };
+}
+
+/* ---------- Writing a play file ---------- */
+
+/* JSON on one line with a space inside braces and after commas: { "o1": "TOP", "o2": [160, 100] } */
+const inline = v => Array.isArray(v) ? `[${v.map(inline).join(", ")}]`
+  : isObj(v) ? (Object.keys(v).length ? `{ ${Object.entries(v).map(([k, x]) => `${JSON.stringify(k)}: ${inline(x)}`).join(", ")} }` : "{}")
+  : JSON.stringify(v);
+const ordered = (o, keys) => [...keys.filter(k => k in o), ...Object.keys(o).filter(k => !keys.includes(k))];
+
+/* A play as the text of its file, in the layout every play in plays/ uses: one field per line, frames one level down. */
+export function formatPlay(p) {
+  const field = (k, v, pad) => `${pad}${JSON.stringify(k)}: ${inline(v)}`;
+  const lines = ordered(p, PLAY_KEYS).map(k => k !== "frames" || !Array.isArray(p.frames) ? field(k, p[k], "  ")
+    : `  "frames": [\n${p.frames.map(fr => `    {\n${ordered(fr, FRAME_KEYS).map(fk => field(fk, fr[fk], "      ")).join(",\n")}\n    }`).join(",\n")}\n  ]`);
+  return `{\n${lines.join(",\n")}\n}\n`;
 }
 
 /* ---------- Search ---------- */

@@ -1,0 +1,35 @@
+{
+  "name": "Close Out",
+  "emoji": "✋",
+  "level": 1,
+  "side": "defense",
+  "tags": ["defense", "close out", "hands up", "contest", "shooter"],
+  "idea": "Run to the shooter fast, then take short steps and get a hand up high.",
+  "why": "If you run all the way in, the shooter just dribbles past you. Short steps at the end let you stop in time and still block their view of the basket.",
+  "tryit": "Close-out drill: start under the basket, sprint to a cone, then finish with five short, choppy steps and one hand high.",
+  "cast": ["d1", "d2", "o1", "o2"],
+  "frames": [
+    {
+      "pos": { "o1": "TOP", "o2": "RW", "d2": [300, 180] },
+      "ball": "o1",
+      "say": "You’re on defense. {X2} is helping in the middle, far away from {2}."
+    },
+    {
+      "pos": { "d2": [368, 212], "d1": [280, 290] },
+      "ball": { "pass": ["o1", "o2"] },
+      "bub": { "d2": "Ball!" },
+      "say": "*Close out!* {1} passes to {2}, so {X2} sprints toward {2}."
+    },
+    {
+      "pos": { "d2": [389, 222] },
+      "ball": "o2",
+      "bub": { "d2": "Hands up!" },
+      "say": "Near {2}, {X2} takes short, choppy steps and puts a hand up high. Don’t fly past!"
+    },
+    {
+      "pos": { "d1": [255, 302] },
+      "ball": { "pass": ["o2", "o1"] },
+      "say": "{2} can’t get a good shot, so {2} passes the ball back out. Great close out!"
+    }
+  ]
+}

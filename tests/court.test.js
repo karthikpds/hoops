@@ -1,0 +1,91 @@
+// Tests for js/court.js, the SVG drawing shared by the page, the print sheet and the editor. Run with:  npm test
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { checkPlay, dist, resolvePlay } from "../js/playbook.js";
+import { ballState, courtView, pathsUpTo, playersAt, renderCourt, screensAt, stepAt, stepPaths } from "../js/court.js";
+
+const load = id => resolvePlay(JSON.parse(readFileSync(new URL(`../plays/${id}.json`, import.meta.url), "utf8")), id);
+const count = (s, part) => s.split(part).length - 1;
+
+/* Pass, handoff, missed shot and a defensive rebound in one small defense play */
+const raw = {
+  name: "Test", emoji: "🏀", level: 1, side: "defense", idea: "i", why: "w", tryit: "t",
+  cast: ["d1", "d2", "o1", "o2"],
+  frames: [
+    { pos: { o1: "TOP", o2: "RW" }, ball: "o1", say: "Setup." },
+    { pos: { d1: [300, 260] }, ball: { pass: ["o1", "o2"], bounce: true }, say: "Pass." },
+    { pos: { o1: [380, 300], o2: [300, 280, 360, 330] }, ball: { handoff: ["o2", "o1"] }, say: "Handoff." },
+    { pos: { d2: [330, 260] }, ball: { shot: "o1", miss: true }, scr: [["d2", "o2"]], say: "Miss." },
+    { pos: { d1: [300, 130] }, ball: { rebound: "d1" }, say: "Rebound." }
+  ]
+};
+
+test("the drawing test play is valid", () => assert.deepEqual(checkPlay(raw), []));
+const play = resolvePlay(raw, "t");
+
+test("stepAt splits the timeline into steps", () => {
+  assert.deepEqual(stepAt(0), { k: 1, t: 0 });
+  assert.deepEqual(stepAt(1), { k: 1, t: 1 });
+  assert.deepEqual(stepAt(1.25), { k: 2, t: .25 });
+  const near = stepAt(3 - 1e-12);
+  assert.equal(near.k, 3);
+  assert.ok(Math.abs(near.t - 1) < 1e-9);
+});
+
+test("stepPaths draws each kind of move", () => {
+  assert.equal(count(stepPaths(play, 1), "mv pass"), 1);
+  assert.equal(count(stepPaths(play, 1), 'class="bnc"'), 1, "a bounce pass gets a bounce dot");
+  assert.equal(count(stepPaths(play, 1), "dteam"), 1, "defenders get red lines in a defense play");
+  assert.equal(count(stepPaths(play, 2), 'class="ho"'), 2, "a handoff is two short bars");
+  assert.equal(count(stepPaths(play, 2), "mv dribble"), 1, "the giver dribbles into the handoff");
+  assert.equal(count(stepPaths(play, 3), "mv shot"), 1);
+  assert.equal(count(stepPaths(play, 4), "mv pass"), 1, "the rebound flies off the rim");
+  const offense = resolvePlay({ ...raw, side: "offense" }, "o");
+  assert.equal(count(stepPaths(offense, 1), "dteam"), 0, "no defender lines in an offense play");
+});
+
+test("pathsUpTo fades earlier steps, and follow fades other players", () => {
+  assert.equal(count(pathsUpTo(play, 3), 'opacity="0.28"'), 2);
+  assert.equal(count(pathsUpTo(play, 3), 'opacity="1"'), 1);
+  assert.ok(stepPaths(play, 2, "d1").includes('<g opacity=".18"><line class="ho"'), "the handoff isn't about d1, so it fades");
+  assert.ok(!stepPaths(play, 2, "o1").includes('<g opacity=".18"><line class="ho"'), "the handoff is about o1, so it stays bright");
+});
+
+test("the ball changes hands at the handoff", () => {
+  const at = t => ballState(play, 2, t, playersAt(play, 2, t));
+  assert.equal(at(0).holder, "o2");
+  assert.equal(at(1).holder, "o1");
+  assert.equal(at(play.handoffT[2]).holder, null);
+});
+
+test("a missed shot ends where the rebound starts", () => {
+  const end = ballState(play, 3, 1, playersAt(play, 3, 1)), start = ballState(play, 4, 0, playersAt(play, 4, 0));
+  assert.ok(dist(end.g, start.g) < 1e-9);
+  assert.ok(Math.abs(end.h - start.h) < 1e-9);
+  assert.equal(ballState(play, 4, 1, playersAt(play, 4, 1)).holder, "d1");
+});
+
+test("screens and box outs show up at the end of their step", () => {
+  assert.deepEqual(screensAt(play, 2.5), []);
+  assert.deepEqual(screensAt(play, 3), [["d2", "o2"]]);
+  assert.deepEqual(screensAt(play, 3.1), [["d2", "o2"]], "still there early in the next step");
+  assert.deepEqual(screensAt(play, 3.5), []);
+});
+
+test("courtView widens only for an inbounder", () => {
+  assert.deepEqual(courtView(load("give-and-go")), [-14, -14, 514, 484]);
+  assert.ok(courtView(load("stack-inbound"))[1] < -14, "a baseline inbounder widens the top");
+  assert.ok(courtView(load("sideline-stagger"))[2] > 514, "a sideline inbounder widens the side");
+});
+
+test("renderCourt draws a complete still picture", () => {
+  const svg = renderCourt(load("give-and-go"), 2, { label: "Give & Go <step 2>" });
+  assert.match(svg, /^<svg [^>]*viewBox="-14 -14 528 498"/);
+  assert.equal(count(svg, 'class="pl '), 4);
+  assert.equal(count(svg, 'class="ballc"'), 1);
+  assert.ok(svg.includes('aria-label="Give &amp; Go &lt;step 2&gt;"'), "labels are escaped");
+  assert.ok(!svg.includes('id="net"'), "copies don't repeat the page's ids");
+  assert.equal(count(renderCourt(play, 3, { lines: false }), 'class="mv '), 0);
+  assert.ok(renderCourt(play, 3).includes('class="wall"'));
+});

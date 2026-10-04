@@ -2,65 +2,13 @@
 // Run after adding, renaming or removing a play:  npm run build
 // Files starting with "_" (drafts) are skipped. Exits with code 1 if any play has an error.
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
-import { askList, checkPlay, dist, onCourt, posAt, resolvePlay, startHolder } from "../js/playbook.js";
+import { checkPlay, lintPlay, resolvePlay } from "../js/playbook.js";
 
 const DIR = new URL("../plays/", import.meta.url);
 const INDEX = new URL("index.json", DIR);
-const MIN_GAP = 26;     // closest two player centers may get (circles have radius 17)
-const MAX_BUBBLE = 16;  // speech bubbles get too wide past this many characters
 
 const errors = [], warnings = [];
 const report = (list, file, msg) => list.push({ file, msg });
-
-/* Extra checks on a resolved play: who is out of bounds, caption chips, bubble length, "Who's open?" answers,
-   and players overlapping mid-move. */
-function lint(play, file) {
-  // Only the inbounder (holding the ball off the court in the setup) may be out of bounds, and only until they step on.
-  const b0 = play.frames[0].ball, inbounder = typeof b0 === "string" ? b0 : null;
-  let stepped = false;
-  play.res.forEach((r, j) => play.cast.forEach(pid => {
-    if (pid === inbounder && onCourt(r[pid])) stepped = true;
-    if (onCourt(r[pid])) return;
-    if (pid !== inbounder) report(errors, file, `frame ${j}: ${pid} is out of bounds; only the inbounder (the player holding the ball in the setup) can stand off the court`);
-    else if (stepped) report(errors, file, `frame ${j}: ${pid} steps back out of bounds after coming onto the court`);
-  }));
-  if (b0.dribble && !onCourt(play.res[0][b0.dribble])) report(errors, file, `frame 0: ${b0.dribble} can't dribble out of bounds; give them the ball as "${b0.dribble}" to inbound it`);
-
-  // A "Who's open?" answer should have more space (distance to the nearest defender) than every other
-  // teammate without the ball at the moment the question pops up: the end of the step before.
-  const defenders = play.cast.filter(pid => pid[0] === "d");
-  const space = (r, pid) => Math.min(...defenders.map(d => dist(r[pid], r[d])));
-  play.frames.forEach((fr, j) => {
-    const open = askList(fr.ask);
-    if (!open.length || !defenders.length) return;
-    const r = play.res[j - 1], least = Math.min(...open.map(pid => space(r, pid)));
-    const rival = play.cast.find(pid => pid[0] === "o" && pid !== startHolder(fr.ball) && !open.includes(pid) && space(r, pid) >= least);
-    if (rival) report(warnings, file, `frame ${j}: "ask" says ${open.join(" or ")} is open, but ${rival} has as much space when the question pops up`);
-  });
-
-  play.frames.forEach((fr, j) => {
-    for (const [, x, n] of fr.say.matchAll(/\{(X?)(\d)\}/g)) {
-      const pid = (x ? "d" : "o") + n;
-      if (!play.cast.includes(pid)) report(errors, file, `frame ${j}: caption mentions {${x}${n}} but ${pid} is not in the cast`);
-    }
-    Object.entries(fr.bub || {}).forEach(([pid, text]) => {
-      if (text.length > MAX_BUBBLE) report(warnings, file, `frame ${j}: ${pid}'s bubble "${text}" is long; keep bubbles to ${MAX_BUBBLE} characters`);
-    });
-  });
-  for (let k = 1; k < play.frames.length; k++) {
-    const close = {};
-    for (let i = 0; i <= 20; i++) {
-      const t = i / 20, P = {};
-      play.cast.forEach(pid => { P[pid] = posAt(play, k, t, pid); });
-      play.cast.forEach((a, ai) => play.cast.slice(ai + 1).forEach(b => {
-        const d = dist(P[a], P[b]), key = a + b;
-        if (d < MIN_GAP && (!close[key] || d < close[key].d)) close[key] = { a, b, d, t };
-      }));
-    }
-    Object.values(close).forEach(({ a, b, d, t }) => report(errors, file,
-      `step ${k}: ${a} and ${b} overlap (${d.toFixed(0)} apart at t=${t.toFixed(2)}); keep players at least ${MIN_GAP} apart, ideally 34`));
-  }
-}
 
 const files = readdirSync(DIR).filter(f => f.endsWith(".json") && f !== "index.json" && !f.startsWith("_")).sort();
 const plays = [];
@@ -73,8 +21,9 @@ for (const file of files) {
   const problems = checkPlay(raw);
   problems.forEach(msg => report(errors, file, msg));
   if (problems.length) continue;
-  const play = resolvePlay(raw, id);
-  lint(play, file);
+  const play = resolvePlay(raw, id), lint = lintPlay(play);
+  lint.errors.forEach(msg => report(errors, file, msg));
+  lint.warnings.forEach(msg => report(warnings, file, msg));
   plays.push(play);
 }
 const names = new Map();

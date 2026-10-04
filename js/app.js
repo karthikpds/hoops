@@ -1,20 +1,20 @@
 // The page: loads the plays listed in plays/index.json, runs the library (search, level filter, links)
-// and animates the selected play on the court.
-import { BASKET as B, LEVELS as LV, askList, checkPlay, dist, ease, isThree, posAt, resolvePlay, searchPlays, startHolder } from "./playbook.js";
+// and animates the selected play on the court. The court drawing itself lives in court.js.
+import { LEVELS as LV, askList, checkPlay, dist, isThree, resolvePlay, searchPlays, startHolder } from "./playbook.js";
+import { ballState, bubblesAt, bubblesSVG, courtBackground, courtView, esc, f1, pathsUpTo, playerSVG, playersAt, renderCourt, screensAt, stepAt, wallsSVG } from "./court.js";
 
 const NS="http://www.w3.org/2000/svg";
-const f1=v=>v.toFixed(1);
-const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]);
 
 /* DOM */
 const $=id=>document.getElementById(id);
+$("lyPaths").insertAdjacentHTML("beforebegin",courtBackground(true));
 const lyPaths=$("lyPaths"),lyWalls=$("lyWalls"),lyPlayers=$("lyPlayers"),lyBub=$("lyBub"),lyFx=$("lyFx");
 const ballEl=$("ball"),shadowEl=$("bshadow"),netEl=$("net");
 const capEl=$("caption"),badgeEl=$("badge"),dotsEl=$("dots"),playsEl=$("plays");
 const btnPlay=$("btnPlay"),btnBack=$("btnBack"),btnNext=$("btnNext"),btnRestart=$("btnRestart"),nextPlayBtn=$("nextPlay");
 const playIcon=$("playIcon"),playTxt=$("playTxt");
-const qEl=$("q"),countEl=$("count"),shareBtn=$("btnShare"),courtEl=$("court");
-const quizEl=$("quiz"),choicesEl=$("choices");
+const qEl=$("q"),countEl=$("count"),shareBtn=$("btnShare"),printBtn=$("btnPrint"),courtEl=$("court");
+const quizEl=$("quiz"),choicesEl=$("choices"),followEl=$("follow"),printEl=$("printSheet"),speakBtn=$("togS");
 const ICON_PLAY='<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M7 4.8v14.4a1 1 0 0 0 1.52.85l11.3-7.2a1 1 0 0 0 0-1.7L8.52 3.95A1 1 0 0 0 7 4.8z"/></svg>';
 const ICON_PAUSE='<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><rect x="5.5" y="4.5" width="4.6" height="15" rx="1.6"/><rect x="13.9" y="4.5" width="4.6" height="15" rx="1.6"/></svg>';
 const ICON_AGAIN='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12a7.5 7.5 0 1 0 2.4-5.5"/><path d="M4.5 4v5h5"/></svg>';
@@ -25,6 +25,8 @@ let cur=0,p=0,target=0,playing=false,holdUntil=0,speed=1,showD=true,showL=true;
 let els={},lastPathKey="",lastCapKey="",lastUI="",lastT=performance.now(),shareTimer=0;
 let vb=[-14,-14,514,484];  // court view as x0,y0,x1,y1
 let quizOn=true,quiz=null,answered=new Set(),curP={};  // "Who's open?" mode; quiz is the question on screen, if any
+let follow="";  // the one player being followed; everyone else fades
+let speakOn=false,speakUntil=0,speakTok=0;  // read aloud; speakUntil is when the current caption should be done
 const HOLD=1500;
 
 /* Loading: plays/index.json lists the play ids; each play lives in plays/<id>.json */
@@ -52,7 +54,7 @@ function refreshList(){
     const b=document.createElement("button");
     b.className="pick"+(query.trim()&&i===0?" hit":"");b.type="button";b.dataset.id=pl.id;
     b.setAttribute("aria-pressed",String(pl===plays[cur]));
-    b.innerHTML=`<span class="pe" aria-hidden="true">${esc(pl.emoji)}</span><span><span class="pn">${esc(pl.name)}</span><span class="pl2">${LV[pl.level]}</span></span>`;
+    b.innerHTML=`<span class="pe" aria-hidden="true">${esc(pl.emoji)}</span><span><span class="pn">${esc(pl.name)}</span><span class="pl2">${LV[pl.level]}${pl.side==="defense"?" · Defense":""}</span></span>`;
     b.addEventListener("click",()=>selectPlay(plays.indexOf(pl)));
     playsEl.appendChild(b);
   });
@@ -81,16 +83,8 @@ function revealChip(pl,smooth){
 }
 
 function buildPlayers(){
-  lyPlayers.innerHTML="";els={};
-  plays[cur].cast.forEach(id=>{
-    const off=id[0]==="o",num=id.slice(1);
-    const g=document.createElementNS(NS,"g");
-    g.setAttribute("class","pl "+(off?"po":"pd"));
-    g.innerHTML='<g class="in">'+(off?'<circle class="halo" r="25"/><circle class="ring" r="24"/>':"")+
-      '<circle class="sh" cx="1.5" cy="3.5" r="17"/><circle class="body" r="17"/>'+
-      `<text class="lbl" y="1" text-anchor="middle" dominant-baseline="central">${off?num:"X"+num}</text></g>`;
-    lyPlayers.appendChild(g);els[id]=g;
-  });
+  lyPlayers.innerHTML=plays[cur].cast.map(id=>playerSVG(id)).join("");
+  els={};lyPlayers.querySelectorAll(".pl").forEach(g=>{els[g.dataset.id]=g;});
 }
 
 function buildDots(){
@@ -104,184 +98,58 @@ function buildDots(){
   }
 }
 
+/* "Follow" picks one player on your team (blue, or red in a defense play); everyone else fades */
+const team=pl=>pl.side==="defense"?"d":"o";
+function buildFollow(){
+  const pl=plays[cur],tm=team(pl);
+  followEl.innerHTML=`<span class="fl" aria-hidden="true">👀 Follow</span><div class="seg">`+
+    [["","Everyone"],...pl.cast.filter(id=>id[0]===tm).sort().map(id=>[id,(tm==="d"?"X":"")+id.slice(1)])]
+      .map(([id,t])=>`<button type="button" data-id="${id}" aria-pressed="${id===follow}"${id?` class="fp ${tm==="d"?"fd":"fo"}" aria-label="Follow ${tm==="d"?"defender X":"player "}${id.slice(1)}"`:""}>${t}</button>`).join("")+"</div>";
+}
+function setFollow(id){
+  follow=id===follow?"":id;
+  followEl.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.id===follow)));
+}
+
 function fillInfo(){
-  const pl=plays[cur];
+  const pl=plays[cur],dfn=pl.side==="defense";
   $("piEmoji").textContent=pl.emoji;
   $("piName").textContent=pl.name;
   $("piLvl").innerHTML=[1,2,3].map(i=>`<i class="${i<=pl.level?"on":""}"></i>`).join("")+`<span>${LV[pl.level]}</span>`;
   $("piTags").innerHTML=pl.tags.map(t=>`<button type="button" class="tag" title="Find more ${esc(t)} plays">${esc(t)}</button>`).join("");
+  $("piSide").hidden=!dfn;
   $("piIdea").textContent=pl.idea;
   $("piWhy").textContent=pl.why;
   $("piTry").textContent=pl.tryit;
+  $("lgBlue").textContent=dfn?"Blue is the other team this time. The number tells you which player.":"Blue is your team. The number tells you which player.";
+  $("lgRed").textContent=dfn?"Red is your team! X1 guards player 1.":"Red is the defense. X1 guards player 1.";
 }
 
 /* updateUrl=false leaves the address bar alone (used on first load, so a bare URL stays bare) */
 function selectPlay(i,updateUrl=true){
-  cur=i;p=0;target=0;playing=false;holdUntil=0;quiz=null;answered.clear();
-  frameCourt(plays[i]);buildPlayers();buildDots();fillInfo();
+  cur=i;p=0;target=0;playing=false;holdUntil=0;quiz=null;answered.clear();follow="";
+  frameCourt(plays[i]);buildPlayers();buildDots();buildFollow();fillInfo();
   lyFx.innerHTML="";lastPathKey="";lastCapKey="";lastUI="";
   playsEl.querySelectorAll(".pick").forEach(c=>c.setAttribute("aria-pressed",String(c.dataset.id===plays[i].id)));
   revealChip(plays[i],updateUrl);  // smooth when someone picks a play, instant on first load
   if(updateUrl)history.replaceState(null,"","#"+plays[i].id);
   document.title=`${plays[i].name} · Hoops Playbook`;
 }
-/* The half court plus a thin apron, widened on any side where an inbounder stands out of bounds */
 function frameCourt(play){
-  let x0=-14,y0=-14,x1=514;const y1=484;
-  play.res.forEach(r=>Object.values(r).forEach(q=>{x0=Math.min(x0,q[0]-26);y0=Math.min(y0,q[1]-26);x1=Math.max(x1,q[0]+26);}));
-  vb=[x0,y0,x1,y1];
-  courtEl.setAttribute("viewBox",`${x0} ${y0} ${x1-x0} ${y1-y0}`);
+  vb=courtView(play);
+  courtEl.setAttribute("viewBox",`${vb[0]} ${vb[1]} ${vb[2]-vb[0]} ${vb[3]-vb[1]}`);
 }
 function indexFromHash(){
   let id="";try{id=decodeURIComponent(location.hash.slice(1));}catch{}
   return plays.findIndex(pl=>pl.id===id);
 }
 
-/* Geometry */
-function sampleQ(a,c,b,N){
-  N=N||40;const out=[];
-  for(let i=0;i<=N;i++){const e=i/N;
-    if(c){const u=1-e;out.push([u*u*a[0]+2*u*e*c[0]+e*e*b[0],u*u*a[1]+2*u*e*c[1]+e*e*b[1]]);}
-    else out.push([a[0]+(b[0]-a[0])*e,a[1]+(b[1]-a[1])*e]);}
-  return out;
-}
-function cumLen(pts){const L=[0];for(let i=1;i<pts.length;i++)L.push(L[i-1]+dist(pts[i-1],pts[i]));return L;}
-function pointAt(pts,L,s){
-  if(s<=0)return pts[0].slice();
-  const T=L[L.length-1];if(s>=T)return pts[pts.length-1].slice();
-  let i=1;while(L[i]<s)i++;
-  const r=(s-L[i-1])/((L[i]-L[i-1])||1);
-  return [pts[i-1][0]+(pts[i][0]-pts[i-1][0])*r,pts[i-1][1]+(pts[i][1]-pts[i-1][1])*r];
-}
-function trimmed(pts,s0,s1){
-  const L=cumLen(pts),T=L[L.length-1],a=s0,b=T-s1;
-  if(b-a<8)return null;
-  const out=[];for(let s=a;s<b;s+=3)out.push(pointAt(pts,L,s));out.push(pointAt(pts,L,b));
-  return out;
-}
-function zig(tp){
-  const n=tp.length,out=[];
-  for(let i=0;i<n;i++){
-    const a=tp[Math.max(0,i-1)],b=tp[Math.min(n-1,i+1)];
-    let dx=b[0]-a[0],dy=b[1]-a[1];const L=Math.hypot(dx,dy)||1;dx/=L;dy/=L;
-    const taper=Math.max(0,Math.min(1,(n-1-i)*3/14,i*3/6));
-    const off=5.5*Math.sin(2*Math.PI*(i*3)/14)*taper;
-    out.push([tp[i][0]-dy*off,tp[i][1]+dx*off]);
-  }
-  return out;
-}
-const toD=pts=>"M"+pts.map(q=>f1(q[0])+" "+f1(q[1])).join(" L");
-function endDir(tp){
-  const n=tp.length,E=tp[n-1],S=tp[Math.max(0,n-4)];
-  let dx=E[0]-S[0],dy=E[1]-S[1];const L=Math.hypot(dx,dy)||1;return [E,dx/L,dy/L];
-}
-function head(tp,cls){
-  const [E,dx,dy]=endDir(tp);
-  const tip=[E[0]+dx*4,E[1]+dy*4],bx=E[0]-dx*8,by=E[1]-dy*8;
-  return `<polygon class="ah ${cls}" points="${f1(tip[0])},${f1(tip[1])} ${f1(bx-dy*6.5)},${f1(by+dx*6.5)} ${f1(bx+dy*6.5)},${f1(by-dx*6.5)}"/>`;
-}
-function drawMove(pts,type,bounce){
-  const ball=type==="pass"||type==="shot";
-  const tp=trimmed(pts,type==="shot"?18:20,type==="shot"?10:22);
-  if(!tp)return "";
-  const line=type==="dribble"?zig(tp):tp;
-  const d=toD(line);
-  let h=`<path class="mvh" d="${d}"/><path class="mv ${type}" d="${d}"/>`;
-  if(type==="screen"){
-    const [E,dx,dy]=endDir(tp);
-    h+=`<line class="mv-t" x1="${f1(E[0]-dy*12)}" y1="${f1(E[1]+dx*12)}" x2="${f1(E[0]+dy*12)}" y2="${f1(E[1]-dx*12)}"/>`;
-  } else {
-    h+=head(tp,ball?"pa":"mo");
-  }
-  if(bounce){
-    const L=cumLen(tp),m=pointAt(tp,L,L[L.length-1]*0.6);
-    h+=`<circle class="bnc" cx="${f1(m[0])}" cy="${f1(m[1])}" r="4.2"/>`;
-  }
-  return h;
-}
-function stepPaths(play,j){
-  const fr=play.frames[j],a=play.res[j-1],b=play.res[j],c=play.ctrl[j];
-  const bl=fr.ball,dribbler=bl&&bl.dribble,screeners=(fr.scr||[]).map(x=>x[0]);
-  let h="";
-  play.cast.forEach(id=>{
-    if(id[0]!=="o")return;
-    if(dist(a[id],b[id])<3)return;
-    const type=screeners.includes(id)?"screen":(dribbler===id?"dribble":"cut");
-    h+=drawMove(sampleQ(a[id],c[id],b[id]),type);
-  });
-  if(bl&&bl.pass){const [x,y]=bl.pass;h+=drawMove(sampleQ(a[x],null,b[y],10),"pass",bl.bounce);}
-  if(bl&&bl.shot){h+=drawMove(sampleQ(b[bl.shot],null,B,10),"shot");}
-  return h;
-}
-function drawPaths(play,stepIdx){
-  let h="";
-  if(showL){for(let j=1;j<=stepIdx;j++){h+=`<g opacity="${j===stepIdx?1:0.28}">${stepPaths(play,j)}</g>`;}}
-  lyPaths.innerHTML=h;
-}
-
-/* Ball */
-const handG=q=>[q[0]+12,q[1]+6];
-function ballState(play,k,t,P,now){
-  const b=play.frames[k].ball,e=ease(t);
-  let g,h,s=1,holder=null;
-  if(typeof b==="string"||b.dribble){
-    holder=typeof b==="string"?b:b.dribble;
-    g=handG(P[holder]);
-    h=b.dribble?15*Math.abs(Math.sin(now/190)):13;
-  } else if(b.pass){
-    const ga=handG(P[b.pass[0]]),gc=handG(P[b.pass[1]]);
-    g=[ga[0]+(gc[0]-ga[0])*e,ga[1]+(gc[1]-ga[1])*e];
-    h=b.bounce?(e<.6?13*(1-e/.6):13*(e-.6)/.4):13+6*Math.sin(Math.PI*e);
-    holder=t<.03?b.pass[0]:(t>.97?b.pass[1]:null);
-  } else if(b.shot){
-    const gs=handG(P[b.shot]),d=dist(gs,B),H=Math.min(95,22+d*.28);
-    g=[gs[0]+(B[0]-gs[0])*t,gs[1]+(B[1]-gs[1])*t];
-    h=13*(1-t)+H*Math.sin(Math.PI*t);
-    s=(1+.45*Math.sin(Math.PI*t)*(H/95))*(1-.12*t);
-    holder=t<.03?b.shot:null;
-  }
-  return {g,h,s,holder};
-}
-
-/* Screens and speech bubbles */
-function bubblePath(x,y,w,h,px,up){
-  const r=11;px=Math.max(x+r+7,Math.min(x+w-r-7,px));
-  if(!up) return `M${x+r} ${y} H${x+w-r} Q${x+w} ${y} ${x+w} ${y+r} V${y+h-r} Q${x+w} ${y+h} ${x+w-r} ${y+h} H${px+6} L${px} ${y+h+7} L${px-6} ${y+h} H${x+r} Q${x} ${y+h} ${x} ${y+h-r} V${y+r} Q${x} ${y} ${x+r} ${y} Z`;
-  return `M${x+r} ${y} H${px-6} L${px} ${y-7} L${px+6} ${y} H${x+w-r} Q${x+w} ${y} ${x+w} ${y+r} V${y+h-r} Q${x+w} ${y+h} ${x+w-r} ${y+h} H${x+r} Q${x} ${y+h} ${x} ${y+h-r} V${y+r} Q${x} ${y} ${x+r} ${y} Z`;
-}
-function drawOverlay(play,k,t,P){
-  const fk=play.frames[k],fp=play.frames[k-1];
-  const key=s=>s[0]+">"+s[1];
-  let list=[];
-  if(p<=0){list=play.frames[0].scr||[];}
-  else{
-    const prev=(fp.scr||[]).map(key),now=(fk.scr||[]).map(key);
-    (fk.scr||[]).forEach(s=>{if(t>.82||prev.includes(key(s)))list.push(s);});
-    (fp.scr||[]).forEach(s=>{if(!now.includes(key(s))&&t<.18)list.push(s);});
-  }
-  let w="";
-  list.forEach(([s,d])=>{
-    const a=P[s],b=P[d];let dx=b[0]-a[0],dy=b[1]-a[1];const L=Math.hypot(dx,dy)||1;dx/=L;dy/=L;
-    const c=[a[0]+dx*20,a[1]+dy*20],x1=c[0]-dy*14,y1=c[1]+dx*14,x2=c[0]+dy*14,y2=c[1]-dx*14;
-    w+=`<line class="wall-u" x1="${f1(x1)}" y1="${f1(y1)}" x2="${f1(x2)}" y2="${f1(y2)}"/><line class="wall" x1="${f1(x1)}" y1="${f1(y1)}" x2="${f1(x2)}" y2="${f1(y2)}"/>`;
-  });
-  lyWalls.innerHTML=w;
-
-  let bub=null,op=1;
-  if(quiz)bub=null;
-  else if(p<=0)bub=play.frames[0].bub;
-  else if(t>.3){bub=fk.bub;op=Math.min(1,(t-.3)/.15);}
-  let h="";
-  if(bub){
-    Object.keys(bub).forEach(id=>{
-      if(id[0]==="d"&&!showD)return;
-      const q=P[id],txt=bub[id],bw=txt.length*7.2+20,bh=25;
-      let x=Math.max(vb[0]+4,Math.min(vb[2]-4-bw,q[0]-bw/2)),y=q[1]-54,up=false;
-      if(y<vb[1]+4){y=q[1]+29;up=true;}
-      h+=`<g class="bub ${id[0]}" opacity="${f1(op)}"><path d="${bubblePath(x,y,bw,bh,q[0],up)}"/><text x="${f1(x+bw/2)}" y="${f1(y+bh/2+.5)}" text-anchor="middle" dominant-baseline="central">${esc(txt)}</text></g>`;
-    });
-  }
-  lyBub.innerHTML=h;
+/* Screens, box outs and speech bubbles. Bubbles stay hidden while a question is up, so "I'm open!" doesn't give the answer away. */
+function drawOverlay(play,P){
+  lyWalls.innerHTML=wallsSVG(screensAt(play,p),P);
+  const {bub,op}=quiz?{bub:null,op:1}:bubblesAt(play,p);
+  const shown=bub&&Object.fromEntries(Object.entries(bub).filter(([id])=>showD||id[0]!=="d"));
+  lyBub.innerHTML=shown?bubblesSVG(shown,P,vb,op):"";
 }
 
 /* Score celebration */
@@ -297,11 +165,33 @@ function celebrate(points){
   netEl.classList.remove("swish");void netEl.getBoundingClientRect();netEl.classList.add("swish");
   setTimeout(()=>g.remove(),1900);
 }
+/* A word that pops up over a player, like "Yes!" or "Rebound!" */
+function cheer(q,word="Yes!"){
+  const g=document.createElementNS(NS,"g"),y=q[1]-38<vb[1]+16?q[1]+50:q[1]-30;
+  g.innerHTML=`<g transform="translate(${f1(q[0])} ${f1(y)})"><g class="pop"><text class="fx-word" text-anchor="middle">${esc(word)}</text></g></g>`;
+  lyFx.appendChild(g);setTimeout(()=>g.remove(),1900);
+}
 
 /* Captions: {1} is a blue chip, {X1} a red chip, *word* a highlighted keyword */
 function fmt(s){
   return esc(s).replace(/\*([^*]+)\*/g,'<span class="kw">$1</span>')
           .replace(/\{(X?)(\d)\}/g,(m,x,d)=>`<b class="chip ${x?"cd":"co"}">${x?"X":""}${d}</b>`);
+}
+
+/* Read aloud: each new caption is spoken, and while playing the next step waits for the voice to finish.
+   speakUntil is a safety net in case a browser never reports the end of an utterance. */
+const canSpeak="speechSynthesis" in window&&typeof SpeechSynthesisUtterance==="function";
+function speak(s){
+  if(!speakOn)return;
+  const tok=++speakTok,u=new SpeechSynthesisUtterance(s.replace(/\{X(\d)\}/g,"X $1").replace(/\{(\d)\}/g,"$1").replace(/\*/g,""));
+  u.rate=.95;u.onend=u.onerror=()=>{if(tok===speakTok)speakUntil=0;};
+  speechSynthesis.cancel();speechSynthesis.speak(u);
+  speakUntil=performance.now()+Math.min(15000,1500+s.length*85);
+}
+function setSpeak(on){
+  speakOn=on;speakBtn.setAttribute("aria-pressed",String(on));
+  speakTok++;speakUntil=0;speechSynthesis.cancel();
+  if(on)speak(capText());
 }
 
 /* "Who's open?" mode: before a step with "ask", the play stops and waits for a tap on the open player */
@@ -339,32 +229,34 @@ function showAnswer(){
   quiz.msg=`${chipOf(quiz.open[0])} is the open one. Watch!`;reveal(quiz.open[0]);
 }
 function shake(el){el.classList.remove("nope");void el.getBoundingClientRect();el.classList.add("nope");}
-function cheer(q){
-  const g=document.createElementNS(NS,"g"),y=q[1]-38<vb[1]+16?q[1]+50:q[1]-30;
-  g.innerHTML=`<g transform="translate(${f1(q[0])} ${f1(y)})"><g class="pop"><text class="fx-word" text-anchor="middle">Yes!</text></g></g>`;
-  lyFx.appendChild(g);setTimeout(()=>g.remove(),1900);
-}
-/* Tapping near a blue player on the court picks them: kinder to small fingers than hitting the circle exactly */
+/* A tap on the court picks the nearest player: during a question it answers it, otherwise it follows a player on your team.
+   Tapping near a player counts too, which is kinder to small fingers than hitting the circle exactly. */
 function tapCourt(e){
-  if(!asking())return;
   const m=courtEl.getScreenCTM();if(!m)return;
-  const pt=new DOMPoint(e.clientX,e.clientY).matrixTransform(m.inverse());
-  let best="",bd=48;
-  plays[cur].cast.forEach(id=>{if(id[0]==="o"&&dist([pt.x,pt.y],curP[id])<bd){bd=dist([pt.x,pt.y],curP[id]);best=id;}});
-  if(best)answer(best);
+  const pt=new DOMPoint(e.clientX,e.clientY).matrixTransform(m.inverse()),ask=asking();
+  const side=ask?"o":team(plays[cur]);
+  let best="",bd=ask?48:30;
+  plays[cur].cast.forEach(id=>{if(id[0]===side&&(showD||id[0]!=="d")&&dist([pt.x,pt.y],curP[id])<bd){bd=dist([pt.x,pt.y],curP[id]);best=id;}});
+  if(best){if(ask)answer(best);else setFollow(best);}
+}
+
+/* Print sheet: every step of the play as a small court with its caption, built for the current play right before printing */
+function buildPrintSheet(){
+  if(!plays.length)return;
+  const pl=plays[cur],link=location.href.split("#")[0]+"#"+pl.id;
+  printEl.innerHTML=`<header><span class="ps-emoji">${esc(pl.emoji)}</span><div><h1>${esc(pl.name)}</h1><p>${LV[pl.level]}${pl.side==="defense"?" · Defense play":""}</p></div></header>`+
+    `<p class="ps-idea">${esc(pl.idea)}</p><div class="ps-grid">`+
+    pl.frames.map((fr,j)=>`<figure>${renderCourt(pl,j,{label:`${pl.name}, ${j?"step "+j:"start"}`})}<figcaption><b>${j?"Step "+j:"Start"}</b> ${fmt(fr.say)}</figcaption></figure>`).join("")+
+    `</div><div class="ps-notes"><div><h2>💡 Why it works</h2><p>${esc(pl.why)}</p></div><div><h2>🏀 Try it at practice</h2><p>${esc(pl.tryit)}</p></div></div>`+
+    `<p class="ps-foot">Hoops Playbook · ${esc(link)}</p>`;
 }
 
 /* Render */
-function stepInfo(){
-  if(p<=0)return {k:1,t:0};
-  const k=Math.max(1,Math.ceil(p-1e-9));return {k,t:Math.min(1,p-(k-1))};
-}
+const capText=()=>{const play=plays[cur];return quiz?quiz.msg:play.frames[p<=0?0:stepAt(p).k].say;};
 function render(now){
-  const play=plays[cur],n=play.frames.length-1,{k,t}=stepInfo();
-  const P={};curP=P;
+  const play=plays[cur],n=play.frames.length-1,{k,t}=stepAt(p),P=playersAt(play,k,t);curP=P;
   play.cast.forEach(id=>{
-    const q=posAt(play,k,t,id);P[id]=q;
-    const g=els[id];g.setAttribute("transform",`translate(${f1(q[0])} ${f1(q[1])})`);
+    const q=P[id],g=els[id];g.setAttribute("transform",`translate(${f1(q[0])} ${f1(q[1])})`);
     if(id[0]==="d")g.style.display=showD?"":"none";
   });
   const bs=ballState(play,k,t,P,now);
@@ -372,29 +264,30 @@ function render(now){
   shadowEl.setAttribute("cx",f1(bs.g[0]));shadowEl.setAttribute("cy",f1(bs.g[1]+2));
   const sh=Math.max(.35,1-bs.h/110);
   shadowEl.setAttribute("rx",f1(7*sh));shadowEl.setAttribute("ry",f1(3.2*sh));
-  play.cast.forEach(id=>{if(id[0]==="o")els[id].classList.toggle("has",bs.holder===id);});
-  drawOverlay(play,k,t,P);
+  play.cast.forEach(id=>els[id].classList.toggle("has",bs.holder===id));
+  drawOverlay(play,P);
 
-  const stepIdx=p<=0?0:k;
-  const pk=cur+"|"+stepIdx+"|"+showL;
-  if(pk!==lastPathKey){drawPaths(play,stepIdx);lastPathKey=pk;}
+  const stepIdx=p<=0?0:k,fl=asking()?"":follow;
+  const pk=cur+"|"+stepIdx+"|"+showL+"|"+fl;
+  if(pk!==lastPathKey){lyPaths.innerHTML=showL?pathsUpTo(play,stepIdx,fl):"";lastPathKey=pk;}
 
   const ck=cur+"|"+stepIdx+"|"+(quiz?quiz.state+quiz.tries+quiz.msg:"");
   if(ck!==lastCapKey){
-    capEl.innerHTML=fmt(quiz?quiz.msg:play.frames[stepIdx].say);
+    const text=quiz?quiz.msg:play.frames[stepIdx].say;
+    capEl.innerHTML=fmt(text);
     capEl.classList.remove("fresh");void capEl.offsetWidth;capEl.classList.add("fresh");
-    lastCapKey=ck;
+    lastCapKey=ck;speak(text);
   }
-  updateUI(play,n,stepIdx);
+  updateUI(play,n,stepIdx,fl);
 }
 /* The play after this one: within the search results when there are several, else the whole library */
 function nextUp(){
   const pool=view.length>1?view:plays,i=pool.indexOf(plays[cur]);
   return {pl:pool[(i+1)%pool.length],wrapped:i===pool.length-1};
 }
-function updateUI(play,n,stepIdx){
+function updateUI(play,n,stepIdx,fl){
   const done=p>=n,ask=asking();
-  const st=[cur,playing,done,stepIdx,p<=0,listVer,quiz?quiz.state+quiz.tries:""].join("|");
+  const st=[cur,playing,done,stepIdx,p<=0,listVer,quiz?quiz.state+quiz.tries:"",fl].join("|");
   if(st===lastUI)return;lastUI=st;
   if(playing){playIcon.innerHTML=ICON_PAUSE;playTxt.textContent="Pause";}
   else if(done){playIcon.innerHTML=ICON_AGAIN;playTxt.textContent="Again";}
@@ -405,7 +298,10 @@ function updateUI(play,n,stepIdx){
   badgeEl.classList.toggle("turn",ask);
   quizEl.hidden=!quiz;dotsEl.hidden=!!quiz;courtEl.classList.toggle("asking",ask);
   [...choicesEl.children].forEach(c=>{c.disabled=!ask;c.classList.toggle("yes",!!quiz&&quiz.hit===c.dataset.id);});
-  play.cast.forEach(id=>{if(id[0]==="o")els[id].classList.toggle("yes",!!quiz&&quiz.hit===id);});
+  play.cast.forEach(id=>{
+    els[id].classList.toggle("yes",!!quiz&&quiz.hit===id);
+    els[id].classList.toggle("dim",!!fl&&fl!==id);
+  });
   [...dotsEl.children].forEach((d,i)=>{
     const j=i+1;d.classList.toggle("done",stepIdx>0&&j<=stepIdx);d.classList.toggle("now",j===stepIdx);
   });
@@ -418,25 +314,31 @@ function updateUI(play,n,stepIdx){
 
 /* Animation loop */
 function stepDur(play,k){
-  const fr=play.frames[k];
-  if(fr.ball&&fr.ball.shot)return 1300;
+  const b=play.frames[k].ball;
+  if(b.shot)return b.miss?1500:1300;
   const moved=play.cast.some(id=>dist(play.res[k-1][id],play.res[k][id])>3);
-  return moved?1800:1000;
+  return moved||b.rebound?1800:1000;
+}
+/* End-of-step effects: points for a made shot, "Rebound!" for a rebound */
+function stepEnded(play,k){
+  const b=play.frames[k].ball;
+  if(b.shot&&!b.miss)celebrate(isThree(play.res[k][b.shot])?3:2);
+  if(b.rebound)cheer(play.res[k][b.rebound],"Rebound!");
 }
 function tick(now){
   const dt=Math.min(60,now-lastT);lastT=now;
-  const play=plays[cur];
+  const play=plays[cur],atStart=Math.abs(p-Math.round(p))<1e-9;
   // A step with a question asks it as soon as the step before ends, without waiting out the hold
-  if(p<target&&!quiz&&Math.abs(p-Math.round(p))<1e-9&&needsAsk(play,Math.round(p)+1))startAsk(Math.round(p)+1);
-  if(p<target&&now>=holdUntil){
+  if(p<target&&!quiz&&atStart&&needsAsk(play,Math.round(p)+1))startAsk(Math.round(p)+1);
+  // While playing with read aloud on, the next step waits until the caption has been read
+  const waitVoice=playing&&atStart&&p>0&&speakOn&&now<speakUntil;
+  if(p<target&&now>=holdUntil&&!waitVoice){
     quiz=null;
     const k=Math.floor(p+1e-9)+1;
     let np=p+dt/(stepDur(play,k)*speed);
     // Snap when within rounding error of the step's end; otherwise p can stall at 1.9999999999999998 and k overshoots
     if(np>=k-1e-9){
-      np=k;
-      const fr=play.frames[k];
-      if(fr.ball&&fr.ball.shot)celebrate(isThree(play.res[k][fr.ball.shot])?3:2);
+      np=k;stepEnded(play,k);
       if(playing&&k<target)holdUntil=now+HOLD*speed;
     }
     p=Math.min(np,target);
@@ -484,9 +386,13 @@ $("togQ").addEventListener("click",e=>{
   quizOn=!quizOn;e.currentTarget.setAttribute("aria-pressed",String(quizOn));
   if(!quizOn&&quiz){if(asking()){playing=quiz.resumePlaying;target=quiz.resumeTarget;}quiz=null;}
 });
+if(canSpeak){speakBtn.hidden=false;speakBtn.addEventListener("click",()=>setSpeak(!speakOn));}
 choicesEl.addEventListener("click",e=>{const c=e.target.closest(".choice");if(c)answer(c.dataset.id);});
 $("btnShow").addEventListener("click",showAnswer);
+followEl.addEventListener("click",e=>{const b=e.target.closest("button");if(b)setFollow(b.dataset.id||"");});
 courtEl.addEventListener("click",tapCourt);
+printBtn.addEventListener("click",()=>{buildPrintSheet();window.print();});
+window.addEventListener("beforeprint",buildPrintSheet);
 
 /* Library controls */
 qEl.addEventListener("input",()=>{query=qEl.value;refreshList();});
@@ -539,6 +445,6 @@ if(!plays.length){
 } else {
   refreshList();
   const i=indexFromHash();selectPlay(Math.max(i,0),false);
-  btnPlay.disabled=false;btnRestart.disabled=false;shareBtn.hidden=false;
+  btnPlay.disabled=false;btnRestart.disabled=false;shareBtn.hidden=false;printBtn.hidden=false;
   requestAnimationFrame(t=>{lastT=t;tick(t);});
 }

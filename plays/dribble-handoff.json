@@ -1,0 +1,40 @@
+{
+  "name": "Dribble Handoff",
+  "emoji": "🤲",
+  "level": 2,
+  "tags": ["handoff", "dribble handoff", "screen", "dribbling", "two-player game", "layup"],
+  "idea": "Dribble toward a teammate and hand them the ball as they run right behind you.",
+  "why": "Your body works like a screen. The defender chasing your teammate bumps into you, and your teammate gets a head start.",
+  "tryit": "Practice handoffs like a relay race: hold the ball out with two hands, and let your teammate grab it as they run by.",
+  "cast": ["d1", "d2", "o1", "o2"],
+  "frames": [
+    {
+      "pos": { "o1": "TOP", "o2": "RW" },
+      "ball": { "dribble": "o1" },
+      "say": "{1} has the ball. {2} is on the wing, guarded by {X2}."
+    },
+    {
+      "pos": { "o1": [362, 268], "d1": [346, 238], "o2": [445, 205], "d2": [418, 188] },
+      "ball": { "dribble": "o1" },
+      "say": "{1} dribbles toward {2}."
+    },
+    {
+      "pos": { "o2": [330, 330, 405, 320], "d2": [392, 250] },
+      "ball": { "handoff": ["o1", "o2"] },
+      "scr": [["o1", "d2"]],
+      "bub": { "d2": "Stuck!" },
+      "say": "*Handoff:* {2} runs right behind {1} and takes the ball, like a relay baton. {X2} bumps into {1}."
+    },
+    {
+      "pos": { "o2": [262, 120, 290, 230], "d2": [360, 205] },
+      "ball": { "dribble": "o2" },
+      "say": "{2} has a clear path and dribbles straight to the hoop!"
+    },
+    {
+      "pos": { "d2": [300, 160] },
+      "ball": { "shot": "o2" },
+      "bub": { "d2": "Too late!" },
+      "say": "Layup! Hand it off, then your body works like a screen."
+    }
+  ]
+}

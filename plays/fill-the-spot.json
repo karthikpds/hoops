@@ -1,0 +1,46 @@
+{
+  "name": "Fill the Spot",
+  "emoji": "🖐️",
+  "level": 1,
+  "tags": ["spacing", "five out", "cutting", "passing", "teamwork", "three-pointer"],
+  "idea": "When a teammate cuts away, slide over and fill the empty spot.",
+  "why": "Five players spread around the arc are hard to guard. If everyone fills the empty spots, the defense can never bunch up.",
+  "tryit": "Play pass and cut with five players. Every time someone cuts, call out the spot you fill: “Top!” “Wing!” “Corner!”",
+  "cast": ["d1", "d2", "d3", "d4", "d5", "o1", "o2", "o3", "o4", "o5"],
+  "frames": [
+    {
+      "pos": { "o1": "TOP", "o2": "RW", "o3": "LW", "o4": "RC", "o5": "LC" },
+      "ball": "o1",
+      "say": "Five spots around the arc, one player in each. {1} has the ball at the top."
+    },
+    {
+      "pos": { "d1": [285, 280] },
+      "ball": { "pass": ["o1", "o2"] },
+      "say": "{1} passes to {2} on the wing."
+    },
+    {
+      "pos": { "o1": [235, 120], "d1": [262, 150] },
+      "ball": "o2",
+      "bub": { "o1": "Cut!" },
+      "say": "*Cut:* {1} cuts to the basket. Now the top spot is empty!"
+    },
+    {
+      "pos": { "o1": "LC", "d1": [70, 100], "o3": "TOP", "d3": [195, 260], "o5": "LW", "d5": [108, 212] },
+      "ball": "o2",
+      "bub": { "o3": "My spot!" },
+      "say": "*Fill the spot:* Everyone on that side slides over one spot. {3} fills the top, {5} the wing, and {1} the corner."
+    },
+    {
+      "pos": { "d3": [225, 296] },
+      "ball": { "pass": ["o2", "o3"] },
+      "ask": "o3",
+      "say": "{2} swings the ball to {3} at the top. {X3} is still running to catch up!"
+    },
+    {
+      "pos": { "d3": [240, 306] },
+      "ball": { "shot": "o3" },
+      "bub": { "d3": "Too late!" },
+      "say": "Swish! When a teammate leaves a spot, fill it. That keeps the court spread out."
+    }
+  ]
+}

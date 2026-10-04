@@ -1,0 +1,42 @@
+{
+  "name": "Switch!",
+  "emoji": "🔀",
+  "level": 2,
+  "side": "defense",
+  "tags": ["defense", "switch", "screen", "talking", "pick and roll"],
+  "idea": "When a screen comes, yell “Switch!” and trade players with your teammate.",
+  "why": "A screen only works if a defender gets stuck. If the defender next to the screen jumps out to guard the ball, nobody gets open.",
+  "tryit": "Practice talking! Every time you see a screen coming, say “Screen!” and then “Switch!”, loud and clear.",
+  "cast": ["d1", "d2", "o1", "o2"],
+  "frames": [
+    {
+      "pos": { "o1": "TOP", "o2": "RW" },
+      "ball": { "dribble": "o1" },
+      "say": "You’re on defense. {X1} guards {1}, who has the ball, and {X2} guards {2}."
+    },
+    {
+      "pos": { "o2": [282, 290], "d2": [310, 255] },
+      "ball": { "dribble": "o1" },
+      "scr": [["o2", "d1"]],
+      "bub": { "o2": "Screen!" },
+      "say": "{2} comes up and sets a screen on {X1}."
+    },
+    {
+      "pos": { "o1": [345, 262, 320, 345], "d2": [328, 235], "d1": [276, 257, 240, 262] },
+      "ball": { "dribble": "o1" },
+      "scr": [["o2", "d1"]],
+      "bub": { "d2": "Switch!" },
+      "say": "*Switch!* {X2} yells “Switch!” and jumps out to guard {1}. {X1} takes {2}."
+    },
+    {
+      "pos": { "o2": [280, 130], "d1": [268, 100] },
+      "ball": { "dribble": "o1" },
+      "say": "{2} rolls to the basket, but {X1} goes right along. And {X2} is still in front of {1}. Nobody is open!"
+    },
+    {
+      "pos": { "o1": [330, 300], "d2": [320, 268] },
+      "ball": { "dribble": "o1" },
+      "say": "{1} has to dribble back out. Saying “Switch!” out loud stopped the pick and roll."
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "name": "The Weave",
+  "emoji": "🧶",
+  "level": 2,
+  "tags": ["handoff", "drill", "warm-up", "teamwork", "dribbling", "layup"],
+  "idea": "Three players hand the ball off and run behind each other all the way to the basket.",
+  "why": "The weave teaches you to keep moving after you give up the ball. Keep running, and you’ll always be ready for the next handoff.",
+  "tryit": "Try it in threes from one end of the gym to the other. The rule: after you hand it off, run behind the player you gave it to.",
+  "cast": ["o1", "o2", "o3"],
+  "frames": [
+    {
+      "pos": { "o1": [250, 440], "o2": [120, 410], "o3": [380, 410] },
+      "ball": { "dribble": "o1" },
+      "say": "The weave is a warm-up drill. Three players race down the court, handing the ball off as they go."
+    },
+    {
+      "pos": { "o1": [380, 375], "o3": [260, 330], "o2": [120, 330] },
+      "ball": { "handoff": ["o1", "o3"] },
+      "say": "{1} dribbles toward {3} and hands it off. Then {1} runs behind {3}."
+    },
+    {
+      "pos": { "o3": [125, 300], "o2": [250, 240], "o1": [385, 260] },
+      "ball": { "handoff": ["o3", "o2"] },
+      "say": "{3} dribbles toward {2}, hands it off, and runs behind {2}."
+    },
+    {
+      "pos": { "o2": [385, 200], "o1": [270, 120], "o3": [130, 175] },
+      "ball": { "handoff": ["o2", "o1"] },
+      "say": "{2} hands it to {1}, who is running straight at the basket."
+    },
+    {
+      "pos": { "o2": [340, 130], "o3": [165, 125] },
+      "ball": { "shot": "o1" },
+      "say": "Layup! Hand off, run behind, and keep going. That’s the weave."
+    }
+  ]
+}
