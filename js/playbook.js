@@ -34,7 +34,7 @@ export const DATA_FILES = ["index.json", "paths.json", "glossary.json", "bundle.
 
 const PLAY_KEYS = ["name", "emoji", "level", "side", "tags", "idea", "why", "tryit", "cast", "frames"];
 const FRAME_KEYS = ["pos", "ball", "ask", "where", "scr", "bub", "say"];
-const BALL_KEYS = { dribble: ["dribble", "cross"], pass: ["pass", "bounce"], handoff: ["handoff"], shot: ["shot", "miss"], rebound: ["rebound"], fake: ["fake"] };
+const BALL_KEYS = { dribble: ["dribble", "cross"], pass: ["pass", "bounce", "lob"], handoff: ["handoff"], shot: ["shot", "miss"], rebound: ["rebound"], fake: ["fake"] };
 const isObj = v => !!v && typeof v === "object" && !Array.isArray(v);
 const isText = v => typeof v === "string" && v.trim() !== "";
 const isNum = v => typeof v === "number" && Number.isFinite(v);
@@ -98,7 +98,8 @@ export function checkPlay(p) {
     let ok = false;
     if (kind === "hold") ok = need(off(b), `${at}: ball holder "${b}" must be an offensive player in the cast`);
     else if (kind === "dribble") ok = need(off(b.dribble), `${at}: dribbler "${b.dribble}" must be an offensive player in the cast`);
-    else if (kind === "pass") ok = need(two(b.pass), `${at}: "pass" must be [from, to] with two different offensive players in the cast`);
+    else if (kind === "pass") ok = need(two(b.pass), `${at}: "pass" must be [from, to] with two different offensive players in the cast`) &&
+      need(!(b.bounce && b.lob), `${at}: a pass can be a bounce pass or a lob, not both`);
     else if (kind === "handoff") ok = need(two(b.handoff), `${at}: "handoff" must be [from, to] with two different offensive players in the cast`);
     else if (kind === "shot") ok = need(off(b.shot), `${at}: shooter "${b.shot}" must be an offensive player in the cast`);
     else if (kind === "rebound") ok = need(inCast(b.rebound), `${at}: rebounder "${b.rebound}" must be a player in the cast`);

@@ -1,0 +1,54 @@
+{
+  "name": "Princeton Chin",
+  "emoji": "🐯",
+  "level": 3,
+  "tags": ["princeton offense", "chin", "back screen", "flare screen", "backdoor cut", "high post", "three-pointer"],
+  "idea": "After a pass to the wing, one guard cuts off a back screen to the hoop. If that's covered, the screener flares the other guard open.",
+  "why": "The Chin gives the defense two problems in a row. First a back screen and a cut to the basket. If a helper stops the cut, the same screener turns and screens again, and the other guard drifts away to an open shot. It comes from the Princeton offense, named after Princeton University.",
+  "tryit": "Cutter: wait for the back screen, then cut close past the screener's shoulder. Screener: after the first screen, turn right away and find the next defender to screen.",
+  "cast": ["d1", "d2", "d3", "d4", "d5", "o1", "o2", "o3", "o4", "o5"],
+  "frames": [
+    {
+      "pos": { "o1": "LS", "o2": "RS", "o3": "LW", "o4": "RW", "o5": "HP" },
+      "ball": "o2",
+      "say": "Blue is set up for the *Chin*: two guards up top, two players on the wings, and {5} at the high post."
+    },
+    {
+      "pos": { "d1": [200, 262], "d2": [352, 262], "o5": [210, 224], "d5": [242, 192] },
+      "ball": { "pass": ["o2", "o4"] },
+      "scr": [["o5", "d1"]],
+      "bub": { "o5": "Screen!" },
+      "say": "{2} passes to {4} on the wing. {5} steps behind {X1} and sets a back screen."
+    },
+    {
+      "pos": { "o1": [215, 95, 160, 200], "d5": [232, 128] },
+      "ball": "o4",
+      "scr": [["o5", "d1"]],
+      "bub": { "d1": "Stuck!", "d5": "Help!" },
+      "say": "*Chin cut:* {1} cuts past {5} to the basket. {X1} gets stuck, but {X5} slides over to stop the cut."
+    },
+    {
+      "pos": { "o5": [318, 272], "o1": [150, 108], "d5": [192, 118] },
+      "ball": "o4",
+      "scr": [["o5", "d2"]],
+      "bub": { "o5": "Again!" },
+      "say": "{X5} left {5}, so {5} turns and sets a second screen, a flare screen on {X2}. {1} clears out of the way."
+    },
+    {
+      "pos": { "o2": [240, 335] },
+      "ball": "o4",
+      "scr": [["o5", "d2"]],
+      "bub": { "o2": "Flare!", "d2": "Stuck!" },
+      "say": "*Flare:* {2} drifts away from the ball to the top. {X2} runs into {5}."
+    },
+    {
+      "ball": { "pass": ["o4", "o2"] },
+      "ask": "o2",
+      "say": "{4} passes back up to {2}, wide open at the top."
+    },
+    {
+      "ball": { "shot": "o2" },
+      "say": "Swish! The Chin: a back screen first, and if that's covered, a flare screen next."
+    }
+  ]
+}

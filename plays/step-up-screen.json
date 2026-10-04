@@ -1,0 +1,38 @@
+{
+  "name": "Step-Up Screen",
+  "emoji": "🔼",
+  "level": 3,
+  "tags": ["step-up screen", "screen", "pick and roll", "reading the defense", "drop", "jump shot"],
+  "idea": "A big runs up from the block to set a pick on the wing, and the dribbler attacks the middle.",
+  "why": "A pick from the side, set with the screener's back to the baseline, sends the dribbler toward the middle of the court, where there's room to go. If the screener's defender stays back by the basket, the dribbler has an open jump shot.",
+  "tryit": "Screener: sprint up from the block and stand still, back to the baseline. Dribbler: wait for the screen, then go hard toward the middle. If the big defender stays back, stop and shoot.",
+  "cast": ["d1", "d2", "d5", "o1", "o2", "o5"],
+  "frames": [
+    {
+      "pos": { "o1": "RW", "o2": "LW", "o5": "RB" },
+      "ball": { "dribble": "o1" },
+      "say": "{1} is dribbling on the wing. {5}, our big player, is down on the block."
+    },
+    {
+      "pos": { "o5": [360, 228], "d5": [330, 190] },
+      "ball": { "dribble": "o1" },
+      "scr": [["o5", "d1"]],
+      "bub": { "o5": "Step up!" },
+      "say": "*Step-up screen:* {5} runs up from the block and sets a pick on {X1}, with their back to the baseline."
+    },
+    {
+      "pos": { "o1": [270, 212, 382, 300], "d5": [272, 150] },
+      "ball": { "dribble": "o1" },
+      "where": "o1",
+      "scr": [["o5", "d1"]],
+      "bub": { "d1": "Stuck!", "d5": "Stay back!" },
+      "say": "{1} dribbles around the pick toward the middle. {X1} is stuck, and {X5} stays back by the basket."
+    },
+    {
+      "pos": { "o5": [338, 120] },
+      "ball": { "shot": "o1" },
+      "bub": { "d5": "Too far!" },
+      "say": "{X5} stayed back, so {1} stops and shoots. Swish! Read the big defender: back means shoot."
+    }
+  ]
+}

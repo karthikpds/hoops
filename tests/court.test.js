@@ -78,6 +78,15 @@ test("a shot fake goes up and comes back down, and a crossover switches hands", 
   assert.ok(at(3, 0).g[0] < playersAt(p, 3, 0).o1[0], "the pass starts from the left hand");
 });
 
+test("a lob goes up high, with a curved line", () => {
+  const lobbed = { ...raw, side: "offense", frames: [raw.frames[0], { ball: { pass: ["o1", "o2"], lob: true }, say: "Lob." }] };
+  assert.deepEqual(checkPlay(lobbed), []);
+  const p = resolvePlay(lobbed, "l"), flat = resolvePlay({ ...lobbed, frames: [raw.frames[0], { ball: { pass: ["o1", "o2"] }, say: "Pass." }] }, "f");
+  const h = pl => ballState(pl, 1, .5, playersAt(pl, 1, .5)).h;
+  assert.ok(h(p) > h(flat) + 40, "a lob flies much higher than a normal pass");
+  assert.ok(count(stepPaths(p, 1), " Q") + count(stepPaths(p, 1), "L") > count(stepPaths(flat, 1), "L"), "and its line has more points, because it curves");
+});
+
 test("a missed shot ends where the rebound starts", () => {
   const end = ballState(play, 3, 1, playersAt(play, 3, 1)), start = ballState(play, 4, 0, playersAt(play, 4, 0));
   assert.ok(dist(end.g, start.g) < 1e-9);

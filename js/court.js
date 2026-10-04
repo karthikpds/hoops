@@ -109,6 +109,11 @@ function drawMove(pts, type, { bounce = false, team = "o", s0, s1 } = {}) {
   }
   return h;
 }
+/* A lob's line bows out to one side, so a still picture shows it going up and over */
+function lobBend(a, b) {
+  const m = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], dx = b[0] - a[0], dy = b[1] - a[1];
+  return [m[0] + dy * .22, m[1] - dx * .22];
+}
 /* Two short orange bars across the spot where the ball changes hands */
 function handoffMark(a, b) {
   const m = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
@@ -131,7 +136,7 @@ export function stepPaths(play, j, follow = "") {
     const type = screeners.includes(id) ? "screen" : dribbler === id ? "dribble" : "cut";
     h += wrap([id], drawMove(sampleQ(a[id], c[id], b[id]), type, { team: id[0] }));
   });
-  if (bl.pass) { const [x, y] = bl.pass; h += wrap(bl.pass, drawMove(sampleQ(a[x], null, b[y], 10), "pass", { bounce: bl.bounce })); }
+  if (bl.pass) { const [x, y] = bl.pass; h += wrap(bl.pass, drawMove(sampleQ(a[x], bl.lob ? lobBend(a[x], b[y]) : null, b[y], bl.lob ? 30 : 10), "pass", { bounce: bl.bounce })); }
   if (bl.handoff) {
     const [x, y] = bl.handoff, t = play.handoffT[j];
     h += wrap(bl.handoff, handoffMark(posAt(play, j, t, x), posAt(play, j, t, y)));
@@ -175,7 +180,8 @@ export function ballState(play, k, t, P, now = 0) {
   } else if (b.pass) {
     const ga = handG(P[b.pass[0]], side), gc = handG(P[b.pass[1]]);
     g = [ga[0] + (gc[0] - ga[0]) * e, ga[1] + (gc[1] - ga[1]) * e];
-    h = b.bounce ? (e < .6 ? 13 * (1 - e / .6) : 13 * (e - .6) / .4) : 13 + 6 * Math.sin(Math.PI * e);
+    h = b.bounce ? (e < .6 ? 13 * (1 - e / .6) : 13 * (e - .6) / .4) : 13 + (b.lob ? 60 : 6) * Math.sin(Math.PI * e);
+    if (b.lob) s = 1 + .35 * Math.sin(Math.PI * e);
     holder = t < .03 ? b.pass[0] : (t > .97 ? b.pass[1] : null);
   } else if (b.handoff) {
     // The ball changes hands around the moment the two are closest

@@ -241,23 +241,24 @@ function deleteStep() {
 /* ---------- This step's form ---------- */
 
 const KINDS = [["hold", "Holds it"], ["dribble", "Dribbles"], ["cross", "Crossover dribble"], ["fake", "Shot fake"], ["pass", "Passes"],
-  ["bounce", "Bounce pass"], ["handoff", "Hands it off"], ["shot", "Shoots and scores"], ["miss", "Shoots and misses"], ["rebound", "Grabs the rebound"]];
+  ["bounce", "Bounce pass"], ["lob", "Lob pass"], ["handoff", "Hands it off"], ["shot", "Shoots and scores"], ["miss", "Shoots and misses"], ["rebound", "Grabs the rebound"]];
 function kindOf(b) {
   let k = null;
   try { k = ballKind(b); } catch { return "hold"; }
   if (k === "pass" && b.bounce) return "bounce";
+  if (k === "pass" && b.lob) return "lob";
   if (k === "dribble" && b.cross) return "cross";
   if (k === "shot" && b.miss) return "miss";
   return k || "hold";
 }
-const twoPlayers = k => k === "pass" || k === "bounce" || k === "handoff";
+const twoPlayers = k => k === "pass" || k === "bounce" || k === "lob" || k === "handoff";
 function ballPlayers(b) {
   if (typeof b === "string") return [b];
   if (!b || typeof b !== "object") return [];
   return b.pass || b.handoff || [b.dribble || b.shot || b.rebound || b.fake];
 }
 function makeBall(kind, a, b) {
-  return { hold: a, dribble: { dribble: a }, cross: { dribble: a, cross: true }, fake: { fake: a }, pass: { pass: [a, b] }, bounce: { pass: [a, b], bounce: true },
+  return { hold: a, dribble: { dribble: a }, cross: { dribble: a, cross: true }, fake: { fake: a }, pass: { pass: [a, b] }, bounce: { pass: [a, b], bounce: true }, lob: { pass: [a, b], lob: true },
     handoff: { handoff: [a, b] }, shot: { shot: a }, miss: { shot: a, miss: true }, rebound: { rebound: a } }[kind];
 }
 

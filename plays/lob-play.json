@@ -1,0 +1,41 @@
+{
+  "name": "Lob Play",
+  "emoji": "🌈",
+  "level": 3,
+  "tags": ["lob", "after timeout", "ato", "back screen", "deny", "backdoor cut", "layup"],
+  "idea": "When a defender guards the wing too close, a back screen sends the wing to the rim, and a high pass goes over everyone.",
+  "why": "A defender who stands in the passing lane is facing the ball, not the basket. A back screen behind them blocks the way to the hoop, and a high lob pass floats over every defender to the cutter right by the rim.",
+  "tryit": "Passer: throw it high and soft, toward the front of the rim, so the cutter runs under it. Cutter: wait for the screen, then sprint to the hoop and look up for the ball.",
+  "cast": ["d1", "d3", "d5", "o1", "o3", "o5"],
+  "frames": [
+    {
+      "pos": { "o1": "TOP", "o3": "RW", "o5": "RE", "d3": [386, 252] },
+      "ball": "o1",
+      "bub": { "d3": "No pass!" },
+      "say": "After a timeout, the coach draws up a lob. {X3} is guarding {3} so close that {3} can't catch a pass on the wing."
+    },
+    {
+      "pos": { "o5": [370, 212], "d5": [334, 198] },
+      "ball": "o1",
+      "scr": [["o5", "d3"]],
+      "bub": { "o5": "Screen!" },
+      "say": "{5} steps out and sets a screen right behind {X3}."
+    },
+    {
+      "pos": { "o3": [285, 75, 432, 138] },
+      "ball": "o1",
+      "scr": [["o5", "d3"]],
+      "bub": { "o3": "Lob!", "d3": "Stuck!" },
+      "say": "{3} cuts behind the screen, straight to the rim. {X3} runs into {5}!"
+    },
+    {
+      "ball": { "pass": ["o1", "o3"], "lob": true },
+      "ask": "o3",
+      "say": "*Lob:* {1} throws a high, soft pass over everyone to {3}."
+    },
+    {
+      "ball": { "shot": "o3" },
+      "say": "Catch and lay it in! When a defender guards you too close, a lob goes right over them."
+    }
+  ]
+}

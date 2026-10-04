@@ -25,14 +25,14 @@
     "name": "Screens",
     "emoji": "🧱",
     "about": "Stand still like a wall so a teammate can run free. First learn what a screen is, then try the trickier ones.",
-    "plays": ["set-a-screen", "pass-and-screen-away", "down-screen", "flare-screen", "ucla-cut", "dribble-handoff", "zipper", "floppy", "hammer"]
+    "plays": ["set-a-screen", "pass-and-screen-away", "down-screen", "flare-screen", "ucla-cut", "dribble-handoff", "zipper", "floppy", "hammer", "princeton-chin", "lob-play"]
   },
   {
     "id": "pick-and-roll",
     "name": "Pick and roll",
     "emoji": "🤝",
     "about": "Two players team up: one screens for the dribbler, then rolls or pops to get open.",
-    "plays": ["pick-and-roll", "pick-and-pop", "slip-screen", "high-pick-and-roll", "horns", "spain-pick-and-roll"]
+    "plays": ["pick-and-roll", "pick-and-pop", "slip-screen", "high-pick-and-roll", "horns", "horns-twist", "horns-dive", "step-up-screen", "ram-screen", "spain-pick-and-roll"]
   },
   {
     "id": "defense",

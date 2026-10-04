@@ -1,0 +1,46 @@
+{
+  "name": "Ram Screen",
+  "emoji": "🐏",
+  "level": 3,
+  "tags": ["ram screen", "screen the screener", "down screen", "pick and roll", "screen", "layup"],
+  "idea": "A teammate screens the big's defender first, then the big runs up to set a pick and roll.",
+  "why": "In a pick and roll, the screener's defender helps stop the dribbler. A ram screen makes that defender run into a screen first, so they're a step late. By the time they catch up, the dribbler is past the pick, and the screener is rolling to an open basket.",
+  "tryit": "Ram screener: set a down screen on the big's defender, then get out of the way. Big: sprint up to set the pick, then roll hard to the hoop.",
+  "cast": ["d1", "d2", "d5", "o1", "o2", "o5"],
+  "frames": [
+    {
+      "pos": { "o1": "TOP", "o2": "RE", "o5": "RB", "d5": [380, 135], "d2": [185, 195] },
+      "ball": { "dribble": "o1" },
+      "say": "{1} has the ball at the top. {5}, our big player, is down low, and {2} is by the free-throw line. {X2} is helping in the middle."
+    },
+    {
+      "pos": { "o2": [352, 150] },
+      "ball": { "dribble": "o1" },
+      "scr": [["o2", "d5"]],
+      "bub": { "o2": "Ram!" },
+      "say": "*Ram:* {2} runs down and sets a screen on {X5}, the big's defender."
+    },
+    {
+      "pos": { "o5": [285, 290, 290, 175], "d5": [330, 240, 395, 200] },
+      "ball": { "dribble": "o1" },
+      "scr": [["o5", "d1"]],
+      "bub": { "d5": "Wait!" },
+      "say": "{5} runs up around the screen and sets a pick on {X1}. {X5} got stuck, so {X5} is a step behind."
+    },
+    {
+      "pos": { "o1": [338, 268, 330, 350], "d5": [345, 234], "o5": [262, 110, 320, 200] },
+      "ball": { "dribble": "o1" },
+      "bub": { "d5": "Stop!", "o5": "Roll!" },
+      "say": "{1} dribbles around the pick. {X5} has to stop {1}, so {5} rolls to the basket with nobody behind."
+    },
+    {
+      "ball": { "pass": ["o1", "o5"], "bounce": true },
+      "ask": "o5",
+      "say": "{1} bounce-passes to {5}."
+    },
+    {
+      "ball": { "shot": "o5" },
+      "say": "Layup! Screen the screener's defender first, and the pick and roll is wide open."
+    }
+  ]
+}

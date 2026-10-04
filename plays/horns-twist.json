@@ -1,0 +1,53 @@
+{
+  "name": "Horns Twist",
+  "emoji": "🌪️",
+  "level": 3,
+  "tags": ["horns", "twist", "double screen", "screen", "pick and roll", "reading the defense", "layup"],
+  "idea": "From Horns, the dribbler heads for one screen, then the other big screens from the other side, and the dribbler twists back the other way.",
+  "why": "The first screen makes the defender lean one way. Then a second screen comes from the other side, so the defender has two screens to get through, one right after the other. When a helper steps up to stop the dribbler, the second screener rolls to the basket.",
+  "tryit": "Dribbler: take two dribbles toward the first screen, then wait for the second screener and change direction hard. Second screener: set the screen, then roll to the hoop with your hand up.",
+  "cast": ["d1", "d2", "d3", "d4", "d5", "o1", "o2", "o3", "o4", "o5"],
+  "frames": [
+    {
+      "pos": { "o1": [250, 345], "d1": [250, 310], "o2": "RC", "o3": "LC", "o4": "LE", "o5": "RE" },
+      "ball": { "dribble": "o1" },
+      "say": "This is *Horns*: {4} and {5} at the elbows, {2} and {3} in the corners, and {1} has the ball."
+    },
+    {
+      "pos": { "o1": [220, 352], "d1": [232, 318], "o4": [208, 296], "d4": [180, 245] },
+      "ball": { "dribble": "o1" },
+      "scr": [["o4", "d1"]],
+      "bub": { "d1": "Going left!" },
+      "say": "{4} sets a screen on the left, and {1} dribbles that way. {X1} leans left to get around it."
+    },
+    {
+      "pos": { "o5": [266, 330, 335, 300], "d5": [300, 262] },
+      "ball": { "dribble": "o1" },
+      "scr": [["o5", "d1"]],
+      "bub": { "o5": "Twist!" },
+      "say": "*Twist:* {5} runs over and sets a second screen on {X1}'s other side."
+    },
+    {
+      "pos": { "o1": [330, 240, 310, 390], "d5": [340, 206], "o4": [100, 255], "d4": [128, 230] },
+      "ball": { "dribble": "o1" },
+      "scr": [["o5", "d1"]],
+      "bub": { "d1": "Stuck!", "d5": "Stop!" },
+      "say": "{1} twists back the other way, around {5}. {X1} is stuck, so {X5} steps up to stop {1}. {4} pops out wide."
+    },
+    {
+      "pos": { "o5": [262, 115] },
+      "ball": { "dribble": "o1" },
+      "bub": { "o5": "Roll!" },
+      "say": "{X5} left {5}, so {5} rolls to the basket."
+    },
+    {
+      "ball": { "pass": ["o1", "o5"], "bounce": true },
+      "ask": "o5",
+      "say": "{1} bounce-passes to {5}, all alone by the hoop."
+    },
+    {
+      "ball": { "shot": "o5" },
+      "say": "Layup! Two screens from two sides are too much for one defender."
+    }
+  ]
+}

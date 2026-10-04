@@ -1,0 +1,42 @@
+{
+  "name": "Horns Dive",
+  "emoji": "🤿",
+  "level": 3,
+  "tags": ["horns", "dive", "high post", "post", "passing", "bounce pass", "layup"],
+  "idea": "From Horns, pass to one elbow, and the other big dives to the basket for a high-low pass.",
+  "why": "When the ball goes to one elbow, the other big's defender turns to watch it and drifts toward the ball. That leaves the space behind them empty. A quick dive to the hoop gets there first, and the pass from high to low is a short, easy one.",
+  "tryit": "Elbow passer: catch, turn and face the hoop right away. Diving big: the moment your defender looks at the ball, sprint to the front of the rim with your hands up.",
+  "cast": ["d1", "d2", "d3", "d4", "d5", "o1", "o2", "o3", "o4", "o5"],
+  "frames": [
+    {
+      "pos": { "o1": [250, 345], "d1": [250, 310], "o2": "RC", "o3": "LC", "o4": "LE", "o5": "RE" },
+      "ball": "o1",
+      "say": "This is *Horns*: {4} and {5} at the elbows, {2} and {3} in the corners."
+    },
+    {
+      "ball": { "pass": ["o1", "o4"] },
+      "say": "{1} passes to {4} at the left elbow."
+    },
+    {
+      "pos": { "d5": [262, 176], "d4": [180, 155] },
+      "ball": "o4",
+      "bub": { "d5": "Ball!" },
+      "say": "{4} turns to face the hoop. {X5} steps toward the ball to help, and stops watching {5}."
+    },
+    {
+      "pos": { "o5": [290, 85, 335, 120] },
+      "ball": "o4",
+      "where": "o5",
+      "bub": { "o5": "Dive!", "d5": "Huh?" },
+      "say": "*Dive:* {5} runs behind {X5}, straight to the front of the basket."
+    },
+    {
+      "ball": { "pass": ["o4", "o5"], "bounce": true },
+      "say": "*High-low:* {4} bounce-passes down to {5}."
+    },
+    {
+      "ball": { "shot": "o5" },
+      "say": "Layup! When the ball goes to one elbow, the other big dives."
+    }
+  ]
+}

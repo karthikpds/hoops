@@ -124,10 +124,12 @@ test("checkPlay follows the ball", () => {
   hasError(errorsFor(p => { p.frames[0].ball = { pass: ["o1", "o2"] }; }), "the setup can't pass, shoot or fake");
   hasError(errorsFor(p => { p.frames[2].ball = { pass: ["o2", "o1"] }; }), "o2 starts with the ball, but o1 had it");
   hasError(errorsFor(p => { p.frames[2].ball = { pass: ["o1", "o1"] }; }), `"pass" must be [from, to]`);
-  hasError(errorsFor(p => { p.frames[2].ball = { pass: ["o1", "o2"], lob: true }; }), `unknown field "lob"`);
+  hasError(errorsFor(p => { p.frames[2].ball = { pass: ["o1", "o2"], spin: true }; }), `unknown field "spin"`);
   hasError(errorsFor(p => { p.frames[1].ball = { shot: "o1" }; }), "a shot must be the last step");
   hasError(errorsFor(p => { p.frames[2].ball = { throw: "o1" }; }), `"ball" must be a player`);
   assert.deepEqual(errorsFor(p => { p.frames[2].ball = { pass: ["o1", "o2"], bounce: true }; }), []);
+  assert.deepEqual(errorsFor(p => { p.frames[2].ball = { pass: ["o1", "o2"], lob: true }; }), []);
+  hasError(errorsFor(p => { p.frames[2].ball = { pass: ["o1", "o2"], bounce: true, lob: true }; }), "a bounce pass or a lob, not both");
 });
 
 test("checkPlay handles shot fakes and crossovers", () => {

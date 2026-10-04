@@ -162,7 +162,7 @@ Shots score 2 or 3 automatically from where the shooter stands.
 | `"o1"` | o1 holds it. |
 | `{ "dribble": "o1" }` | o1 dribbles. Add `"cross": true` for a crossover: the ball bounces across to o1's other hand early in the step, and stays there until o1 passes or shoots. |
 | `{ "fake": "o1" }` | o1 does a shot fake: lifts the ball like a shot, then brings it back down and keeps it. |
-| `{ "pass": ["o1", "o2"] }` | o1 passes to o2. Add `"bounce": true` for a bounce pass. |
+| `{ "pass": ["o1", "o2"] }` | o1 passes to o2. Add `"bounce": true` for a bounce pass, or `"lob": true` for a high lob pass over the defense. |
 | `{ "handoff": ["o1", "o2"] }` | o1 hands the ball to o2 as they run close by. The ball changes hands at the moment the two are closest, so move them past each other (within 50 units). |
 | `{ "shot": "o1" }` | o1 shoots and scores. Only allowed in the last step. |
 | `{ "shot": "o1", "miss": true }` | o1 shoots and misses. The next step must be a rebound. |
