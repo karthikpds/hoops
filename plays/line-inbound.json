@@ -1,0 +1,40 @@
+{
+  "name": "Line Inbound",
+  "emoji": "🚂",
+  "level": 1,
+  "tags": ["inbound", "baseline out of bounds", "blob", "line", "after timeout", "ato", "layup"],
+  "idea": "Line up like train cars, break out one way each, and the last one in line cuts to the hoop.",
+  "why": "When the first three break out, their defenders chase them and the middle of the court empties out. The last player in line has a clear road to the basket.",
+  "tryit": "Line up close, one behind the other. On “Go!”, the first three break out fast. The last player counts “one, two”, then cuts to the hoop.",
+  "cast": ["d1", "d2", "d3", "d4", "d5", "o1", "o2", "o3", "o4", "o5"],
+  "frames": [
+    {
+      "pos": { "o1": [330, -26], "d1": [345, 14], "o5": [250, 100], "o4": [250, 144], "o3": [250, 188], "o2": [250, 232], "d5": [284, 100], "d4": [284, 144], "d3": [284, 188], "d2": [284, 232] },
+      "ball": "o1",
+      "say": "{1} passes in from behind the baseline. Everyone else lines up one behind the other, like train cars."
+    },
+    {
+      "pos": { "o5": "LC", "d5": [62, 86], "o4": "LW", "d4": [110, 213], "o3": "LS", "d3": [163, 268, 230, 190] },
+      "ball": "o1",
+      "bub": { "o5": "Go!" },
+      "say": "*Go!* The first three break out: {5} to the corner, {4} to the wing, and {3} out top. Their defenders chase them."
+    },
+    {
+      "pos": { "o2": [256, 88], "d2": [272, 175] },
+      "ball": "o1",
+      "bub": { "o2": "Open!" },
+      "say": "Now the middle is empty! {2}, the last one in line, cuts straight to the hoop."
+    },
+    {
+      "ball": { "pass": ["o1", "o2"], "bounce": true },
+      "ask": "o2",
+      "say": "{1} throws a bounce pass in to {2}."
+    },
+    {
+      "pos": { "d2": [268, 130] },
+      "ball": { "shot": "o2" },
+      "bub": { "d2": "Too late!" },
+      "say": "Layup! Everyone breaks out, and the last one in line cuts to the hoop."
+    }
+  ]
+}

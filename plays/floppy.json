@@ -1,0 +1,41 @@
+{
+  "name": "Floppy",
+  "emoji": "🐟",
+  "level": 3,
+  "tags": ["floppy", "screen", "double screen", "shooter", "reading the defense", "after timeout", "ato", "three-pointer"],
+  "idea": "Your shooter starts under the basket and picks a side: one screen on the left, two on the right.",
+  "why": "The defender has to guess which way the shooter will go. Whichever way the defender leans, the shooter runs the other way.",
+  "tryit": "Shooter: watch your defender’s feet. If they step one way, sprint the other way and run right past your screener’s shoulder.",
+  "cast": ["d1", "d2", "d3", "d4", "d5", "o1", "o2", "o3", "o4", "o5"],
+  "frames": [
+    {
+      "pos": { "o1": "TOP", "o2": [250, 85], "d2": [250, 120], "o4": [150, 130], "d4": [120, 105], "o5": [340, 140], "d5": [325, 108], "o3": [375, 140], "d3": [372, 106] },
+      "ball": "o1",
+      "say": "{2} starts right under the basket. {4} waits on the left to set one screen, and {5} and {3} wait on the right to set two."
+    },
+    {
+      "pos": { "d2": [285, 105], "d1": [270, 305] },
+      "ball": "o1",
+      "bub": { "d2": "This way?" },
+      "say": "*Guess:* {X2} thinks {2} will use the two screens, so {X2} leans to the right."
+    },
+    {
+      "pos": { "o2": [80, 230], "d2": [180, 118] },
+      "ball": "o1",
+      "scr": [["o4", "d2"]],
+      "bub": { "d2": "Oops!" },
+      "say": "{2} sees it and runs the other way, off {4}’s screen. {X2} runs into {4}!"
+    },
+    {
+      "ball": { "pass": ["o1", "o2"] },
+      "ask": "o2",
+      "say": "{1} passes to {2} on the wing."
+    },
+    {
+      "pos": { "d4": [100, 195] },
+      "ball": { "shot": "o2" },
+      "bub": { "d4": "Too late!" },
+      "say": "Swish! Watch your defender, and go the way they’re not."
+    }
+  ]
+}

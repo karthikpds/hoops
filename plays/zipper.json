@@ -1,0 +1,48 @@
+{
+  "name": "Zipper",
+  "emoji": "⬆️",
+  "level": 2,
+  "tags": ["zipper", "screen", "handoff", "dribbling", "after timeout", "ato", "layup"],
+  "idea": "Run straight up from the block like pulling up a zipper, catch the ball, then hand it right back.",
+  "why": "Your defender gets stuck on the screen while you zip up. Then your body works like a screen during the handoff, so the passer gets a head start to the hoop.",
+  "tryit": "Zip up fast and close to your screener. After the catch, dribble one step toward your teammate and hold the ball out for them.",
+  "cast": ["d1", "d2", "d3", "d4", "o1", "o2", "o3", "o4"],
+  "frames": [
+    {
+      "pos": { "o1": "TOP", "o2": "RB", "o4": [305, 190], "o3": "LW" },
+      "ball": "o1",
+      "say": "{1} has the ball at the top. {2} starts low, on the block, and {4} waits near the elbow."
+    },
+    {
+      "pos": { "o2": [360, 300], "d2": [322, 165] },
+      "ball": "o1",
+      "scr": [["o4", "d2"]],
+      "bub": { "o2": "Zip!" },
+      "say": "*Zipper:* {2} runs straight up past {4}, like pulling up a zipper. {X2} runs into {4}."
+    },
+    {
+      "pos": { "d1": [280, 300] },
+      "ball": { "pass": ["o1", "o2"] },
+      "ask": "o2",
+      "say": "{1} passes to {2}."
+    },
+    {
+      "pos": { "o2": [315, 320], "o1": [355, 345, 290, 380], "d1": [290, 350], "d2": [360, 235, 365, 175] },
+      "ball": { "handoff": ["o2", "o1"] },
+      "scr": [["o2", "d1"]],
+      "say": "*Handoff:* {1} runs right behind {2} and takes the ball back. {X1} gets stuck on {2}."
+    },
+    {
+      "pos": { "o1": [305, 75, 440, 180] },
+      "ball": { "dribble": "o1" },
+      "bub": { "o1": "Go!" },
+      "say": "{1} has a clear path and dribbles all the way to the hoop."
+    },
+    {
+      "pos": { "d2": [330, 120] },
+      "ball": { "shot": "o1" },
+      "bub": { "d2": "Too late!" },
+      "say": "Layup! Zip up, catch, and hand it back."
+    }
+  ]
+}

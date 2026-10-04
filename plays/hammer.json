@@ -1,0 +1,41 @@
+{
+  "name": "Hammer",
+  "emoji": "🔨",
+  "level": 3,
+  "tags": ["hammer", "screen", "drive and kick", "baseline drive", "corner three", "after timeout", "ato", "three-pointer"],
+  "idea": "Drive along the baseline, and when the defense helps, throw it all the way across to the open corner.",
+  "why": "When the driver gets close to the hoop, a defender has to help. A teammate’s screen keeps the shooter’s defender from getting back to the corner. It’s a famous play in the NBA.",
+  "tryit": "Shooter: slide to the corner when the drive starts, with your hands ready. Driver: jump stop under control, then look across the baseline.",
+  "cast": ["d1", "d2", "d3", "d4", "d5", "o1", "o2", "o3", "o4", "o5"],
+  "frames": [
+    {
+      "pos": { "o1": "RW", "o2": "LW", "d2": [125, 205], "o4": [150, 150], "o5": "RE", "o3": "TOP" },
+      "ball": { "dribble": "o1" },
+      "say": "{1} has the ball on the right wing. {2}, our shooter, waits on the other side."
+    },
+    {
+      "pos": { "o1": [385, 105, 460, 165], "d1": [405, 170], "d5": [345, 130] },
+      "ball": { "dribble": "o1" },
+      "bub": { "o1": "Drive!" },
+      "say": "{1} drives hard along the baseline."
+    },
+    {
+      "pos": { "o1": [362, 88], "d5": [335, 118], "o4": [92, 168], "d4": [120, 140], "o2": "LC", "d2": [112, 192] },
+      "ball": "o1",
+      "scr": [["o4", "d2"]],
+      "bub": { "d5": "Help!", "d2": "Stuck!" },
+      "say": "*Hammer:* {X5} steps over to help. On the other side, {4} screens {X2}, and {2} slides down to the corner."
+    },
+    {
+      "ball": { "pass": ["o1", "o2"] },
+      "ask": "o2",
+      "say": "{1} throws it all the way across to {2} in the corner."
+    },
+    {
+      "pos": { "d4": [62, 112] },
+      "ball": { "shot": "o2" },
+      "bub": { "d4": "Too late!" },
+      "say": "Corner three! Drive, help, hammer, swish."
+    }
+  ]
+}

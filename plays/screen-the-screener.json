@@ -1,0 +1,48 @@
+{
+  "name": "Screen the Screener",
+  "emoji": "🪃",
+  "level": 2,
+  "tags": ["inbound", "baseline out of bounds", "blob", "screen the screener", "screen", "after timeout", "ato", "layup"],
+  "idea": "Set a screen for a teammate, then get a screen yourself and cut to the hoop.",
+  "why": "Everyone watches the first screen. Nobody expects the player who set it to get a screen right after, so their defender gets caught.",
+  "tryit": "Screeners: count to two after your screen, then go. The first cutter really sells it, so the defense watches them.",
+  "cast": ["d1", "d2", "d3", "d4", "d5", "o1", "o2", "o3", "o4", "o5"],
+  "frames": [
+    {
+      "pos": { "o1": [330, -26], "d1": [345, 14], "o2": "LB", "o4": "LE", "o5": "RB", "d5": [365, 75], "o3": "RC" },
+      "ball": "o1",
+      "say": "{1} passes in from behind the baseline. {4} is about to set a screen, and then get one."
+    },
+    {
+      "pos": { "o4": [175, 123], "d4": [220, 152], "o2": [85, 238, 105, 150], "d2": [168, 92] },
+      "ball": "o1",
+      "scr": [["o4", "d2"]],
+      "bub": { "o4": "Screen!" },
+      "say": "{4} sets a screen for {2}, and {2} pops out to the wing. Everyone watches {2}."
+    },
+    {
+      "pos": { "o5": [240, 128], "d5": [285, 150], "d2": [108, 213, 110, 110] },
+      "ball": "o1",
+      "scr": [["o5", "d4"]],
+      "bub": { "o5": "Screen!" },
+      "say": "*Screen the screener:* Now {5} sets a screen on {X4}, the defender of the player who just screened."
+    },
+    {
+      "pos": { "o4": [240, 75], "d4": [215, 146] },
+      "ball": "o1",
+      "scr": [["o5", "d4"]],
+      "bub": { "d4": "Stuck!" },
+      "say": "{4} cuts to the basket. {X4} runs right into {5}!"
+    },
+    {
+      "ball": { "pass": ["o1", "o4"] },
+      "ask": "o4",
+      "say": "{1} passes in to {4}, all alone under the hoop."
+    },
+    {
+      "ball": { "shot": "o4" },
+      "bub": { "d4": "Too late!" },
+      "say": "Layup! The player who sets a screen can get one too."
+    }
+  ]
+}

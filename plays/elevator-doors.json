@@ -1,0 +1,42 @@
+{
+  "name": "Elevator Doors",
+  "emoji": "🛗",
+  "level": 2,
+  "tags": ["inbound", "sideline out of bounds", "slob", "elevator", "screen", "after timeout", "ato", "three-pointer"],
+  "idea": "Your shooter runs between two teammates, and they step together behind them like elevator doors closing.",
+  "why": "The doors are open just long enough for the shooter to run through. Then they close, and the defender chasing behind can’t get through.",
+  "tryit": "Door players: stand an arm’s length apart. The moment the shooter runs past, take one big step together, shoulder to shoulder.",
+  "cast": ["d1", "d2", "d3", "d4", "d5", "o1", "o2", "o3", "o4", "o5"],
+  "frames": [
+    {
+      "pos": { "o3": [528, 300], "d3": [494, 262], "o1": [100, 300], "o2": [250, 110], "d2": [222, 90], "o4": [215, 230], "d4": [200, 200], "o5": [285, 230], "d5": [300, 200] },
+      "ball": "o3",
+      "say": "{3} passes in from the sideline. {4} and {5} stand side by side with a gap between them, like *elevator doors*."
+    },
+    {
+      "pos": { "o2": [250, 300], "d2": [250, 190] },
+      "ball": "o3",
+      "bub": { "o2": "Going up!" },
+      "say": "{2} runs up the middle, right through the gap. {X2} chases close behind."
+    },
+    {
+      "pos": { "o4": [233, 232], "o5": [267, 232], "o2": [350, 305], "d2": [250, 196] },
+      "ball": "o3",
+      "scr": [["o4", "d2"], ["o5", "d2"]],
+      "bub": { "d2": "Bonk!" },
+      "say": "*Ding!* The doors close. {4} and {5} step together, and {X2} bumps right into them."
+    },
+    {
+      "ball": { "pass": ["o3", "o2"] },
+      "ask": "o2",
+      "scr": [["o4", "d2"], ["o5", "d2"]],
+      "say": "{3} passes in to {2}, wide open."
+    },
+    {
+      "pos": { "d5": [330, 265] },
+      "ball": { "shot": "o2" },
+      "bub": { "d5": "Too late!" },
+      "say": "Swish! Open the doors, close the doors, and the defender gets left behind."
+    }
+  ]
+}
