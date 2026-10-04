@@ -67,11 +67,14 @@ function setLevel(l){
   refreshList();
 }
 function chipFor(pl){return playsEl.querySelector(`.pick[data-id="${pl.id}"]`);}
-/* Scroll the chip row (only the row, never the page) so this play's chip is in view */
+/* Scroll the play list (only the list, never the page) so this play is in view.
+   The list scrolls down in the side panel, and sideways on phones. */
 function revealChip(pl,smooth){
   const c=chipFor(pl);if(!c)return;
   const r=c.getBoundingClientRect(),box=playsEl.getBoundingClientRect();
-  if(r.left<box.left||r.right>box.right)playsEl.scrollTo({left:playsEl.scrollLeft+r.left-box.left-8,behavior:smooth?"smooth":"auto"});
+  const dx=r.left<box.left||r.right>box.right?r.left-box.left-8:0;
+  const dy=r.top<box.top||r.bottom>box.bottom?r.top-box.top-8:0;
+  if(dx||dy)playsEl.scrollBy({left:dx,top:dy,behavior:smooth?"smooth":"auto"});
 }
 
 function buildPlayers(){
@@ -115,7 +118,7 @@ function selectPlay(i,updateUrl=true){
   buildPlayers();buildDots();fillInfo();
   lyFx.innerHTML="";lastPathKey="";lastCapKey="";lastUI="";
   playsEl.querySelectorAll(".pick").forEach(c=>c.setAttribute("aria-pressed",String(c.dataset.id===plays[i].id)));
-  revealChip(plays[i],true);
+  revealChip(plays[i],updateUrl);  // smooth when someone picks a play, instant on first load
   if(updateUrl)history.replaceState(null,"","#"+plays[i].id);
   document.title=`${plays[i].name} · Hoops Playbook`;
 }
