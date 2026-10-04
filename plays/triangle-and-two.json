@@ -1,0 +1,42 @@
+{
+  "name": "Triangle-and-Two",
+  "emoji": "🔻",
+  "level": 3,
+  "side": "defense",
+  "tags": ["defense", "triangle-and-two", "zone", "shooter", "rebound", "box out", "team defense"],
+  "idea": "Two defenders stick to the two best shooters, and the other three guard a triangle by the basket.",
+  "why": "Some teams have two great shooters. In a triangle-and-two, those shooters always have a defender right on them, and the triangle protects the paint, so the players who aren't great shooters are left to shoot from outside.",
+  "tryit": "Chasers: stay close enough to touch your shooter, everywhere they go. Triangle: move together toward the ball, and shout “Shot!” to box out.",
+  "cast": ["d1", "d2", "d3", "d4", "d5", "o1", "o2", "o3", "o4", "o5"],
+  "frames": [
+    {
+      "pos": { "o3": "TOP", "o1": "LW", "o2": "RW", "o4": "RC", "o5": "LB", "d1": [112, 252], "d2": [388, 252], "d3": [188, 112], "d4": [312, 112], "d5": [250, 196] },
+      "ball": "o3",
+      "bub": { "d1": "My shooter!", "d5": "My area!" },
+      "say": "You’re on defense, in a *triangle-and-two*. {X1} and {X2} stick to the two best shooters. {X3}, {X4} and {X5} make a triangle by the basket."
+    },
+    {
+      "pos": { "d4": [400, 128], "d5": [290, 160], "d3": [214, 96] },
+      "ball": { "pass": ["o3", "o4"] },
+      "say": "{3} passes to {4} in the corner. The triangle slides toward the ball, and {X4} steps out toward {4}."
+    },
+    {
+      "pos": { "o2": [432, 312, 470, 280], "d2": [405, 290], "o1": [190, 320, 110, 320], "d1": [205, 288] },
+      "ball": "o4",
+      "where": "d1",
+      "bub": { "d1": "Stay with 1!", "d2": "Got 2!" },
+      "say": "The shooters run around to get open, but {X1} and {X2} stay right with them."
+    },
+    {
+      "pos": { "d4": [440, 112] },
+      "ball": { "shot": "o4", "miss": true },
+      "bub": { "d4": "Hands up!", "d5": "Shot!" },
+      "say": "Nobody can pass to a shooter, so {4} has to shoot from the corner, with {X4} right there. Miss!"
+    },
+    {
+      "pos": { "d5": [262, 100], "o5": [172, 78] },
+      "ball": { "rebound": "d5" },
+      "say": "{X5} grabs the rebound! The shooters never got the ball, and the triangle protected the paint."
+    }
+  ]
+}

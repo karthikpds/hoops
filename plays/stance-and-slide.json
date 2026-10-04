@@ -1,0 +1,42 @@
+{
+  "name": "Stance and Slide",
+  "emoji": "🦀",
+  "level": 1,
+  "side": "defense",
+  "tags": ["defense", "stance", "slide", "one on one", "footwork", "fundamentals"],
+  "idea": "Get low with your feet wide, then slide sideways to stay in front of the dribbler.",
+  "why": "In a low stance you can move fast in any direction. Sliding instead of running keeps your body facing the dribbler, so you stay between them and the hoop. If your feet cross, you trip, and they get past.",
+  "tryit": "Bend your knees, feet wider than your shoulders, hands out. Slide like a crab along a line: step, together, step, together. Never let your feet touch or cross.",
+  "cast": ["d1", "d2", "o1", "o2"],
+  "frames": [
+    {
+      "pos": { "o1": "TOP", "o2": "RW" },
+      "ball": { "dribble": "o1" },
+      "bub": { "d1": "Stance!" },
+      "say": "You’re on defense. {X1} gets in a *stance*: knees bent, feet wide, hands out."
+    },
+    {
+      "pos": { "o1": [330, 322], "d1": [322, 288] },
+      "ball": { "dribble": "o1" },
+      "bub": { "d1": "Slide!" },
+      "say": "*Slide:* {1} dribbles right. {X1} slides sideways and never crosses their feet. Still in front!"
+    },
+    {
+      "pos": { "o1": [180, 318], "d1": [186, 284] },
+      "ball": { "dribble": "o1", "cross": true },
+      "where": "d1",
+      "bub": { "o1": "This way!", "d1": "Slide!" },
+      "say": "{1} crosses over and goes the other way. {X1} slides right along, staying between {1} and the hoop."
+    },
+    {
+      "pos": { "d1": [186, 288] },
+      "ball": "o1",
+      "bub": { "d1": "Hands up!" },
+      "say": "{1} can’t get past, so {1} stops dribbling. {X1} steps up close with hands high."
+    },
+    {
+      "ball": { "pass": ["o1", "o2"] },
+      "say": "{1} has to pass the ball away. Stay low, slide your feet, and stay in front!"
+    }
+  ]
+}

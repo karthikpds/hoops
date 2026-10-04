@@ -4,7 +4,7 @@ Animated basketball plays, made for young players and hosted on GitHub Pages. Se
 how teammates work together.
 
 - An animated half court with playbook lines (cuts, dribbles, passes, handoffs, screens), speech bubbles, step-by-step captions and a celebration when the shot goes in.
-- Offense plays, from a first triple threat and give and go to the triangle and the flex, one-on-one moves like the crossover and the shot fake, and defense plays like box outs and help side.
+- Offense plays, from a first triple threat and give and go to the triangle and the flex, one-on-one moves like the crossover and the shot fake, and defense plays from a first stance and slide to traps and the triangle-and-two.
 - Questions stop the play and let kids answer on the court: "Who's open?" before a big pass (tap the open player), and "Where should 2 go?" before a big move (tap the spot).
 - Read aloud for kids who are still learning to read, Follow to watch one player's job, and a printable practice sheet.
 - Learning paths, like "Start here", "Screens" and "Defense", that list plays in the order to learn them.

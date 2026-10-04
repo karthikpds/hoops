@@ -1,0 +1,37 @@
+{
+  "name": "Deny the Ball",
+  "emoji": "🙅",
+  "level": 2,
+  "side": "defense",
+  "tags": ["defense", "deny", "passing lane", "backdoor cut", "off the ball", "team defense"],
+  "idea": "When your player is one pass away, stand in the passing lane so they can't catch the ball.",
+  "why": "A player who can't catch the ball can't score. With your hand in the passing lane, the pass would hit you. If your player cuts behind you to the hoop, turn and run with them, still between them and the ball.",
+  "tryit": "Stand a big step from your player, toward the ball, with your arm out and your thumb down. Keep your eyes on the ball and your player at the same time.",
+  "cast": ["d1", "d2", "o1", "o2"],
+  "frames": [
+    {
+      "pos": { "o1": "TOP", "o2": "RW", "d2": [386, 252] },
+      "ball": "o1",
+      "bub": { "d2": "Deny!" },
+      "say": "You’re on defense. {2} is one pass away, so {X2} stands right in the *passing lane* with a hand out."
+    },
+    {
+      "pos": { "o2": [430, 290], "d2": [399, 298] },
+      "ball": "o1",
+      "bub": { "o2": "Ball!", "d2": "No way!" },
+      "say": "{2} runs out to get the ball, but {X2} stays in the passing lane, hand out."
+    },
+    {
+      "pos": { "o2": [290, 90, 440, 160], "d2": [284, 124] },
+      "ball": "o1",
+      "where": "d2",
+      "bub": { "o2": "Backdoor!", "d2": "I see you!" },
+      "say": "{2} cuts *backdoor* to the hoop. {X2} turns and runs right along, staying between {2} and the ball."
+    },
+    {
+      "pos": { "o1": [180, 322], "d1": [186, 288] },
+      "ball": { "dribble": "o1" },
+      "say": "Nobody is open, so {1} has to dribble away. Great deny!"
+    }
+  ]
+}

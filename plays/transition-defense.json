@@ -1,0 +1,37 @@
+{
+  "name": "Transition Defense",
+  "emoji": "⏪",
+  "level": 2,
+  "side": "defense",
+  "tags": ["defense", "transition defense", "sprint back", "stop the ball", "fast break", "team defense", "talking"],
+  "idea": "When the other team gets the ball, sprint back, stop the ball, then find your player.",
+  "why": "The easiest points come from a fast break, when nobody is back on defense. If you run back faster than the ball, the other team has to slow down. Stopping the ball first takes away the layup, and then everyone has time to find their player.",
+  "tryit": "As soon as your team loses the ball, yell “Back!” and sprint to the paint. Then look for the ball first, and your player second.",
+  "cast": ["d1", "d2", "d3", "o1", "o2", "o3"],
+  "frames": [
+    {
+      "pos": { "o1": [250, 452], "o2": [100, 440], "o3": [400, 440], "d1": [288, 462], "d2": [140, 462], "d3": [360, 462] },
+      "ball": { "dribble": "o1" },
+      "bub": { "o1": "Go!", "d1": "Uh oh!" },
+      "say": "You’re on defense, and blue just stole the ball! Now blue is racing toward our basket."
+    },
+    {
+      "pos": { "o1": [250, 300], "o2": [95, 250], "o3": [405, 250], "d1": [250, 140], "d2": [150, 200], "d3": [350, 200] },
+      "ball": { "dribble": "o1" },
+      "where": "d1",
+      "bub": { "d1": "Back!" },
+      "say": "*Sprint back!* Red runs back faster than the ball. {X1} races all the way to the basket."
+    },
+    {
+      "pos": { "o1": [250, 232], "o2": [70, 160], "o3": [430, 160], "d1": [250, 198], "d2": [99, 143], "d3": [401, 143] },
+      "ball": { "dribble": "o1" },
+      "bub": { "d1": "Ball!", "d2": "I got 2!", "d3": "I got 3!" },
+      "say": "*Stop the ball:* {X1} steps up in front of {1}. {X2} and {X3} find their players and call them out."
+    },
+    {
+      "ball": { "pass": ["o1", "o3"] },
+      "bub": { "d3": "Hands up!" },
+      "say": "No layup! {1} has to pass to {3}, and {X3} is right there. Sprint back, stop the ball, find your player."
+    }
+  ]
+}

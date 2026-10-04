@@ -1,0 +1,44 @@
+{
+  "name": "Hedge and Recover",
+  "emoji": "🚧",
+  "level": 3,
+  "side": "defense",
+  "tags": ["defense", "hedge", "recover", "pick and roll", "screen", "talking", "team defense"],
+  "idea": "When the dribbler comes off a pick, the screener's defender jumps out to slow them down, then runs back.",
+  "why": "A pick tries to get the dribbler free for a moment. If the screener's defender jumps out in front, the dribbler has to slow down or go wide. That gives the dribbler's defender time to get around the screen, and then everyone runs back to their own player.",
+  "tryit": "Screener's defender: yell “Screen!”, step out wide with your arms out, then sprint back to your player the moment your teammate catches up. Dribbler's defender: fight around the screen as fast as you can.",
+  "cast": ["d1", "d5", "o1", "o5"],
+  "frames": [
+    {
+      "pos": { "o1": "TOP", "o5": "HP" },
+      "ball": { "dribble": "o1" },
+      "say": "You’re on defense. {X1} guards {1}, who has the ball, and {X5} guards {5}, the big player."
+    },
+    {
+      "pos": { "o5": [284, 292], "d5": [275, 230] },
+      "ball": { "dribble": "o1" },
+      "scr": [["o5", "d1"]],
+      "bub": { "d5": "Screen right!" },
+      "say": "{5} comes up to set a pick on {X1}. {X5} comes along and yells to warn {X1}."
+    },
+    {
+      "pos": { "o1": [335, 300, 300, 348], "d5": [350, 268] },
+      "ball": { "dribble": "o1" },
+      "where": "d5",
+      "scr": [["o5", "d1"]],
+      "bub": { "d5": "Hedge!" },
+      "say": "*Hedge:* {1} dribbles around the pick. {X5} jumps out in front of {1} to slow them down, so {X1} has time to get around the pick."
+    },
+    {
+      "pos": { "o5": [270, 120], "d5": [290, 148], "d1": [318, 272] },
+      "ball": { "dribble": "o1" },
+      "bub": { "d5": "Recover!" },
+      "say": "*Recover:* {5} rolls to the basket, so {X5} runs right back to {5}. {X1} is back in front of {1}."
+    },
+    {
+      "pos": { "o1": [350, 340], "d1": [336, 305] },
+      "ball": { "dribble": "o1" },
+      "say": "Nobody is open, so {1} dribbles back out. Hedge, then recover: two defenders stopped the pick and roll together."
+    }
+  ]
+}

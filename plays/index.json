@@ -15,6 +15,7 @@
   "jab-step",
   "jump-stop",
   "shot-fake",
+  "stance-and-slide",
   "backdoor-cut",
   "drive-and-kick",
   "set-a-screen",
@@ -31,6 +32,8 @@
   "down-screen",
   "crossover",
   "hesitation",
+  "deny-the-ball",
+  "transition-defense",
   "pick-and-roll",
   "pick-and-pop",
   "high-pick-and-roll",
@@ -46,5 +49,8 @@
   "triangle-weakside-flash",
   "flex-offense",
   "flex-cut",
-  "flex-down-screen"
+  "flex-down-screen",
+  "corner-trap",
+  "hedge-and-recover",
+  "triangle-and-two"
 ]
