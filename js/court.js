@@ -1,6 +1,6 @@
 // Court drawing shared by the page (js/app.js), the play editor (js/editor.js) and the print sheet.
 // Everything here builds SVG markup as strings and touches no DOM, so it also runs in Node for the tests.
-import { BASKET as B, dist, ease, posAt } from "./playbook.js";
+import { BASKET as B, dist, ease, posAt, teamWithBall } from "./playbook.js";
 
 export const f1 = v => v.toFixed(1);
 export const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
@@ -129,10 +129,11 @@ function handoffMark(a, b) {
 export function stepPaths(play, j, follow = "") {
   const fr = play.frames[j], a = play.res[j - 1], b = play.res[j], c = play.ctrl[j], bl = fr.ball;
   const screeners = (fr.scr || []).map(x => x[0]), dribbler = bl.dribble || (bl.handoff && bl.handoff[0]);
+  const redBall = teamWithBall(play.frames, j) === "d";  // red's moves get lines too once red has the ball
   const wrap = (who, h) => h && follow && !who.includes(follow) ? `<g opacity=".18">${h}</g>` : h;
   let h = "";
   play.cast.forEach(id => {
-    if ((id[0] === "d" && play.side !== "defense") || dist(a[id], b[id]) < 3) return;
+    if ((id[0] === "d" && play.side !== "defense" && !redBall) || dist(a[id], b[id]) < 3) return;
     const type = screeners.includes(id) ? "screen" : dribbler === id ? "dribble" : "cut";
     h += wrap([id], drawMove(sampleQ(a[id], c[id], b[id]), type, { team: id[0] }));
   });

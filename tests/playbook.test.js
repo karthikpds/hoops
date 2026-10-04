@@ -3,7 +3,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
 import {
-  BASKET, DATA_FILES, SPOTS, askList, ballKind, checkGlossary, checkPaths, checkPlay, dist, lookUp, endHolder, formatPlay, guardSpot, isThree, lintPlay,
+  BASKET, DATA_FILES, SPOTS, askList, ballKind, checkGlossary, checkPaths, checkPlay, dist, lookUp, teamWithBall, endHolder, formatPlay, guardSpot, isThree, lintPlay,
   posAt, resolvePlay, searchPlays, startHolder
 } from "../js/playbook.js";
 
@@ -152,6 +152,25 @@ test("a crossover switches the ball to the other hand until someone else gets it
   assert.deepEqual(resolvePlay(p, "t").hand, [1, 1, 1, 1]);
 });
 
+test("red keeps the ball after a defensive rebound, and can't shoot", () => {
+  const outlet = more => p => {
+    p.frames[3] = { ball: { shot: "o2", miss: true }, say: "Miss." };
+    p.frames[4] = { ball: { rebound: "d2" }, say: "Rebound." };
+    p.frames[5] = { ball: { pass: ["d2", "d1"] }, say: "Outlet." };
+    if (more) more(p);
+  };
+  assert.deepEqual(errorsFor(outlet()), []);
+  assert.deepEqual(errorsFor(outlet(p => { p.frames[6] = { pos: { d1: [250, 400] }, ball: { dribble: "d1" }, say: "Go." }; })), []);
+  assert.deepEqual(errorsFor(outlet(p => { p.frames[5].ball = { handoff: ["d2", "d1"] }; })), []);
+  hasError(errorsFor(outlet(p => { p.frames[5].ball = { pass: ["d2", "o1"] }; })), "two different red players");
+  hasError(errorsFor(outlet(p => { p.frames[6] = { ball: { shot: "d1" }, say: "Shot." }; })), "red can't shoot here");
+  hasError(errorsFor(outlet(p => { p.frames[6] = { ball: { fake: "d1" }, say: "Fake." }; })), "red can't shoot here");
+  hasError(errorsFor(outlet(p => { p.frames[5].ask = "o1"; })), `"ask" must name the open player on the team with the ball, like "d2"`);
+  assert.deepEqual(errorsFor(outlet(p => { p.frames[5].ask = "d1"; })), []);
+  const p = base(); outlet()(p);
+  assert.deepEqual([0, 1, 4, 5, 6].map(k => teamWithBall(p.frames, k)), ["o", "o", "o", "d", "d"], "red has the ball from the step after the rebound");
+});
+
 test("checkPlay handles handoffs", () => {
   assert.deepEqual(errorsFor(p => { p.frames[2].ball = { handoff: ["o1", "o2"] }; }), []);
   hasError(errorsFor(p => { p.frames[2].ball = { handoff: ["o1", "d2"] }; }), `"handoff" must be [from, to]`);
@@ -166,7 +185,7 @@ test("checkPlay handles missed shots and rebounds", () => {
   };
   assert.deepEqual(errorsFor(miss("d2")), []);
   assert.deepEqual(errorsFor(miss("o1", p => { p.frames[5] = { ball: { shot: "o1" }, say: "Putback." }; })), []);
-  hasError(errorsFor(miss("d2", p => { p.frames[5] = { ball: "o1", say: "More." }; })), "a defensive rebound ends the play");
+  hasError(errorsFor(miss("d2", p => { p.frames[5] = { ball: "o1", say: "More." }; })), `ball holder "o1" must be a red player`);
   hasError(errorsFor(p => { p.frames[3].ball = { shot: "o2", miss: true }; }), "a missed shot needs a rebound step after it");
   hasError(errorsFor(miss("d2", p => { p.frames[4].ball = "o2"; })), "after a missed shot, the next step must be a rebound");
   hasError(errorsFor(p => { p.frames[3].ball = { rebound: "o2" }; }), "a rebound must come right after a missed shot");

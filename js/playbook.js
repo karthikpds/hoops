@@ -53,6 +53,18 @@ export const ballKind = b => typeof b === "string" ? "hold" : Object.keys(BALL_K
 export const startHolder = b => typeof b === "string" ? b : b.dribble || b.shot || b.fake || (b.pass || b.handoff || [null])[0];
 export const endHolder = b => typeof b === "string" ? b : b.dribble || b.rebound || b.fake || (b.shot ? (b.miss ? null : b.shot) : (b.pass || b.handoff)[1]);
 
+/* Which team has the ball as step k starts: "o" (blue) until a red player grabs a rebound, then "d" (red), and
+   back to "o" after a blue rebound. Red can hold, dribble, pass and hand off, but never shoots: its basket is at the
+   other end of the court. */
+export function teamWithBall(frames, k) {
+  let team = "o";
+  for (let j = 1; j < k && j < frames.length; j++) {
+    const b = frames[j] && frames[j].ball;
+    if (b && typeof b === "object" && typeof b.rebound === "string") team = b.rebound[0];
+  }
+  return team;
+}
+
 /* A frame's "ask" as a list: the open player (or players) to tap before the step plays. */
 export const askList = ask => ask === undefined ? [] : Array.isArray(ask) ? ask : [ask];
 
@@ -72,9 +84,8 @@ export function checkPlay(p) {
   const inCast = id => p.cast.includes(id);
   const off = id => typeof id === "string" && id[0] === "o" && inCast(id);
   const def = id => typeof id === "string" && id[0] === "d" && inCast(id);
-  const two = v => Array.isArray(v) && v.length === 2 && v.every(off) && v[0] !== v[1];
   const last = p.frames.length - 1;
-  let prevBall = null;
+  let prevBall = null, team = "o";  // the team with the ball: blue, until a red player grabs a rebound
   p.frames.forEach((fr, j) => {
     const at = j === 0 ? "frame 0 (setup)" : `frame ${j}`;
     if (!need(isObj(fr), `${at} must be an object`)) { prevBall = null; return; }
@@ -95,15 +106,20 @@ export function checkPlay(p) {
     }
 
     const b = fr.ball, kind = b === undefined ? undefined : ballKind(b);
+    const ours = id => typeof id === "string" && id[0] === team && inCast(id);
+    const two = v => Array.isArray(v) && v.length === 2 && v.every(ours) && v[0] !== v[1];
+    const one = team === "o" ? "an offensive player in the cast" : "a red player in the cast, because red has the ball after the rebound";
+    const both = team === "o" ? "offensive players in the cast" : "red players in the cast, because red has the ball after the rebound";
+    const noShot = `${at}: red can't shoot here, because red's basket is at the other end of the court`;
     let ok = false;
-    if (kind === "hold") ok = need(off(b), `${at}: ball holder "${b}" must be an offensive player in the cast`);
-    else if (kind === "dribble") ok = need(off(b.dribble), `${at}: dribbler "${b.dribble}" must be an offensive player in the cast`);
-    else if (kind === "pass") ok = need(two(b.pass), `${at}: "pass" must be [from, to] with two different offensive players in the cast`) &&
+    if (kind === "hold") ok = need(ours(b), `${at}: ball holder "${b}" must be ${one}`);
+    else if (kind === "dribble") ok = need(ours(b.dribble), `${at}: dribbler "${b.dribble}" must be ${one}`);
+    else if (kind === "pass") ok = need(two(b.pass), `${at}: "pass" must be [from, to] with two different ${both}`) &&
       need(!(b.bounce && b.lob), `${at}: a pass can be a bounce pass or a lob, not both`);
-    else if (kind === "handoff") ok = need(two(b.handoff), `${at}: "handoff" must be [from, to] with two different offensive players in the cast`);
-    else if (kind === "shot") ok = need(off(b.shot), `${at}: shooter "${b.shot}" must be an offensive player in the cast`);
+    else if (kind === "handoff") ok = need(two(b.handoff), `${at}: "handoff" must be [from, to] with two different ${both}`);
+    else if (kind === "shot") ok = need(team === "o", noShot) && need(off(b.shot), `${at}: shooter "${b.shot}" must be an offensive player in the cast`);
     else if (kind === "rebound") ok = need(inCast(b.rebound), `${at}: rebounder "${b.rebound}" must be a player in the cast`);
-    else if (kind === "fake") ok = need(off(b.fake), `${at}: faker "${b.fake}" must be an offensive player in the cast`);
+    else if (kind === "fake") ok = need(team === "o", noShot) && need(off(b.fake), `${at}: faker "${b.fake}" must be an offensive player in the cast`);
     else errs.push(`${at}: "ball" must be a player like "o1", or { "dribble": "o1" }, { "pass": ["o1", "o2"] }, { "handoff": ["o1", "o2"] }, { "shot": "o1" }, { "rebound": "d5" } or { "fake": "o1" }`);
     if (ok && kind !== "hold") {
       const extra = Object.keys(b).filter(k => !BALL_KEYS[kind].includes(k));
@@ -113,13 +129,13 @@ export function checkPlay(p) {
     if (ok && j === 0 && b.cross) ok = need(false, `${at}: the setup can't cross over; put "cross" on a step`);
     if (ok && kind === "shot" && !b.miss) need(j === last, `${at}: a shot must be the last step (add "miss": true for a shot that misses)`);
     if (ok && kind === "shot" && b.miss) need(j < last, `${at}: a missed shot needs a rebound step after it`);
-    if (ok && kind === "rebound" && def(b.rebound)) need(j === last, `${at}: a defensive rebound ends the play, so it must be the last step`);
     if (ok && prevBall) {
       if (kind === "rebound") need(prevBall.miss, `${at}: a rebound must come right after a missed shot`);
       else if (prevBall.miss) need(false, `${at}: after a missed shot, the next step must be a rebound, like { "rebound": "d5" }`);
       else need(startHolder(b) === endHolder(prevBall), `${at}: ${startHolder(b)} starts with the ball, but ${endHolder(prevBall)} had it after the step before`);
     }
     prevBall = ok ? b : null;
+    if (ok && kind === "rebound") team = b.rebound[0];
 
     if (fr.scr !== undefined) need(Array.isArray(fr.scr) && fr.scr.every(s => Array.isArray(s) && s.length === 2 && ((off(s[0]) && def(s[1])) || (def(s[0]) && off(s[1])))),
       `${at}: "scr" must be a list of [screener, defender] pairs, like [["o3", "d2"]] (or [defender, player] for a box out)`);
@@ -127,8 +143,8 @@ export function checkPlay(p) {
       `${at}: "bub" must map players in the cast to short text, like { "o2": "Open!" }`);
     if (fr.ask !== undefined && need(j > 0, `${at}: the setup can't have "ask"; put it on the step that passes to the open player`)) {
       const open = askList(fr.ask);
-      if (need(open.length > 0 && open.every(off) && new Set(open).size === open.length,
-        `${at}: "ask" must name the open player, like "o2", or a list like ["o2", "o3"]`) && ok)
+      if (need(open.length > 0 && open.every(ours) && new Set(open).size === open.length,
+        `${at}: "ask" must name the open player on the team with the ball, like "${team}2", or a list like ["${team}2", "${team}3"]`) && ok)
         need(!open.includes(startHolder(b)), `${at}: "ask" names ${startHolder(b)}, who has the ball; name the player who is open for a pass`);
     }
     if (fr.where !== undefined && need(j > 0, `${at}: the setup can't have "where"; put it on the step where the player moves`)) {
@@ -205,15 +221,14 @@ export function lintPlay(play) {
   }));
   if (b0.dribble && !onCourt(play.res[0][b0.dribble])) errors.push(`frame 0: ${b0.dribble} can't dribble out of bounds; give them the ball as "${b0.dribble}" to inbound it`);
 
-  // A "Who's open?" answer should have more space (distance to the nearest defender) than every other
-  // teammate without the ball at the moment the question pops up: the end of the step before.
-  const defenders = play.cast.filter(pid => pid[0] === "d");
-  const space = (r, pid) => Math.min(...defenders.map(d => dist(r[pid], r[d])));
+  // A "Who's open?" answer should have more space (distance to the nearest player on the other team) than every
+  // other teammate without the ball at the moment the question pops up: the end of the step before.
   play.frames.forEach((fr, j) => {
-    const open = askList(fr.ask);
-    if (!open.length || !defenders.length) return;
+    const open = askList(fr.ask), team = teamWithBall(play.frames, j), guards = play.cast.filter(pid => pid[0] !== team);
+    if (!open.length || !guards.length) return;
+    const space = (r, pid) => Math.min(...guards.map(g => dist(r[pid], r[g])));
     const r = play.res[j - 1], least = Math.min(...open.map(pid => space(r, pid)));
-    const rival = play.cast.find(pid => pid[0] === "o" && pid !== startHolder(fr.ball) && !open.includes(pid) && space(r, pid) >= least);
+    const rival = play.cast.find(pid => pid[0] === team && pid !== startHolder(fr.ball) && !open.includes(pid) && space(r, pid) >= least);
     if (rival) warnings.push(`frame ${j}: "ask" says ${open.join(" or ")} is open, but ${rival} has as much space when the question pops up`);
   });
   // A "where" answer is a tap near the spot the player runs to, so the run has to be long enough that a tap on the

@@ -1,7 +1,7 @@
 // The play editor (editor.html): drag players step by step, set the ball, screens, bubbles and captions,
 // check the play with the same rules as npm run build, and save it as a plays/<id>.json file.
 // Nothing is kept in the browser: the play lives in this page until it's copied or downloaded.
-import { SPOTS, askList, ballKind, checkPlay, dist, endHolder, formatPlay, lintPlay, normalize, resolvePlay } from "./playbook.js";
+import { SPOTS, askList, ballKind, checkPlay, dist, endHolder, formatPlay, lintPlay, normalize, resolvePlay, teamWithBall } from "./playbook.js";
 import { renderCourt } from "./court.js";
 import { loadLibrary, saveForOffline } from "./library.js";
 
@@ -61,8 +61,9 @@ function cleaned() {
 const okPoint = v => typeof v === "string" ? !!SPOTS[v] : Array.isArray(v) && (v.length === 2 || v.length === 4) && v.every(Number.isFinite);
 /* A ball that can be drawn: anything broken or unfinished becomes a plain hold, so the court still shows */
 function safeBall(b, d, j) {
-  const inCast = id => d.cast.includes(id), off = id => inCast(id) && id[0] === "o";
-  const fallback = d.cast.find(id => id[0] === "o") || d.cast[0];
+  // Players on the team with the ball: blue, or red after a red rebound
+  const tm = teamWithBall(d.frames, j), inCast = id => d.cast.includes(id), off = id => inCast(id) && id[0] === tm;
+  const fallback = d.cast.find(id => id[0] === tm) || d.cast.find(id => id[0] === "o") || d.cast[0];
   let kind = null;
   try { kind = b === undefined || b === null ? null : ballKind(b); } catch { /* not a ball */ }
   if (j === 0 && kind !== "hold" && kind !== "dribble") return fallback;
@@ -71,7 +72,7 @@ function safeBall(b, d, j) {
   if (kind === "fake") return off(b.fake) ? b : fallback;
   if (kind === "pass" || kind === "handoff") return Array.isArray(b[kind]) && b[kind].length === 2 && b[kind].every(off) && b[kind][0] !== b[kind][1] ? b : fallback;
   if (kind === "shot") {
-    if (!off(b.shot)) return fallback;
+    if (!off(b.shot) || tm !== "o") return fallback;
     const nb = d.frames[j + 1] && d.frames[j + 1].ball, rebound = !!nb && typeof nb === "object" && inCast(nb.rebound);
     return b.miss && !rebound ? { shot: b.shot } : b;
   }
@@ -228,7 +229,7 @@ function selectStep(j) { sel = j; stopPreview(); previewP = null; renderSteps();
 function addStep() {
   let holder = null;
   try { holder = endHolder(play.frames[sel].ball); } catch { /* broken ball */ }
-  if (!holder || holder[0] !== "o") holder = play.cast.find(id => id[0] === "o");
+  if (!holder) holder = play.cast.find(id => id[0] === teamWithBall(play.frames, sel + 1)) || play.cast.find(id => id[0] === "o");
   play.frames.splice(sel + 1, 0, { ball: holder, say: "" });
   sel++; changed(true);
 }
@@ -263,9 +264,11 @@ function makeBall(kind, a, b) {
 }
 
 function renderStepForm() {
-  const fr = play.frames[sel], form = $("stepForm"), offense = play.cast.filter(id => id[0] === "o");
+  const fr = play.frames[sel], form = $("stepForm");
+  // offense here means the team with the ball at this step: blue, or red after a red rebound (red can't shoot)
+  const red = teamWithBall(play.frames, sel) === "d", offense = play.cast.filter(id => id[0] === (red ? "d" : "o"));
   const kind = kindOf(fr.ball), [a, b] = ballPlayers(fr.ball);
-  const kinds = sel === 0 ? KINDS.slice(0, 2) : KINDS;
+  const kinds = sel === 0 ? KINDS.slice(0, 2) : red ? KINDS.filter(([k]) => !["fake", "shot", "miss"].includes(k)) : KINDS;
   const setBall = (k, x, y) => { fr.ball = makeBall(k, x, y); changed(true); };
   const who = kind === "rebound" ? play.cast : offense;
 
@@ -275,7 +278,7 @@ function renderStepForm() {
         const k = e.target.value;
         let from = a;
         try { from = sel ? endHolder(play.frames[sel - 1].ball) || a : a; } catch { /* keep a */ }
-        if (k === "rebound") from = play.cast.find(id => id[0] === "d") || from;
+        if (k === "rebound") from = play.cast.find(id => id[0] === (red ? "o" : "d")) || from;
         else if (!offense.includes(from)) from = offense[0];
         setBall(k, from, offense.find(id => id !== from) || from);
       } }, kinds.map(([v, t]) => h("option", { value: v, selected: v === kind }, t)))),
@@ -307,7 +310,7 @@ function renderStepForm() {
     h("select", { "aria-label": "Blocked player", onchange: e => { s[1] = e.target.value; changed(false); } }, options(play.cast, s[1])),
     h("button", { type: "button", class: "ed-x", "aria-label": "Remove this screen", onclick: () => { scr.splice(i, 1); changed(true); } }, "✕")));
   const addScr = h("button", { type: "button", class: "linkbtn", onclick: () => {
-    const o = offense[0], d = play.cast.find(id => id[0] === "d");
+    const o = play.cast.find(id => id[0] === "o"), d = play.cast.find(id => id[0] === "d");
     if (!o || !d) return;
     fr.scr = [...scr, play.side === "defense" ? [d, o] : [o, d]]; changed(true);
   } }, "+ Add a screen or box out");

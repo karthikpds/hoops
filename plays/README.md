@@ -166,7 +166,7 @@ Shots score 2 or 3 automatically from where the shooter stands.
 | `{ "handoff": ["o1", "o2"] }` | o1 hands the ball to o2 as they run close by. The ball changes hands at the moment the two are closest, so move them past each other (within 50 units). |
 | `{ "shot": "o1" }` | o1 shoots and scores. Only allowed in the last step. |
 | `{ "shot": "o1", "miss": true }` | o1 shoots and misses. The next step must be a rebound. |
-| `{ "rebound": "d5" }` | d5 (or any player) grabs the missed shot. A defensive rebound ends the play, so it must be the last step. |
+| `{ "rebound": "d5" }` | d5 (or any player) grabs the missed shot. After a red rebound, red has the ball: red players can hold, dribble, pass and hand off (but not shoot, since red's basket is at the other end), like the outlet pass in `rebound-and-outlet.json`. |
 
 The setup (frame 0) can only hold or dribble, and can't cross over.
 
@@ -178,8 +178,9 @@ orange bars where the ball changes hands. In a defense play, defenders' moves ge
 
 Add `"side": "defense"` and tell the story from the defenders' point of view. A missed shot and a rebound make a
 good ending: see `box-out.json`. For a box out, list the defender first in `scr`, like `[["d4", "o4"], ["d5", "o5"]]`.
-`ask` questions are only about open offensive players, so a defense play asks `where` questions instead, like
-"Where should X2 go?" before a defender slides over to help (see `help-side.json`).
+Most defense plays ask `where` questions, like "Where should X2 go?" before a defender slides over to help (see
+`help-side.json`). Once red has the ball after a rebound, an `ask` can be about red players too, like who's open for
+the outlet pass.
 
 ## Inbound plays
 
@@ -240,9 +241,9 @@ player would count as right (the checker fails it).
 
 - Every field is there and has the right kind of value, spot names exist, and positions are on the half court (or just off it for an inbounder).
 - Only the inbounder is ever out of bounds, and they don't step back out once they're on the court.
-- The ball moves sensibly from step to step: a made shot only in the last step, a missed shot followed by a rebound, and a defensive rebound last.
+- The ball moves sensibly from step to step: a made shot only in the last step, a missed shot followed by a rebound, and after a red rebound only red players have the ball, and red never shoots.
 - Players in a handoff get within 50 units of each other (a warning).
-- An `ask` names offensive players who don't have the ball, and isn't on the setup. If the answer isn't the most open player when the question pops up, that's a warning.
+- An `ask` names players on the team with the ball who don't have it, and isn't on the setup. If the answer isn't the most open player when the question pops up, that's a warning.
 - A `where` names a player on your team who moves more than 70 units in that step, isn't on the setup, and isn't on the same step as an `ask`.
 - Caption chips like `{3}` refer to players in the cast.
 - No two players ever overlap: it sweeps every step and fails if two players get closer than 26 units (aim for 34, a full player width).

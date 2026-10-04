@@ -39,7 +39,7 @@
     "name": "Defense",
     "emoji": "🛡️",
     "about": "This time you're the red team. Start with your stance, then learn to deny, help, get back, and trap.",
-    "plays": ["stance-and-slide", "close-out", "box-out", "deny-the-ball", "help-side", "transition-defense", "switch", "hedge-and-recover", "corner-trap", "triangle-and-two"]
+    "plays": ["stance-and-slide", "close-out", "box-out", "rebound-and-outlet", "deny-the-ball", "help-side", "transition-defense", "switch", "hedge-and-recover", "corner-trap", "triangle-and-two"]
   },
   {
     "id": "inbounds",

@@ -145,6 +145,7 @@ h1{margin:0;font-weight:700;font-size:28px;line-height:1.05;letter-spacing:-.01e
 .choice{width:44px;height:44px;padding:0;border-radius:50%;border:3px solid #fff;background:#2459E0;color:#fff;font-weight:700;font-size:20px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(20,33,61,.3);transition:opacity .15s,background .15s}
 .choice:disabled{cursor:default}
 .choice.no{opacity:.35}
+.choice.cd{background:#E0294A;font-size:16px}
 .choice.yes{background:var(--yes)}
 .choice.nope{animation:nope .4s ease-in-out}
 .quiz .linkbtn{margin-left:auto;font-size:16px;padding:8px 4px}
@@ -253,6 +254,8 @@ dialog.glossary::backdrop{background:rgba(10,18,35,.55)}
 .pl .ring{fill:none;stroke:#fff;stroke-width:3;stroke-dasharray:6 5;opacity:0;transition:opacity .15s}
 #court.asking .po{cursor:pointer}
 #court.asking .po .ring{animation:tapme 1.2s ease-in-out infinite}
+#court.asking-d .pd{cursor:pointer}
+#court.asking-d .pd .ring{animation:tapme 1.2s ease-in-out infinite}
 #court.placing{cursor:crosshair}
 #court.placing .pl.mover .ring{stroke:#FFC93C;stroke-width:4;animation:tapme 1.2s ease-in-out infinite}
 .spot-ok{fill:rgba(28,154,85,.28);stroke:var(--yes);stroke-width:4;transform-box:fill-box;transform-origin:center;animation:spotin .35s ease-out}
@@ -300,7 +303,7 @@ dialog.glossary::backdrop{background:rgba(10,18,35,.55)}
 
 @media (prefers-reduced-motion:reduce){
   .pl.has .halo,.btn.play.nudge,#caption.fresh,.pl .in.nope,.choice.nope{animation:none}
-  #court.asking .po .ring,#court.placing .pl.mover .ring{animation:none;opacity:.8}
+  #court.asking .po .ring,#court.asking-d .pd .ring,#court.placing .pl.mover .ring{animation:none;opacity:.8}
   .spot-ok{animation:none}
 }
 @media (max-width:560px){

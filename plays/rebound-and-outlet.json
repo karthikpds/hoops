@@ -1,0 +1,48 @@
+{
+  "name": "Rebound and Outlet",
+  "emoji": "📤",
+  "level": 2,
+  "side": "defense",
+  "tags": ["defense", "rebounding", "box out", "outlet pass", "fast break", "team defense"],
+  "idea": "Box out and grab the rebound, then throw a quick pass to a guard on the side to start a fast break.",
+  "why": "Right after a rebound, the other team is still near your basket. A fast pass to a teammate waiting on the side, called an outlet pass, gets the ball up the court before they can get back, and that's how fast breaks start.",
+  "tryit": "Rebounder: grab it with two hands, chin it, and turn to the sideline. Guard: as soon as you see the rebound, run to the side of the court near the free-throw line and call for the ball.",
+  "cast": ["d1", "d2", "d5", "o1", "o2", "o5"],
+  "frames": [
+    {
+      "pos": { "o1": "RW", "o5": "RB", "o2": "LW" },
+      "ball": "o1",
+      "say": "You’re on defense. {1} is about to shoot. When a shot goes up, every red player's job is the rebound."
+    },
+    {
+      "pos": { "o5": [330, 122], "d5": [318, 92], "d1": [396, 216] },
+      "ball": { "shot": "o1", "miss": true },
+      "scr": [["d5", "o5"]],
+      "bub": { "d5": "Box out!", "d1": "Hands up!" },
+      "say": "{1} shoots and misses! {X5} *boxes out*: back to {5}, so {5} can't get to the ball."
+    },
+    {
+      "pos": { "d5": [300, 82] },
+      "ball": { "rebound": "d5" },
+      "bub": { "d5": "Mine!" },
+      "say": "{X5} grabs the rebound with two hands. Now red has the ball!"
+    },
+    {
+      "pos": { "d1": [470, 190, 430, 185] },
+      "ball": "d5",
+      "bub": { "d1": "Outlet!" },
+      "say": "{X5} turns toward the sideline, and {X1} runs to the side of the court and calls for the ball."
+    },
+    {
+      "ball": { "pass": ["d5", "d1"] },
+      "ask": "d1",
+      "say": "*Outlet pass:* {X5} throws it out to {X1}, right away."
+    },
+    {
+      "pos": { "d1": [440, 420], "d2": [125, 420, 150, 290], "d5": [262, 330, 270, 200] },
+      "ball": { "dribble": "d1" },
+      "bub": { "d1": "Go!" },
+      "say": "{X1} dribbles up the court fast, and {X2} and {X5} race up too. Rebound, outlet, go: that's how a fast break starts!"
+    }
+  ]
+}

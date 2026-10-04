@@ -1,6 +1,6 @@
 // The page: loads the library (library.js), runs it (search, level filter, paths, glossary, links)
 // and animates the selected play on the court. The court drawing itself lives in court.js.
-import { BASKET, LEVELS as LV, WHERE_RADIUS, askList, checkGlossary, checkPaths, checkPlay, dist, isThree, lookUp, normalize, resolvePlay, searchPlays, startHolder } from "./playbook.js";
+import { BASKET, LEVELS as LV, WHERE_RADIUS, askList, checkGlossary, checkPaths, checkPlay, dist, isThree, lookUp, normalize, resolvePlay, searchPlays, startHolder, teamWithBall } from "./playbook.js";
 import { loadLibrary, saveForOffline } from "./library.js";
 import { ballState, bubblesAt, bubblesSVG, courtBackground, courtView, esc, f1, pathsUpTo, playerSVG, playersAt, renderCourt, screensAt, stepAt, wallsSVG } from "./court.js";
 
@@ -250,14 +250,16 @@ function setSpeak(on){
 }
 
 /* Questions: before a step with "ask" or "where", the play stops and waits for an answer.
-   "ask" (kind "who") is "Who's open?": tap the open player, or press 1-5.
+   "ask" (kind "who") is "Who's open?": tap the open player on the team with the ball (red after a red rebound), or press 1-5.
    "where" (kind "where") is "Where should 2 go?": tap within WHERE_RADIUS of the spot that player runs to this step. */
 const chipOf=id=>`{${id[0]==="d"?"X":""}${id.slice(1)}}`;
 const asking=()=>!!quiz&&quiz.state!=="right";
 function needsAsk(play,k){
   if(!quizOn||k>=play.frames.length||answered.has(k))return false;
   const fr=play.frames[k];
-  return askList(fr.ask).length>0||(!!fr.where&&(showD||fr.where[0]!=="d"));  // no "where" about a hidden defender
+  // No question about a defender while the defense is hidden
+  if(askList(fr.ask).length)return showD||teamWithBall(play.frames,k)!=="d";
+  return !!fr.where&&(showD||fr.where[0]!=="d");
 }
 function startAsk(k){
   const play=plays[cur],fr=play.frames[k],b=fr.ball,holder=startHolder(b);
@@ -267,9 +269,10 @@ function startAsk(k){
     quiz={...base,kind:"where",mover:id,spot:play.res[k][id],msg:`Where should ${chipOf(id)} ${b.dribble===id?"dribble":"go"}? Tap the spot on the court.`};
     choicesEl.innerHTML="";
   } else {
-    quiz={...base,kind:"who",open:askList(fr.ask),msg:b.pass?`Who’s open? Tap the player ${chipOf(holder)} should pass to.`:"Who’s open? Tap the open player."};
-    choicesEl.innerHTML=play.cast.filter(id=>id[0]==="o").sort().map(id=>
-      `<button type="button" class="choice" data-id="${id}" aria-label="Player ${id.slice(1)}">${id.slice(1)}</button>`).join("");
+    const tm=teamWithBall(play.frames,k),red=tm==="d";
+    quiz={...base,kind:"who",team:tm,open:askList(fr.ask),msg:b.pass?`Who’s open? Tap the player ${chipOf(holder)} should pass to.`:"Who’s open? Tap the open player."};
+    choicesEl.innerHTML=play.cast.filter(id=>id[0]===tm).sort().map(id=>
+      `<button type="button" class="choice${red?" cd":""}" data-id="${id}" aria-label="${red?"Defender X":"Player "}${id.slice(1)}">${red?"X":""}${id.slice(1)}</button>`).join("");
   }
   playing=false;target=p;holdUntil=0;
 }
@@ -280,7 +283,7 @@ function answer(id){
   if(id===quiz.holder)quiz.msg=`${chipOf(id)} has the ball! Who should ${chipOf(id)} pass to?`;
   else{
     let near="",nd=80;
-    if(showD)plays[cur].cast.forEach(d=>{if(d[0]==="d"&&dist(curP[id],curP[d])<nd){nd=dist(curP[id],curP[d]);near=d;}});
+    plays[cur].cast.forEach(g=>{if(g[0]!==quiz.team&&(showD||g[0]!=="d")&&dist(curP[id],curP[g])<nd){nd=dist(curP[id],curP[g]);near=g;}});
     quiz.msg=near?`Not ${chipOf(id)}. ${chipOf(near)} is right there. Try again!`:`Not ${chipOf(id)}. Look for the player with the most space. Try again!`;
   }
   const c=choicesEl.querySelector(`[data-id="${id}"]`);if(c){c.classList.add("no");shake(c);}
@@ -330,7 +333,7 @@ function tapCourt(e){
   const m=courtEl.getScreenCTM();if(!m)return;
   const pt=new DOMPoint(e.clientX,e.clientY).matrixTransform(m.inverse()),ask=asking();
   if(ask&&quiz.kind==="where"){answerSpot([pt.x,pt.y]);return;}
-  const side=ask?"o":team(plays[cur]);
+  const side=ask?quiz.team:team(plays[cur]);
   let best="",bd=ask?48:30;
   plays[cur].cast.forEach(id=>{if(id[0]===side&&(showD||id[0]!=="d")&&dist([pt.x,pt.y],curP[id])<bd){bd=dist([pt.x,pt.y],curP[id]);best=id;}});
   if(best){if(ask)answer(best);else setFollow(best);}
@@ -394,7 +397,7 @@ function updateUI(play,n,stepIdx,fl){
   badgeEl.textContent=ask?"Your turn":stepIdx===0?"Start":`Step ${stepIdx} of ${n}`;
   badgeEl.classList.toggle("turn",ask);
   const where=ask&&quiz.kind==="where";
-  quizEl.hidden=!quiz;dotsEl.hidden=!!quiz;courtEl.classList.toggle("asking",ask&&!where);courtEl.classList.toggle("placing",where);
+  quizEl.hidden=!quiz;dotsEl.hidden=!!quiz;courtEl.classList.toggle("asking",ask&&!where&&quiz.team==="o");courtEl.classList.toggle("asking-d",ask&&!where&&quiz.team==="d");courtEl.classList.toggle("placing",where);
   [...choicesEl.children].forEach(c=>{c.disabled=!ask;c.classList.toggle("yes",!!quiz&&quiz.hit===c.dataset.id);});
   play.cast.forEach(id=>{
     els[id].classList.toggle("yes",!!quiz&&quiz.hit===id);
@@ -540,7 +543,7 @@ document.addEventListener("keydown",e=>{
   if(e.key==="/"){e.preventDefault();qEl.focus();qEl.select();return;}
   if(!plays.length)return;
   if(asking()&&quiz.kind==="who"&&/^[1-5]$/.test(e.key)){
-    if(plays[cur].cast.includes("o"+e.key)){e.preventDefault();answer("o"+e.key);}
+    if(plays[cur].cast.includes(quiz.team+e.key)){e.preventDefault();answer(quiz.team+e.key);}
     return;
   }
   const onBtn=el&&el.closest&&el.closest("button");
