@@ -1,6 +1,7 @@
-// The page: loads the plays listed in plays/index.json, runs the library (search, level filter, links)
+// The page: loads the library (library.js), runs it (search, level filter, paths, glossary, links)
 // and animates the selected play on the court. The court drawing itself lives in court.js.
-import { LEVELS as LV, askList, checkPaths, checkPlay, dist, isThree, resolvePlay, searchPlays, startHolder } from "./playbook.js";
+import { LEVELS as LV, askList, checkGlossary, checkPaths, checkPlay, dist, isThree, lookUp, normalize, resolvePlay, searchPlays, startHolder } from "./playbook.js";
+import { loadLibrary } from "./library.js";
 import { ballState, bubblesAt, bubblesSVG, courtBackground, courtView, esc, f1, pathsUpTo, playerSVG, playersAt, renderCourt, screensAt, stepAt, wallsSVG } from "./court.js";
 
 const NS="http://www.w3.org/2000/svg";
@@ -16,6 +17,7 @@ const playIcon=$("playIcon"),playTxt=$("playTxt");
 const qEl=$("q"),countEl=$("count"),shareBtn=$("btnShare"),printBtn=$("btnPrint"),courtEl=$("court");
 const quizEl=$("quiz"),choicesEl=$("choices"),followEl=$("follow"),printEl=$("printSheet"),speakBtn=$("togS"),surpriseBtn=$("btnSurprise");
 const pathPick=$("pathPick"),pathSel=$("pathSel"),pathAbout=$("pathAbout");
+const wordCard=$("wordCard"),glossaryEl=$("glossary"),glList=$("glList");
 const ICON_PLAY='<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M7 4.8v14.4a1 1 0 0 0 1.52.85l11.3-7.2a1 1 0 0 0 0-1.7L8.52 3.95A1 1 0 0 0 7 4.8z"/></svg>';
 const ICON_PAUSE='<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><rect x="5.5" y="4.5" width="4.6" height="15" rx="1.6"/><rect x="13.9" y="4.5" width="4.6" height="15" rx="1.6"/></svg>';
 const ICON_AGAIN='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12a7.5 7.5 0 1 0 2.4-5.5"/><path d="M4.5 4v5h5"/></svg>';
@@ -23,6 +25,7 @@ const ICON_AGAIN='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" st
 /* State */
 let plays=[],view=[],query="",level=0,listVer=0;
 let paths=[],path=null;  // learning paths from plays/paths.json; path is the one picked, if any
+let glossary=[];  // basketball words from plays/glossary.json
 let cur=0,p=0,target=0,playing=false,holdUntil=0,speed=1,showD=true,showL=true;
 let els={},lastPathKey="",lastCapKey="",lastUI="",lastT=performance.now(),shareTimer=0;
 let vb=[-14,-14,514,484];  // court view as x0,y0,x1,y1
@@ -31,35 +34,35 @@ let follow="";  // the one player being followed; everyone else fades
 let speakOn=false,speakUntil=0,speakTok=0;  // read aloud; speakUntil is when the current caption should be done
 const HOLD=1500;
 
-/* Loading: plays/index.json lists the play ids; each play lives in plays/<id>.json */
-async function loadPlays(){
-  const res=await fetch("plays/index.json",{cache:"no-cache"});
-  if(!res.ok)throw new Error("plays/index.json: HTTP "+res.status);
-  const ids=await res.json();
-  const loaded=await Promise.all(ids.map(async id=>{
+/* Loading: library.js fetches everything, in one request when plays/bundle.json is there. A play that fails
+   checkPlay is skipped with a console warning. */
+function readPlays(lib){
+  return lib.ids.map(id=>{
     try{
-      const r=await fetch(`plays/${encodeURIComponent(id)}.json`,{cache:"no-cache"});
-      if(!r.ok)throw new Error("HTTP "+r.status);
-      const raw=await r.json(),errs=checkPlay(raw);
+      const raw=lib.plays.get(id);
+      if(raw instanceof Error)throw raw;
+      const errs=checkPlay(raw);
       if(errs.length)throw new Error(errs.join("; "));
       return resolvePlay(raw,id);
     }catch(e){console.warn(`Skipped play "${id}": ${e.message}`);return null;}
-  }));
-  return loaded.filter(Boolean);
+  }).filter(Boolean);
 }
-
-/* Learning paths: plays/paths.json lists plays in the order to learn them. A path is optional, so a missing or
-   broken file just means no path picker. A play that didn't load is left out of its path. */
-async function loadPaths(){
-  try{
-    const r=await fetch("plays/paths.json",{cache:"no-cache"});
-    if(!r.ok)throw new Error("HTTP "+r.status);
-    const raw=await r.json(),errs=checkPaths(raw,plays.map(pl=>pl.id));
-    if(errs.length)console.warn("plays/paths.json: "+errs.join("; "));
-    return (Array.isArray(raw)?raw:[]).filter(pa=>pa&&typeof pa.id==="string"&&typeof pa.name==="string"&&Array.isArray(pa.plays))
-      .map(pa=>({...pa,list:pa.plays.map(id=>plays.find(pl=>pl.id===id)).filter(Boolean)}))
-      .filter(pa=>pa.list.length>1);
-  }catch(e){console.warn(`No learning paths: ${e.message}`);return [];}
+/* Learning paths list plays in the order to learn them. They're optional, so a missing or broken file just means
+   no path picker. A play that didn't load is left out of its path. */
+function readPaths(raw){
+  if(!raw)return [];
+  const errs=checkPaths(raw,plays.map(pl=>pl.id));
+  if(errs.length)console.warn("plays/paths.json: "+errs.join("; "));
+  return (Array.isArray(raw)?raw:[]).filter(pa=>pa&&typeof pa.id==="string"&&typeof pa.name==="string"&&Array.isArray(pa.plays))
+    .map(pa=>({...pa,list:pa.plays.map(id=>plays.find(pl=>pl.id===id)).filter(Boolean)}))
+    .filter(pa=>pa.list.length>1);
+}
+/* The glossary is optional too: without it, there are no "Words to know" and no word list */
+function readGlossary(raw){
+  if(!raw)return [];
+  const errs=checkGlossary(raw);
+  if(errs.length)console.warn("plays/glossary.json: "+errs.join("; "));
+  return (Array.isArray(raw)?raw:[]).filter(w=>w&&typeof w.word==="string"&&typeof w.means==="string");
 }
 function buildPaths(){
   pathSel.insertAdjacentHTML("beforeend",paths.map(pa=>`<option value="${esc(pa.id)}">${esc(pa.emoji||"")} ${esc(pa.name)}</option>`).join(""));
@@ -72,6 +75,20 @@ function setPath(id){
   pathPick.classList.toggle("on",!!path);
   pathAbout.hidden=!path;pathAbout.textContent=path?path.about:"";
   qEl.value="";query="";setLevel(0);
+}
+
+/* Glossary: "Words to know" for the play on screen (from its tags), a word card when the search is a glossary word
+   (so tapping a tag explains it too), and a dialog with every word */
+const wordsHTML=list=>list.map(w=>`<div><dt>${esc(w.word)}</dt> <dd>${esc(w.means)}</dd></div>`).join("");
+function wordFor(q){
+  const n=normalize(q);if(!n)return null;
+  return lookUp(glossary,[n])[0]||(n.length>3&&n.endsWith("s")?lookUp(glossary,[n.slice(0,-1)])[0]:null)||null;
+}
+function buildGlossary(){
+  glList.innerHTML=[...glossary].sort((a,b)=>a.word.localeCompare(b.word,"en",{numeric:true})).map(w=>{
+    const used=plays.some(pl=>lookUp([w],pl.tags).length);
+    return `<div><dt>${esc(w.word)}</dt> <dd>${esc(w.means)}${used?` <button type="button" class="linkbtn" data-q="${esc(w.word)}">Find plays</button>`:""}</dd></div>`;
+  }).join("");
 }
 
 /* Library: search box, level filter, and the row of play chips */
@@ -91,6 +108,8 @@ function refreshList(){
     playsEl.innerHTML=`<p class="empty">No ${level?LV[level].toLowerCase()+" ":""}plays${path?` in ${esc(path.name)}`:""} match${query.trim()?` “${esc(query.trim())}”`:""}. <button type="button" class="linkbtn" id="btnClear">Show all plays</button></p>`;
     $("btnClear").addEventListener("click",()=>setPath(""));
   }
+  const w=wordFor(query);
+  wordCard.hidden=!w;wordCard.innerHTML=w?`<b>${esc(w.word)}:</b> ${esc(w.means)}`:"";
   const n=pool.length,word=k=>k+(k===1?" play":" plays");
   countEl.textContent=(view.length===n?word(n):`${view.length} of ${word(n)}`)+(path?` in ${path.name}`:"");
 }
@@ -155,6 +174,8 @@ function fillInfo(){
   $("piIdea").textContent=pl.idea;
   $("piWhy").textContent=pl.why;
   $("piTry").textContent=pl.tryit;
+  const words=lookUp(glossary,pl.tags);
+  $("piWords").hidden=!words.length;$("piWordList").innerHTML=wordsHTML(words);
   $("lgBlue").textContent=dfn?"Blue is the other team this time. The number tells you which player.":"Blue is your team. The number tells you which player.";
   $("lgRed").textContent=dfn?"Red is your team! X1 guards player 1.":"Red is the defense. X1 guards player 1.";
 }
@@ -277,11 +298,12 @@ function tapCourt(e){
 /* Print sheet: every step of the play as a small court with its caption, built for the current play right before printing */
 function buildPrintSheet(){
   if(!plays.length)return;
-  const pl=plays[cur],link=location.href.split("#")[0]+"#"+pl.id;
+  const pl=plays[cur],link=location.href.split("#")[0]+"#"+pl.id,words=lookUp(glossary,pl.tags);
   printEl.innerHTML=`<header><span class="ps-emoji">${esc(pl.emoji)}</span><div><h1>${esc(pl.name)}</h1><p>${LV[pl.level]}${pl.side==="defense"?" · Defense play":""}</p></div></header>`+
     `<p class="ps-idea">${esc(pl.idea)}</p><div class="ps-grid">`+
     pl.frames.map((fr,j)=>`<figure>${renderCourt(pl,j,{label:`${pl.name}, ${j?"step "+j:"start"}`})}<figcaption><b>${j?"Step "+j:"Start"}</b> ${fmt(fr.say)}</figcaption></figure>`).join("")+
     `</div><div class="ps-notes"><div><h2>💡 Why it works</h2><p>${esc(pl.why)}</p></div><div><h2>🏀 Try it at practice</h2><p>${esc(pl.tryit)}</p></div></div>`+
+    (words.length?`<div class="ps-words"><h2>📖 Words to know</h2><dl class="wl">${wordsHTML(words)}</dl></div>`:"")+
     `<p class="ps-foot">Hoops Playbook · ${esc(link)}</p>`;
 }
 
@@ -443,6 +465,13 @@ qEl.addEventListener("keydown",e=>{
 });
 document.querySelectorAll("#lvSeg button").forEach(b=>b.addEventListener("click",()=>setLevel(+b.dataset.level)));
 surpriseBtn.addEventListener("click",surprise);
+$("btnAllWords").addEventListener("click",()=>glossaryEl.showModal());
+glossaryEl.addEventListener("click",e=>{if(e.target===glossaryEl)glossaryEl.close();});  // a tap on the backdrop
+glList.addEventListener("click",e=>{
+  const b=e.target.closest("[data-q]");if(!b)return;
+  glossaryEl.close();setPath("");setQuery(b.dataset.q);
+  document.querySelector(".library").scrollIntoView({block:"nearest",behavior:"smooth"});
+});
 pathSel.addEventListener("change",()=>{
   setPath(pathSel.value);
   if(path&&view.length)selectPlay(plays.indexOf(view[0]));
@@ -462,7 +491,7 @@ shareBtn.addEventListener("click",async()=>{
 window.addEventListener("hashchange",()=>{const i=indexFromHash();if(i>=0&&i!==cur)selectPlay(i);});
 
 document.addEventListener("keydown",e=>{
-  if(e.metaKey||e.ctrlKey||e.altKey)return;
+  if(e.metaKey||e.ctrlKey||e.altKey||glossaryEl.open)return;
   const el=e.target;
   if(el&&(el.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)))return;
   if(e.key==="/"){e.preventDefault();qEl.focus();qEl.select();return;}
@@ -478,12 +507,14 @@ document.addEventListener("keydown",e=>{
 });
 
 /* Start */
-try{plays=await loadPlays();}catch(e){console.error(e);}
+let lib=null;
+try{lib=await loadLibrary();}catch(e){console.error(e);}
+if(lib){plays=readPlays(lib);paths=readPaths(lib.paths);glossary=readGlossary(lib.glossary);}
 if(!plays.length){
   if(location.protocol!=="file:")capEl.innerHTML="Couldn’t load any plays. Check <b>plays/index.json</b> and the browser console for details.";
   countEl.textContent="0 plays";
 } else {
-  paths=await loadPaths();buildPaths();
+  buildPaths();buildGlossary();
   refreshList();
   const i=indexFromHash();selectPlay(Math.max(i,0),false);
   btnPlay.disabled=false;btnRestart.disabled=false;shareBtn.hidden=false;printBtn.hidden=false;surpriseBtn.disabled=plays.length<2;

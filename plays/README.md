@@ -33,8 +33,26 @@ lists play ids in the order to learn them, easiest first. A play can be in sever
 }
 ```
 
-`npm run build` checks that every id in `plays` is a play file here. Because of these two files, a play can't be
-called `index.json` or `paths.json`.
+`npm run build` checks that every id in `plays` is a play file here.
+
+## Glossary
+
+`glossary.json` explains basketball words for kids. The site shows the words for a play's tags under "Words to know",
+explains a word when you search for it (or tap a tag), and lists every word under "See all the words".
+
+```json
+{ "word": "Screen", "also": ["pick"], "means": "Standing still like a wall so a teammate's defender bumps into you. Also called a pick." }
+```
+
+`word` is the name shown on the site, `also` (optional) lists other names for the same thing, like tags (`"blob"`)
+or plurals, and `means` is one or two short sentences a young kid can follow. Every tag should match a `word` or an
+`also` name (capitals and dashes don't matter); `npm run build` warns about any tag that doesn't.
+
+## Reserved names
+
+`index.json`, `paths.json`, `glossary.json` and `bundle.json` aren't plays, so no play can have those names.
+`bundle.json` is every play in one file, so the site loads in one request. The deploy writes it and `npm start` serves
+it fresh, so you never edit or commit it.
 
 ## A complete example
 
@@ -201,6 +219,7 @@ with the "Who's open?" button.
 - Caption chips like `{3}` refer to players in the cast.
 - No two players ever overlap: it sweeps every step and fails if two players get closer than 26 units (aim for 34, a full player width).
 - Speech bubbles aren't too long (a warning, not an error).
+- Every tag has a word in `glossary.json` (a warning).
 
 ## Tips
 

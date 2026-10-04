@@ -1,3 +1,5 @@
 .DS_Store
 node_modules/
 .claude/settings.local.json
+# Built by the deploy (node tools/build.js --bundle) and served fresh by npm start
+plays/bundle.json

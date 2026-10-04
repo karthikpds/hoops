@@ -3,12 +3,12 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
 import {
-  BASKET, SPOTS, askList, ballKind, checkPaths, checkPlay, dist, endHolder, formatPlay, guardSpot, isThree, lintPlay,
+  BASKET, DATA_FILES, SPOTS, askList, ballKind, checkGlossary, checkPaths, checkPlay, dist, lookUp, endHolder, formatPlay, guardSpot, isThree, lintPlay,
   posAt, resolvePlay, searchPlays, startHolder
 } from "../js/playbook.js";
 
 const DIR = new URL("../plays/", import.meta.url);
-const files = readdirSync(DIR).filter(f => f.endsWith(".json") && f !== "index.json" && f !== "paths.json" && !f.startsWith("_"));
+const files = readdirSync(DIR).filter(f => f.endsWith(".json") && !DATA_FILES.includes(f) && !f.startsWith("_"));
 const read = f => readFileSync(new URL(f, DIR), "utf8");
 const all = files.map(f => resolvePlay(JSON.parse(read(f)), f.slice(0, -5)));
 
@@ -56,6 +56,28 @@ test("checkPaths catches broken paths", () => {
   hasError(errs(p => { p.plays.push("horns"); }), `"horns" is not a play`);
   hasError(errs(p => { p.plays.push("v-cut"); }), "lists a play twice");
   hasError(checkPaths([path(), path()], ids), "same id");
+});
+
+test("plays/glossary.json passes the checks", () => {
+  assert.deepEqual(checkGlossary(JSON.parse(read("glossary.json"))), []);
+});
+
+test("checkGlossary catches broken words", () => {
+  const word = () => ({ word: "Screen", also: ["pick"], means: "Stand still like a wall." });
+  const errs = edit => { const w = word(); edit(w); return checkGlossary([w]); };
+  assert.deepEqual(errs(() => {}), []);
+  hasError(checkGlossary({}), "must be a list");
+  hasError(errs(w => { delete w.means; }), `"means" must be some text`);
+  hasError(errs(w => { w.word = ""; }), `"word" must be some text`);
+  hasError(errs(w => { w.also = "pick"; }), `"also" must be a list`);
+  hasError(errs(w => { w.see = "Pick and roll"; }), `unknown field "see"`);
+  hasError(checkGlossary([word(), { word: "Pick", means: "m" }]), `"pick" is already in the glossary`);
+});
+
+test("lookUp finds words by any name, once each, in order", () => {
+  const words = [{ word: "Screen", also: ["pick"], means: "s" }, { word: "Baseline out of bounds", also: ["blob"], means: "b" }];
+  assert.deepEqual(lookUp(words, ["blob", "Pick", "screen", "layup", "Baseline Out of Bounds"]).map(w => w.word), ["Baseline out of bounds", "Screen"]);
+  assert.deepEqual(lookUp(words, []), []);
 });
 
 test("formatPlay writes every play file exactly as it is stored", () => {
@@ -215,4 +237,15 @@ test("searchPlays ranks names first and filters by level", () => {
   assert.ok(names("").length === all.length);
   assert.ok(searchPlays(all, "", 1).every(p => p.level === 1));
   assert.deepEqual(names("zzzz"), []);
+});
+
+test("the bundle has every play in index.json order, exactly as in its file, plus the paths and glossary", async () => {
+  const { makeBundle } = await import("../tools/bundle.js");
+  const b = makeBundle(), ids = JSON.parse(read("index.json"));
+  assert.deepEqual(b.index, ids);
+  assert.deepEqual(Object.keys(b.plays), ids);
+  assert.deepEqual(b.problems, {});
+  for (const id of ids) assert.deepEqual(b.plays[id], JSON.parse(read(`${id}.json`)), id);
+  assert.deepEqual(b.paths, JSON.parse(read("paths.json")));
+  assert.deepEqual(b.glossary, JSON.parse(read("glossary.json")));
 });

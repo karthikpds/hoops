@@ -29,9 +29,10 @@ jobs:
         run: npm test
 
       # Fails the run (with the file and problem shown in the Actions log) if any play is broken.
-      # Also adds plays that were committed without updating plays/index.json.
-      - name: Check plays and rebuild plays/index.json
-        run: node tools/build.js
+      # Also adds plays that were committed without updating plays/index.json, and writes plays/bundle.json,
+      # every play in one file so the site loads them in a single request.
+      - name: Check plays, rebuild plays/index.json and bundle the plays
+        run: node tools/build.js --bundle
 
       - uses: actions/upload-pages-artifact@v5
         if: github.event_name != 'pull_request'

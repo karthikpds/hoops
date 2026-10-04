@@ -3,6 +3,7 @@
 // Nothing is kept in the browser: the play lives in this page until it's copied or downloaded.
 import { SPOTS, askList, ballKind, checkPlay, dist, endHolder, formatPlay, lintPlay, normalize, resolvePlay } from "./playbook.js";
 import { renderCourt } from "./court.js";
+import { loadLibrary } from "./library.js";
 
 const $ = id => document.getElementById(id);
 const IDS = ["d1", "d2", "d3", "d4", "d5", "o1", "o2", "o3", "o4", "o5"];  // defenders first, so offense draws on top
@@ -433,9 +434,8 @@ window.addEventListener("beforeunload", e => { if (dirty) { e.preventDefault(); 
 /* Start with a new play, and fill the "Open a play" list from the library */
 load(template(), "");
 try {
-  const ids = await (await fetch("plays/index.json", { cache: "no-cache" })).json();
-  const names = await Promise.all(ids.map(id => fetch(`plays/${encodeURIComponent(id)}.json`).then(r => r.json()).then(p => p.name).catch(() => id)));
-  $("openPlay").replaceChildren(h("option", { value: "" }, "Choose a play…"), ...ids.map((id, i) => h("option", { value: id }, names[i])));
+  const { ids, plays } = await loadLibrary(), name = id => { const p = plays.get(id); return p && typeof p.name === "string" ? p.name : id; };
+  $("openPlay").replaceChildren(h("option", { value: "" }, "Choose a play…"), ...ids.map(id => h("option", { value: id }, name(id))));
 } catch {
   $("openPlay").replaceChildren(h("option", { value: "" }, "No plays found"));
 }

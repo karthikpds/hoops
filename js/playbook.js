@@ -29,6 +29,9 @@ export function guardSpot(q, d = 34) {
 
 /* ---------- Checking a play file ---------- */
 
+/* Files in plays/ that aren't plays, so no play can have these names */
+export const DATA_FILES = ["index.json", "paths.json", "glossary.json", "bundle.json"];
+
 const PLAY_KEYS = ["name", "emoji", "level", "side", "tags", "idea", "why", "tryit", "cast", "frames"];
 const FRAME_KEYS = ["pos", "ball", "ask", "scr", "bub", "say"];
 const BALL_KEYS = { dribble: ["dribble"], pass: ["pass", "bounce"], handoff: ["handoff"], shot: ["shot", "miss"], rebound: ["rebound"] };
@@ -252,6 +255,39 @@ export function checkPaths(paths, ids) {
     if (new Set(pa.plays).size !== pa.plays.length) errs.push(`${at}: lists a play twice`);
   });
   return errs;
+}
+
+/* ---------- Glossary (plays/glossary.json) ---------- */
+
+const WORD_KEYS = ["word", "also", "means"];
+/* Every way to say a glossary entry, normalized: its word plus the other names in "also" */
+const namesOf = w => [w.word, ...(Array.isArray(w.also) ? w.also : [])].map(normalize);
+
+/* Checks the glossary, a list of { word, also?, means }. Returns a list of problems. */
+export function checkGlossary(words) {
+  if (!Array.isArray(words)) return ["glossary.json must be a list of words, like [{ \"word\": \"Screen\", \"means\": \"...\" }]"];
+  const errs = [], seen = new Map();
+  words.forEach((w, i) => {
+    const at = isObj(w) && isText(w.word) ? `"${w.word}"` : `word ${i + 1}`;
+    if (!isObj(w)) { errs.push(`${at} must be an object`); return; }
+    Object.keys(w).filter(k => !WORD_KEYS.includes(k)).forEach(k => errs.push(`${at}: unknown field "${k}" (fields are ${WORD_KEYS.join(", ")})`));
+    if (!isText(w.word)) errs.push(`${at}: "word" must be some text`);
+    if (!isText(w.means)) errs.push(`${at}: "means" must be some text`);
+    if (w.also !== undefined && !(Array.isArray(w.also) && w.also.every(isText))) { errs.push(`${at}: "also" must be a list of other names, like ["pick"]`); return; }
+    if (!isText(w.word)) return;
+    namesOf(w).forEach(n => { if (seen.has(n)) errs.push(`${at}: "${n}" is already in the glossary, under ${seen.get(n)}`); else seen.set(n, at); });
+  });
+  return errs;
+}
+
+/* The glossary entries for some words (like a play's tags), in order and each entry once. Words with no entry are skipped. */
+export function lookUp(words, terms) {
+  const out = [];
+  for (const t of terms) {
+    const n = normalize(t), w = words.find(x => namesOf(x).includes(n));
+    if (w && !out.includes(w)) out.push(w);
+  }
+  return out;
 }
 
 /* ---------- Writing a play file ---------- */

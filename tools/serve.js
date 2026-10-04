@@ -4,6 +4,7 @@ import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
+import { makeBundle } from "./bundle.js";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const PORT = Number(process.env.PORT) || 8000;
@@ -15,6 +16,12 @@ const TYPES = {
 createServer(async (req, res) => {
   let path = decodeURIComponent(new URL(req.url, "http://localhost").pathname);
   if (path.endsWith("/")) path += "index.html";
+  // The whole library in one file, built fresh for every request so edits to plays show up on the next reload
+  if (path === "/plays/bundle.json") {
+    try { res.writeHead(200, { "content-type": TYPES[".json"], "cache-control": "no-store" }).end(JSON.stringify(makeBundle())); }
+    catch (e) { res.writeHead(500, { "content-type": "text/plain; charset=utf-8" }).end(`Couldn't build the bundle: ${e.message}`); }
+    return;
+  }
   const file = join(ROOT, normalize(path));
   if (!file.startsWith(ROOT)) { res.writeHead(403).end(); return; }
   try {
