@@ -1,0 +1,39 @@
+{
+  "name": "Hesitation",
+  "emoji": "⏸️",
+  "level": 2,
+  "tags": ["hesitation", "change of pace", "dribbling", "one on one", "fake", "driving", "layup"],
+  "idea": "Dribble fast, slow down like you're stopping, then speed up and blow past your defender.",
+  "why": "When you slow down, your defender slows down too and stands up tall. That tiny rest is all you need: speed up while they're standing still, and they can't catch you.",
+  "tryit": "Dribble fast, then take two slow bounces and lift your head like you're looking to pass. Then push the ball out in front and sprint. Fast, slow, fast!",
+  "cast": ["d1", "o1"],
+  "frames": [
+    {
+      "pos": { "o1": "TOP" },
+      "ball": { "dribble": "o1" },
+      "say": "{1} is dribbling at the top, and {X1} is guarding."
+    },
+    {
+      "pos": { "o1": [330, 250], "d1": [318, 216] },
+      "ball": { "dribble": "o1" },
+      "bub": { "o1": "Fast!" },
+      "say": "{1} dribbles fast toward the basket, and {X1} backs up to stay in front."
+    },
+    {
+      "pos": { "d1": [321, 219] },
+      "ball": { "dribble": "o1" },
+      "bub": { "o1": "Slow...", "d1": "Huh?" },
+      "say": "*Hesitation:* {1} slows down and lifts their head, like they're stopping. {X1} slows down and stands up tall."
+    },
+    {
+      "pos": { "o1": [300, 90, 402, 188], "d1": [312, 172] },
+      "ball": { "dribble": "o1" },
+      "bub": { "o1": "Fast!", "d1": "Hey!" },
+      "say": "Then {1} speeds up and zooms right past. {X1} was standing still and can't catch up!"
+    },
+    {
+      "ball": { "shot": "o1" },
+      "say": "Layup! Fast, slow, fast. Changing speed beats your defender."
+    }
+  ]
+}

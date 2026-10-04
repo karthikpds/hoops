@@ -59,6 +59,25 @@ test("the ball changes hands at the handoff", () => {
   assert.equal(at(play.handoffT[2]).holder, null);
 });
 
+test("a shot fake goes up and comes back down, and a crossover switches hands", () => {
+  const moves = { ...raw, side: "offense", frames: [
+    raw.frames[0],
+    { ball: { fake: "o1" }, say: "Fake." },
+    { pos: { o1: [200, 300] }, ball: { dribble: "o1", cross: true }, say: "Cross." },
+    { ball: { pass: ["o1", "o2"] }, say: "Pass." }
+  ] };
+  assert.deepEqual(checkPlay(moves), []);
+  const p = resolvePlay(moves, "f");
+  const at = (k, t) => ballState(p, k, t, playersAt(p, k, t));
+  assert.ok(at(1, .3).h > at(1, 0).h + 20, "the ball goes up in a shot fake");
+  assert.ok(Math.abs(at(1, 1).h - 13) < 1e-9, "and comes back to the hands");
+  assert.equal(at(1, .3).holder, "o1", "the faker keeps the ball");
+  const q = playersAt(p, 2, 1).o1;
+  assert.ok(at(2, 0).g[0] > playersAt(p, 2, 0).o1[0], "the ball starts in the right hand");
+  assert.ok(at(2, 1).g[0] < q[0], "and ends in the left");
+  assert.ok(at(3, 0).g[0] < playersAt(p, 3, 0).o1[0], "the pass starts from the left hand");
+});
+
 test("a missed shot ends where the rebound starts", () => {
   const end = ballState(play, 3, 1, playersAt(play, 3, 1)), start = ballState(play, 4, 0, playersAt(play, 4, 0));
   assert.ok(dist(end.g, start.g) < 1e-9);

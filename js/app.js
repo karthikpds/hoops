@@ -417,7 +417,7 @@ function stepDur(play,k){
   const b=play.frames[k].ball;
   if(b.shot)return b.miss?1500:1300;
   const moved=play.cast.some(id=>dist(play.res[k-1][id],play.res[k][id])>3);
-  return moved||b.rebound?1800:1000;
+  return moved||b.rebound?1800:b.fake||b.cross?1300:1000;
 }
 /* End-of-step effects: points for a made shot, "Rebound!" for a rebound */
 function stepEnded(play,k){

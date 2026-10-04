@@ -149,32 +149,45 @@ export function pathsUpTo(play, stepIdx, follow = "") {
 
 /* ---------- The ball ---------- */
 
-export const handG = q => [q[0] + 12, q[1] + 6];
+/* Where the ball sits next to player q: on their right (side 1) or left (side -1) */
+export const handG = (q, side = 1) => [q[0] + 12 * side, q[1] + 6];
 /* Where the ball is during step k at time t: ground spot g, height h, scale s, and who holds it (if anyone).
    P holds everyone's position at that moment; now (ms) makes a dribble bounce. */
 export function ballState(play, k, t, P, now = 0) {
-  const b = play.frames[k].ball, e = ease(t);
+  const b = play.frames[k].ball, e = ease(t), side = k > 0 && play.hand ? play.hand[k - 1] : 1;
   let g, h, s = 1, holder = null;
   if (typeof b === "string" || b.dribble) {
     holder = typeof b === "string" ? b : b.dribble;
-    g = handG(P[holder]);
+    g = handG(P[holder], side);
     h = b.dribble ? 15 * Math.abs(Math.sin(now / 190)) : 13;
+    if (b.cross) {
+      // Crossover: early in the step the ball bounces low across the front of the body to the other hand
+      const u = Math.max(0, Math.min(1, (t - .1) / .3)), q = P[holder];
+      g = [q[0] + 12 * side * Math.cos(Math.PI * u), q[1] + 6 + 9 * Math.sin(Math.PI * u)];
+      if (u > 0 && u < 1) h = 5 * Math.abs(Math.sin(Math.PI * u * 2));
+    }
+  } else if (b.fake) {
+    // Shot fake: the ball goes up like a shot, then comes right back down, and the holder keeps it
+    holder = b.fake;
+    const u = Math.max(0, Math.min(1, t / .6)), up = Math.sin(Math.PI * u);
+    g = handG(P[holder], side);
+    h = 13 + 30 * up; s = 1 + .2 * up;
   } else if (b.pass) {
-    const ga = handG(P[b.pass[0]]), gc = handG(P[b.pass[1]]);
+    const ga = handG(P[b.pass[0]], side), gc = handG(P[b.pass[1]]);
     g = [ga[0] + (gc[0] - ga[0]) * e, ga[1] + (gc[1] - ga[1]) * e];
     h = b.bounce ? (e < .6 ? 13 * (1 - e / .6) : 13 * (e - .6) / .4) : 13 + 6 * Math.sin(Math.PI * e);
     holder = t < .03 ? b.pass[0] : (t > .97 ? b.pass[1] : null);
   } else if (b.handoff) {
     // The ball changes hands around the moment the two are closest
     const T = play.handoffT[k], u = Math.max(0, Math.min(1, (t - T + .06) / .12));
-    const ga = handG(P[b.handoff[0]]), gc = handG(P[b.handoff[1]]);
+    const ga = handG(P[b.handoff[0]], side), gc = handG(P[b.handoff[1]]);
     g = [ga[0] + (gc[0] - ga[0]) * u, ga[1] + (gc[1] - ga[1]) * u];
     h = 13 + 3 * Math.sin(Math.PI * u);
     holder = u <= 0 ? b.handoff[0] : u >= 1 ? b.handoff[1] : null;
   } else if (b.shot) {
     // A miss flies to the rim like a shot, then pops up and off toward the rebounder
     const tt = b.miss ? Math.min(1, t / .75) : t;
-    const gs = handG(P[b.shot]), d = dist(gs, B), H = Math.min(95, 22 + d * .28);
+    const gs = handG(P[b.shot], side), d = dist(gs, B), H = Math.min(95, 22 + d * .28);
     g = [gs[0] + (B[0] - gs[0]) * tt, gs[1] + (B[1] - gs[1]) * tt];
     h = 13 * (1 - tt) + H * Math.sin(Math.PI * tt);
     s = (1 + .45 * Math.sin(Math.PI * tt) * (H / 95)) * (1 - .12 * tt);

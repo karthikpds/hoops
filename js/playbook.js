@@ -34,7 +34,7 @@ export const DATA_FILES = ["index.json", "paths.json", "glossary.json", "bundle.
 
 const PLAY_KEYS = ["name", "emoji", "level", "side", "tags", "idea", "why", "tryit", "cast", "frames"];
 const FRAME_KEYS = ["pos", "ball", "ask", "where", "scr", "bub", "say"];
-const BALL_KEYS = { dribble: ["dribble"], pass: ["pass", "bounce"], handoff: ["handoff"], shot: ["shot", "miss"], rebound: ["rebound"] };
+const BALL_KEYS = { dribble: ["dribble", "cross"], pass: ["pass", "bounce"], handoff: ["handoff"], shot: ["shot", "miss"], rebound: ["rebound"], fake: ["fake"] };
 const isObj = v => !!v && typeof v === "object" && !Array.isArray(v);
 const isText = v => typeof v === "string" && v.trim() !== "";
 const isNum = v => typeof v === "number" && Number.isFinite(v);
@@ -46,11 +46,12 @@ function pointError(v) {
   return "";
 }
 
-/* What a frame's ball does: "hold", "dribble", "pass", "handoff", "shot" or "rebound". */
+/* What a frame's ball does: "hold", "dribble", "pass", "handoff", "shot", "rebound" or "fake" (a shot fake: the ball
+   goes up and comes back down, and the holder keeps it). A dribble with "cross" switches hands: a crossover. */
 export const ballKind = b => typeof b === "string" ? "hold" : Object.keys(BALL_KEYS).find(k => k in b);
 /* Who has the ball when a step starts, and when it ends. Nobody has it during a rebound's start or after a miss. */
-export const startHolder = b => typeof b === "string" ? b : b.dribble || b.shot || (b.pass || b.handoff || [null])[0];
-export const endHolder = b => typeof b === "string" ? b : b.dribble || b.rebound || (b.shot ? (b.miss ? null : b.shot) : (b.pass || b.handoff)[1]);
+export const startHolder = b => typeof b === "string" ? b : b.dribble || b.shot || b.fake || (b.pass || b.handoff || [null])[0];
+export const endHolder = b => typeof b === "string" ? b : b.dribble || b.rebound || b.fake || (b.shot ? (b.miss ? null : b.shot) : (b.pass || b.handoff)[1]);
 
 /* A frame's "ask" as a list: the open player (or players) to tap before the step plays. */
 export const askList = ask => ask === undefined ? [] : Array.isArray(ask) ? ask : [ask];
@@ -101,12 +102,14 @@ export function checkPlay(p) {
     else if (kind === "handoff") ok = need(two(b.handoff), `${at}: "handoff" must be [from, to] with two different offensive players in the cast`);
     else if (kind === "shot") ok = need(off(b.shot), `${at}: shooter "${b.shot}" must be an offensive player in the cast`);
     else if (kind === "rebound") ok = need(inCast(b.rebound), `${at}: rebounder "${b.rebound}" must be a player in the cast`);
-    else errs.push(`${at}: "ball" must be a player like "o1", or { "dribble": "o1" }, { "pass": ["o1", "o2"] }, { "handoff": ["o1", "o2"] }, { "shot": "o1" } or { "rebound": "d5" }`);
+    else if (kind === "fake") ok = need(off(b.fake), `${at}: faker "${b.fake}" must be an offensive player in the cast`);
+    else errs.push(`${at}: "ball" must be a player like "o1", or { "dribble": "o1" }, { "pass": ["o1", "o2"] }, { "handoff": ["o1", "o2"] }, { "shot": "o1" }, { "rebound": "d5" } or { "fake": "o1" }`);
     if (ok && kind !== "hold") {
       const extra = Object.keys(b).filter(k => !BALL_KEYS[kind].includes(k));
       ok = need(!extra.length, `${at}: "ball" has unknown field "${extra[0]}" (a ${kind} can have ${BALL_KEYS[kind].join(", ")})`);
     }
-    if (ok && j === 0) ok = need(kind === "hold" || kind === "dribble", `${at}: the setup can't pass or shoot; give the ball to a player`);
+    if (ok && j === 0) ok = need(kind === "hold" || kind === "dribble", `${at}: the setup can't pass, shoot or fake; give the ball to a player`);
+    if (ok && j === 0 && b.cross) ok = need(false, `${at}: the setup can't cross over; put "cross" on a step`);
     if (ok && kind === "shot" && !b.miss) need(j === last, `${at}: a shot must be the last step (add "miss": true for a shot that misses)`);
     if (ok && kind === "shot" && b.miss) need(j < last, `${at}: a missed shot needs a rebound step after it`);
     if (ok && kind === "rebound" && def(b.rebound)) need(j === last, `${at}: a defensive rebound ends the play, so it must be the last step`);
@@ -139,10 +142,11 @@ export function checkPlay(p) {
 /* ---------- Resolving a play for animation ---------- */
 
 /* Fills in every player's spot for every frame (res) plus curve control points (ctrl), when each handoff
-   happens (handoffT: the moment giver and taker are closest), and where a missed shot bounces to (missAt).
-   Call only on a play that passed checkPlay. */
+   happens (handoffT: the moment giver and taker are closest), where a missed shot bounces to (missAt), and which
+   side of the holder the ball is on at the end of each frame (hand: 1 right, -1 left; a crossover switches it,
+   and a new holder starts on the right). Call only on a play that passed checkPlay. */
 export function resolvePlay(raw, id) {
-  const play = { id, tags: [], side: "offense", ...raw, res: [], ctrl: [], handoffT: [], missAt: [] };
+  const play = { id, tags: [], side: "offense", ...raw, res: [], ctrl: [], handoffT: [], missAt: [], hand: [] };
   play.frames.forEach((fr, j) => {
     const r = {}, c = {}, pos = fr.pos || {};
     play.cast.forEach(pid => {
@@ -164,6 +168,8 @@ export function resolvePlay(raw, id) {
       const q = play.res[k + 1][play.frames[k + 1].ball.rebound], dx = q[0] - BASKET[0], dy = q[1] - BASKET[1], L = Math.hypot(dx, dy) || 1;
       play.missAt[k] = [BASKET[0] + dx / L * 40, BASKET[1] + dy / L * 40];
     }
+    const kind = ballKind(b), keeps = kind === "hold" || kind === "dribble" || kind === "fake";
+    play.hand[k] = k === 0 ? 1 : b.cross ? -play.hand[k - 1] : keeps ? play.hand[k - 1] : 1;
   });
   play.index = searchIndex(play);
   return play;

@@ -121,13 +121,33 @@ test("checkPlay catches broken fields", () => {
 
 test("checkPlay follows the ball", () => {
   hasError(errorsFor(p => { p.frames[0].ball = "d1"; }), "must be an offensive player");
-  hasError(errorsFor(p => { p.frames[0].ball = { pass: ["o1", "o2"] }; }), "the setup can't pass or shoot");
+  hasError(errorsFor(p => { p.frames[0].ball = { pass: ["o1", "o2"] }; }), "the setup can't pass, shoot or fake");
   hasError(errorsFor(p => { p.frames[2].ball = { pass: ["o2", "o1"] }; }), "o2 starts with the ball, but o1 had it");
   hasError(errorsFor(p => { p.frames[2].ball = { pass: ["o1", "o1"] }; }), `"pass" must be [from, to]`);
   hasError(errorsFor(p => { p.frames[2].ball = { pass: ["o1", "o2"], lob: true }; }), `unknown field "lob"`);
   hasError(errorsFor(p => { p.frames[1].ball = { shot: "o1" }; }), "a shot must be the last step");
   hasError(errorsFor(p => { p.frames[2].ball = { throw: "o1" }; }), `"ball" must be a player`);
   assert.deepEqual(errorsFor(p => { p.frames[2].ball = { pass: ["o1", "o2"], bounce: true }; }), []);
+});
+
+test("checkPlay handles shot fakes and crossovers", () => {
+  assert.deepEqual(errorsFor(p => { p.frames[1].ball = { fake: "o1" }; }), []);
+  assert.deepEqual(errorsFor(p => { p.frames[1].ball = { dribble: "o1", cross: true }; }), []);
+  hasError(errorsFor(p => { p.frames[1].ball = { fake: "d1" }; }), `faker "d1" must be an offensive player`);
+  hasError(errorsFor(p => { p.frames[0].ball = { fake: "o1" }; }), "the setup can't pass, shoot or fake");
+  hasError(errorsFor(p => { p.frames[0].ball = { dribble: "o1", cross: true }; }), "the setup can't cross over");
+  hasError(errorsFor(p => { p.frames[1].ball = { fake: "o2" }; }), "o2 starts with the ball, but o1 had it");
+  assert.equal(startHolder({ fake: "o1" }), "o1");
+  assert.equal(endHolder({ fake: "o1" }), "o1");
+});
+
+test("a crossover switches the ball to the other hand until someone else gets it", () => {
+  const p = base();
+  p.frames[1].ball = { dribble: "o1", cross: true };
+  const pl = resolvePlay(p, "t");
+  assert.deepEqual(pl.hand, [1, -1, 1, 1], "o1 crosses to the left, then the pass goes to o2's right hand");
+  p.frames[1].ball = { fake: "o1" };
+  assert.deepEqual(resolvePlay(p, "t").hand, [1, 1, 1, 1]);
 });
 
 test("checkPlay handles handoffs", () => {

@@ -1,0 +1,34 @@
+{
+  "name": "Jab Step",
+  "emoji": "🥊",
+  "level": 1,
+  "tags": ["jab step", "fake", "footwork", "one on one", "reading the defense", "jump shot", "fundamentals"],
+  "idea": "Stab one foot at your defender. If they back up, you have space to shoot.",
+  "why": "A quick jab step looks like the start of a drive, so your defender backs up to stop it. That gives you room for a shot. If they don't back up, drive right past them instead, like in the Dribble Drive.",
+  "tryit": "From the triple threat, keep one foot still and take a short, quick step with the other. Watch your defender: backed up? Shoot. Leaning? Go past.",
+  "cast": ["d1", "o1"],
+  "frames": [
+    {
+      "pos": { "o1": [300, 250] },
+      "ball": "o1",
+      "say": "{1} has the ball in the *triple threat*, and {X1} is close."
+    },
+    {
+      "pos": { "o1": [325, 232], "d1": [300, 182] },
+      "ball": "o1",
+      "bub": { "o1": "Jab!", "d1": "Whoa!" },
+      "say": "*Jab step:* {1} keeps one foot still and stabs the other foot forward, like a drive. {X1} backs up!"
+    },
+    {
+      "pos": { "o1": [300, 250] },
+      "ball": "o1",
+      "bub": { "o1": "Space!" },
+      "say": "{1} brings that foot right back. {X1} backed up, so now there's lots of space."
+    },
+    {
+      "ball": { "shot": "o1" },
+      "bub": { "d1": "Too far!" },
+      "say": "Bucket! Jab, look, then shoot when your defender backs up."
+    }
+  ]
+}

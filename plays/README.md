@@ -160,14 +160,15 @@ Shots score 2 or 3 automatically from where the shooter stands.
 | `ball` | What happens |
 | --- | --- |
 | `"o1"` | o1 holds it. |
-| `{ "dribble": "o1" }` | o1 dribbles. |
+| `{ "dribble": "o1" }` | o1 dribbles. Add `"cross": true` for a crossover: the ball bounces across to o1's other hand early in the step, and stays there until o1 passes or shoots. |
+| `{ "fake": "o1" }` | o1 does a shot fake: lifts the ball like a shot, then brings it back down and keeps it. |
 | `{ "pass": ["o1", "o2"] }` | o1 passes to o2. Add `"bounce": true` for a bounce pass. |
 | `{ "handoff": ["o1", "o2"] }` | o1 hands the ball to o2 as they run close by. The ball changes hands at the moment the two are closest, so move them past each other (within 50 units). |
 | `{ "shot": "o1" }` | o1 shoots and scores. Only allowed in the last step. |
 | `{ "shot": "o1", "miss": true }` | o1 shoots and misses. The next step must be a rebound. |
 | `{ "rebound": "d5" }` | d5 (or any player) grabs the missed shot. A defensive rebound ends the play, so it must be the last step. |
 
-The setup (frame 0) can only hold or dribble.
+The setup (frame 0) can only hold or dribble, and can't cross over.
 
 The lines on the court are drawn for you: a moving screener gets a line with a T end, a moving dribbler gets a zigzag,
 everyone else who moves gets a solid arrow, and passes and shots get dashed orange lines. A handoff gets two short

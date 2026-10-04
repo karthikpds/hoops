@@ -7,6 +7,13 @@
     "plays": ["triple-threat", "pass-it-around", "give-and-go", "v-cut", "dribble-drive", "fast-break", "box-out"]
   },
   {
+    "id": "moves",
+    "name": "One-on-one moves",
+    "emoji": "🌀",
+    "about": "Fakes, stops and dribble moves to get past your defender, all by yourself.",
+    "plays": ["triple-threat", "jab-step", "shot-fake", "jump-stop", "dribble-drive", "crossover", "hesitation"]
+  },
+  {
     "id": "getting-open",
     "name": "Getting open",
     "emoji": "🏃",

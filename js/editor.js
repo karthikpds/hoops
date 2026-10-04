@@ -67,7 +67,8 @@ function safeBall(b, d, j) {
   try { kind = b === undefined || b === null ? null : ballKind(b); } catch { /* not a ball */ }
   if (j === 0 && kind !== "hold" && kind !== "dribble") return fallback;
   if (kind === "hold") return off(b) ? b : fallback;
-  if (kind === "dribble") return off(b.dribble) ? b : fallback;
+  if (kind === "dribble") return !off(b.dribble) ? fallback : j === 0 && b.cross ? { dribble: b.dribble } : b;
+  if (kind === "fake") return off(b.fake) ? b : fallback;
   if (kind === "pass" || kind === "handoff") return Array.isArray(b[kind]) && b[kind].length === 2 && b[kind].every(off) && b[kind][0] !== b[kind][1] ? b : fallback;
   if (kind === "shot") {
     if (!off(b.shot)) return fallback;
@@ -239,12 +240,13 @@ function deleteStep() {
 
 /* ---------- This step's form ---------- */
 
-const KINDS = [["hold", "Holds it"], ["dribble", "Dribbles"], ["pass", "Passes"], ["bounce", "Bounce pass"], ["handoff", "Hands it off"],
-  ["shot", "Shoots and scores"], ["miss", "Shoots and misses"], ["rebound", "Grabs the rebound"]];
+const KINDS = [["hold", "Holds it"], ["dribble", "Dribbles"], ["cross", "Crossover dribble"], ["fake", "Shot fake"], ["pass", "Passes"],
+  ["bounce", "Bounce pass"], ["handoff", "Hands it off"], ["shot", "Shoots and scores"], ["miss", "Shoots and misses"], ["rebound", "Grabs the rebound"]];
 function kindOf(b) {
   let k = null;
   try { k = ballKind(b); } catch { return "hold"; }
   if (k === "pass" && b.bounce) return "bounce";
+  if (k === "dribble" && b.cross) return "cross";
   if (k === "shot" && b.miss) return "miss";
   return k || "hold";
 }
@@ -252,11 +254,11 @@ const twoPlayers = k => k === "pass" || k === "bounce" || k === "handoff";
 function ballPlayers(b) {
   if (typeof b === "string") return [b];
   if (!b || typeof b !== "object") return [];
-  return b.pass || b.handoff || [b.dribble || b.shot || b.rebound];
+  return b.pass || b.handoff || [b.dribble || b.shot || b.rebound || b.fake];
 }
 function makeBall(kind, a, b) {
-  return { hold: a, dribble: { dribble: a }, pass: { pass: [a, b] }, bounce: { pass: [a, b], bounce: true }, handoff: { handoff: [a, b] },
-    shot: { shot: a }, miss: { shot: a, miss: true }, rebound: { rebound: a } }[kind];
+  return { hold: a, dribble: { dribble: a }, cross: { dribble: a, cross: true }, fake: { fake: a }, pass: { pass: [a, b] }, bounce: { pass: [a, b], bounce: true },
+    handoff: { handoff: [a, b] }, shot: { shot: a }, miss: { shot: a, miss: true }, rebound: { rebound: a } }[kind];
 }
 
 function renderStepForm() {

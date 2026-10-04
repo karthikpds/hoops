@@ -1,0 +1,39 @@
+{
+  "name": "Crossover",
+  "emoji": "💫",
+  "level": 2,
+  "tags": ["crossover", "dribbling", "change of direction", "one on one", "reading the defense", "driving", "layup"],
+  "idea": "Dribble one way until your defender follows, then switch hands and go the other way.",
+  "why": "Your defender slides with you, so they lean the way you're going. A quick crossover bounces the ball low across your body to the other hand, and before they can stop and turn around, you're past them.",
+  "tryit": "Dribble to the right, then push the ball low and hard across your body to your left hand, and step left at the same time. Practice slowly first, then faster.",
+  "cast": ["d1", "o1"],
+  "frames": [
+    {
+      "pos": { "o1": "TOP" },
+      "ball": { "dribble": "o1" },
+      "say": "{1} is dribbling at the top, with the ball in the right hand. {X1} is guarding."
+    },
+    {
+      "pos": { "o1": [322, 302], "d1": [306, 266] },
+      "ball": { "dribble": "o1" },
+      "bub": { "d1": "Got you!" },
+      "say": "{1} dribbles to the right, and {X1} slides right along."
+    },
+    {
+      "pos": { "o1": [230, 262, 285, 322], "d1": [314, 258] },
+      "ball": { "dribble": "o1", "cross": true },
+      "where": "o1",
+      "bub": { "o1": "Cross!", "d1": "Whoa!" },
+      "say": "*Crossover:* {1} bounces the ball across to the left hand and cuts back the other way. {X1} is still leaning right!"
+    },
+    {
+      "pos": { "o1": [238, 92], "d1": [290, 170] },
+      "ball": { "dribble": "o1" },
+      "say": "{1} drives past {X1}, straight to the basket."
+    },
+    {
+      "ball": { "shot": "o1" },
+      "say": "Layup! Make your defender go one way, then cross over and go the other way."
+    }
+  ]
+}

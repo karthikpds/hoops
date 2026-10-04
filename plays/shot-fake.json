@@ -1,0 +1,39 @@
+{
+  "name": "Shot Fake",
+  "emoji": "🎭",
+  "level": 1,
+  "tags": ["shot fake", "fake", "one on one", "close out", "reading the defense", "driving", "layup", "fundamentals"],
+  "idea": "When a defender runs at you to block your shot, fake the shot, then drive past while they're in the air.",
+  "why": "A defender who runs at you fast wants to block your shot. Lift the ball like you're shooting, and they jump. Nobody can change direction in the air, so you get a free path to the basket.",
+  "tryit": "Hold the ball on your hip, then lift it up to your forehead and freeze, eyes on the rim. Keep your feet still! Then take one big dribble past your partner.",
+  "cast": ["d1", "o1"],
+  "frames": [
+    {
+      "pos": { "o1": "RW", "d1": [330, 180] },
+      "ball": "o1",
+      "say": "{1} has the ball on the wing. {X1} is far away."
+    },
+    {
+      "pos": { "d1": [392, 214] },
+      "ball": "o1",
+      "bub": { "d1": "Block it!" },
+      "say": "{X1} runs at {1} as fast as they can to block the shot."
+    },
+    {
+      "ball": { "fake": "o1" },
+      "bub": { "d1": "Jump!" },
+      "say": "*Shot fake:* {1} lifts the ball like a shot, but keeps it. {X1} jumps up to block it!"
+    },
+    {
+      "pos": { "o1": [285, 80, 445, 150], "d1": [378, 196] },
+      "ball": { "dribble": "o1" },
+      "where": "o1",
+      "bub": { "d1": "Oops!" },
+      "say": "{X1} is still in the air, so {1} dribbles right past, all the way to the basket."
+    },
+    {
+      "ball": { "shot": "o1" },
+      "say": "Layup! Fake the shot, let them fly, then go."
+    }
+  ]
+}

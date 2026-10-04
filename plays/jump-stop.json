@@ -1,0 +1,38 @@
+{
+  "name": "Jump Stop",
+  "emoji": "🛑",
+  "level": 1,
+  "tags": ["jump stop", "footwork", "driving", "dribbling", "passing", "bounce pass", "layup", "fundamentals"],
+  "idea": "Drive in, then stop with both feet at once. Balanced and in control, you can look for the open teammate.",
+  "why": "If you keep running when a defender steps in front of you, you crash into them or travel. A jump stop lands both feet at the same time, so you're balanced, you haven't traveled, and you can still pass or shoot.",
+  "tryit": "Dribble toward a cone, pick up the ball, and hop so both feet land together, knees bent. Freeze for a second. Then look up and pass to a partner.",
+  "cast": ["d1", "d2", "d5", "o1", "o2", "o5"],
+  "frames": [
+    {
+      "pos": { "o1": "TOP", "o2": "RW", "o5": [338, 100], "d1": [282, 318] },
+      "ball": "o1",
+      "say": "{1} has the ball at the top. {2} is on the wing and {5} is down low."
+    },
+    {
+      "pos": { "o1": [236, 182, 220, 270], "d1": [278, 236] },
+      "ball": { "dribble": "o1" },
+      "say": "{1} beats {X1} and dribbles hard into the lane."
+    },
+    {
+      "pos": { "d5": [246, 142] },
+      "ball": "o1",
+      "bub": { "o1": "Jump stop!", "d5": "Stop!" },
+      "say": "*Jump stop:* {X5} steps in the way, so {1} stops with both feet landing at the same time. Balanced and no crash!"
+    },
+    {
+      "ball": { "pass": ["o1", "o5"], "bounce": true },
+      "ask": "o5",
+      "say": "{X5} left {5} to stop {1}, so {1} bounce-passes to {5}."
+    },
+    {
+      "ball": { "shot": "o5" },
+      "bub": { "d5": "Too late!" },
+      "say": "Layup! A jump stop keeps you in control, so you can find the open teammate."
+    }
+  ]
+}
