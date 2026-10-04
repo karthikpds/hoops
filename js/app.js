@@ -13,7 +13,7 @@ const ballEl=$("ball"),shadowEl=$("bshadow"),netEl=$("net");
 const capEl=$("caption"),badgeEl=$("badge"),dotsEl=$("dots"),playsEl=$("plays");
 const btnPlay=$("btnPlay"),btnBack=$("btnBack"),btnNext=$("btnNext"),btnRestart=$("btnRestart"),nextPlayBtn=$("nextPlay");
 const playIcon=$("playIcon"),playTxt=$("playTxt");
-const qEl=$("q"),countEl=$("count"),shareBtn=$("btnShare");
+const qEl=$("q"),countEl=$("count"),shareBtn=$("btnShare"),courtEl=$("court");
 const ICON_PLAY='<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M7 4.8v14.4a1 1 0 0 0 1.52.85l11.3-7.2a1 1 0 0 0 0-1.7L8.52 3.95A1 1 0 0 0 7 4.8z"/></svg>';
 const ICON_PAUSE='<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><rect x="5.5" y="4.5" width="4.6" height="15" rx="1.6"/><rect x="13.9" y="4.5" width="4.6" height="15" rx="1.6"/></svg>';
 const ICON_AGAIN='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12a7.5 7.5 0 1 0 2.4-5.5"/><path d="M4.5 4v5h5"/></svg>';
@@ -22,6 +22,7 @@ const ICON_AGAIN='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" st
 let plays=[],view=[],query="",level=0,listVer=0;
 let cur=0,p=0,target=0,playing=false,holdUntil=0,speed=1,showD=true,showL=true;
 let els={},lastPathKey="",lastCapKey="",lastUI="",lastT=performance.now(),shareTimer=0;
+let vb=[-14,-14,514,484];  // court view as x0,y0,x1,y1
 const HOLD=1500;
 
 /* Loading: plays/index.json lists the play ids; each play lives in plays/<id>.json */
@@ -115,12 +116,19 @@ function fillInfo(){
 /* updateUrl=false leaves the address bar alone (used on first load, so a bare URL stays bare) */
 function selectPlay(i,updateUrl=true){
   cur=i;p=0;target=0;playing=false;holdUntil=0;
-  buildPlayers();buildDots();fillInfo();
+  frameCourt(plays[i]);buildPlayers();buildDots();fillInfo();
   lyFx.innerHTML="";lastPathKey="";lastCapKey="";lastUI="";
   playsEl.querySelectorAll(".pick").forEach(c=>c.setAttribute("aria-pressed",String(c.dataset.id===plays[i].id)));
   revealChip(plays[i],updateUrl);  // smooth when someone picks a play, instant on first load
   if(updateUrl)history.replaceState(null,"","#"+plays[i].id);
   document.title=`${plays[i].name} · Hoops Playbook`;
+}
+/* The half court plus a thin apron, widened on any side where an inbounder stands out of bounds */
+function frameCourt(play){
+  let x0=-14,y0=-14,x1=514;const y1=484;
+  play.res.forEach(r=>Object.values(r).forEach(q=>{x0=Math.min(x0,q[0]-26);y0=Math.min(y0,q[1]-26);x1=Math.max(x1,q[0]+26);}));
+  vb=[x0,y0,x1,y1];
+  courtEl.setAttribute("viewBox",`${x0} ${y0} ${x1-x0} ${y1-y0}`);
 }
 function indexFromHash(){
   let id="";try{id=decodeURIComponent(location.hash.slice(1));}catch{}
@@ -265,8 +273,8 @@ function drawOverlay(play,k,t,P){
     Object.keys(bub).forEach(id=>{
       if(id[0]==="d"&&!showD)return;
       const q=P[id],txt=bub[id],bw=txt.length*7.2+20,bh=25;
-      let x=Math.max(-10,Math.min(510-bw,q[0]-bw/2)),y=q[1]-54,up=false;
-      if(y<-10){y=q[1]+29;up=true;}
+      let x=Math.max(vb[0]+4,Math.min(vb[2]-4-bw,q[0]-bw/2)),y=q[1]-54,up=false;
+      if(y<vb[1]+4){y=q[1]+29;up=true;}
       h+=`<g class="bub ${id[0]}" opacity="${f1(op)}"><path d="${bubblePath(x,y,bw,bh,q[0],up)}"/><text x="${f1(x+bw/2)}" y="${f1(y+bh/2+.5)}" text-anchor="middle" dominant-baseline="central">${esc(txt)}</text></g>`;
     });
   }

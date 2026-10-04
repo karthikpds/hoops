@@ -115,9 +115,21 @@ Shots score 2 or 3 automatically from where the shooter stands.
 The lines on the court are drawn for you: a moving screener gets a line with a T end, a moving dribbler gets a zigzag,
 everyone else who moves gets a solid arrow, and passes and shots get dashed orange lines.
 
+## Inbound plays
+
+To start a play with the ball out of bounds, give the ball to the inbounder in the setup (`"ball": "o1"`) and put them
+off the court: behind the baseline (y between -40 and 0) or past a sideline (x between -40 and 0, or 500 and 540).
+For example, `"o1": [330, -26]` stands just behind the baseline, to the right of the backboard, and `"o3": [528, 300]`
+stands out on the right sideline. The court view widens on that side by itself.
+
+Only the inbounder can be off the court, and once they step on they can't go back out. Defenders always stay on the
+court, so guard an inbounder from just inside the line. See `box-inbound.json`, `stack-inbound.json` and
+`sideline-stagger.json`.
+
 ## What `npm run build` checks
 
-- Every field is there and has the right kind of value, spot names exist, and positions are on the half court.
+- Every field is there and has the right kind of value, spot names exist, and positions are on the half court (or just off it for an inbounder).
+- Only the inbounder is ever out of bounds, and they don't step back out once they're on the court.
 - The ball moves sensibly from step to step, and a shot only happens in the last step.
 - Caption chips like `{3}` refer to players in the cast.
 - No two players ever overlap: it sweeps every step and fails if two players get closer than 26 units (aim for 34, a full player width).

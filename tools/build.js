@@ -2,7 +2,7 @@
 // Run after adding, renaming or removing a play:  npm run build
 // Files starting with "_" (drafts) are skipped. Exits with code 1 if any play has an error.
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
-import { checkPlay, dist, posAt, resolvePlay } from "../js/playbook.js";
+import { checkPlay, dist, onCourt, posAt, resolvePlay } from "../js/playbook.js";
 
 const DIR = new URL("../plays/", import.meta.url);
 const INDEX = new URL("index.json", DIR);
@@ -12,8 +12,19 @@ const MAX_BUBBLE = 16;  // speech bubbles get too wide past this many characters
 const errors = [], warnings = [];
 const report = (list, file, msg) => list.push({ file, msg });
 
-/* Extra checks on a resolved play: caption chips, bubble length, and players overlapping mid-move. */
+/* Extra checks on a resolved play: who is out of bounds, caption chips, bubble length, and players overlapping mid-move. */
 function lint(play, file) {
+  // Only the inbounder (holding the ball off the court in the setup) may be out of bounds, and only until they step on.
+  const b0 = play.frames[0].ball, inbounder = typeof b0 === "string" ? b0 : null;
+  let stepped = false;
+  play.res.forEach((r, j) => play.cast.forEach(pid => {
+    if (pid === inbounder && onCourt(r[pid])) stepped = true;
+    if (onCourt(r[pid])) return;
+    if (pid !== inbounder) report(errors, file, `frame ${j}: ${pid} is out of bounds; only the inbounder (the player holding the ball in the setup) can stand off the court`);
+    else if (stepped) report(errors, file, `frame ${j}: ${pid} steps back out of bounds after coming onto the court`);
+  }));
+  if (b0.dribble && !onCourt(play.res[0][b0.dribble])) report(errors, file, `frame 0: ${b0.dribble} can't dribble out of bounds; give them the ball as "${b0.dribble}" to inbound it`);
+
   play.frames.forEach((fr, j) => {
     for (const [, x, n] of fr.say.matchAll(/\{(X?)(\d)\}/g)) {
       const pid = (x ? "d" : "o") + n;

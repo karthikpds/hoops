@@ -1,0 +1,45 @@
+{
+  "name": "Box Inbound",
+  "emoji": "🔲",
+  "level": 2,
+  "tags": ["inbound", "baseline out of bounds", "blob", "box", "after timeout", "ato", "screen", "layup"],
+  "idea": "Four players line up in a box by the basket, and two screens give the inbounder three places to pass.",
+  "why": "Screens near the basket make the defenders choose. If they stay with the shooters, the screener is open under the hoop. If they stay with the screener, a shooter is open.",
+  "tryit": "Screeners: wait for “Go!”, set your screen, then turn and face the ball. Inbounder: look at the corner first, then at the screener diving to the hoop.",
+  "cast": ["d1", "d2", "d3", "d4", "d5", "o1", "o2", "o3", "o4", "o5"],
+  "frames": [
+    {
+      "pos": { "o1": [330, -26], "d1": [294, 4], "o2": "LB", "o3": "RB", "o4": "LE", "o5": "RE", "d2": [180, 89], "d3": [320, 89], "d4": [204, 182], "d5": [296, 182] },
+      "ball": "o1",
+      "say": "{1} passes the ball in from behind the baseline. The other four stand in a *box*: two by the basket and two at the free-throw line."
+    },
+    {
+      "pos": { "o4": [170, 128], "o5": [330, 128], "d4": [200, 150], "d5": [300, 150] },
+      "ball": "o1",
+      "scr": [["o4", "d2"], ["o5", "d3"]],
+      "say": "*Go!* {4} and {5} step down and set *screens* on {X2} and {X3}."
+    },
+    {
+      "pos": { "o3": [450, 125], "d3": [338, 90], "o2": [215, 300, 60, 200], "d2": [172, 95] },
+      "ball": "o1",
+      "scr": [["o4", "d2"], ["o5", "d3"]],
+      "bub": { "d3": "Stuck!" },
+      "say": "{3} pops out toward the corner and {2} runs up to the top. {X2} and {X3} get stuck on the screens!"
+    },
+    {
+      "pos": { "d5": [418, 122, 360, 190], "o5": [285, 92] },
+      "ball": "o1",
+      "bub": { "o5": "Open!" },
+      "say": "{X5} jumps out to stop {3}, so {5} turns and dives to the hoop."
+    },
+    {
+      "ball": { "pass": ["o1", "o5"] },
+      "say": "{1} passes in to {5}."
+    },
+    {
+      "pos": { "d3": [318, 78] },
+      "ball": { "shot": "o5" },
+      "say": "Layup! In a box play, every screen gives the inbounder another player to pass to."
+    }
+  ]
+}

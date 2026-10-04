@@ -1,0 +1,35 @@
+{
+  "name": "Sideline Stagger",
+  "emoji": "🪜",
+  "level": 2,
+  "tags": ["inbound", "sideline out of bounds", "slob", "stagger", "screen", "after timeout", "ato", "three-pointer"],
+  "idea": "From the sideline, your shooter runs off two screens in a row to catch and shoot.",
+  "why": "A defender might sneak past one screen, but two in a row are really hard to get through. The shooter's defender gets stuck, and the shooter catches the ball with time to shoot.",
+  "tryit": "Shooter: start low, then run shoulder to shoulder past each screen. Screeners: stand still and wide, one after the other. Inbounder: pass to the shooter's hands as they come off the last screen.",
+  "cast": ["d1", "d2", "d3", "d4", "d5", "o1", "o2", "o3", "o4", "o5"],
+  "frames": [
+    {
+      "pos": { "o3": [528, 300], "d3": [494, 262], "o1": "TOP", "o2": "LB", "d2": [180, 89], "o4": [238, 160], "d4": [242, 126], "o5": [318, 222], "d5": [340, 195] },
+      "ball": "o3",
+      "scr": [["o4", "d2"], ["o5", "d2"]],
+      "say": "{3} passes the ball in from the sideline. {4} and {5} stand one after the other to make two screens in a row, called a *stagger*."
+    },
+    {
+      "pos": { "o2": [380, 290, 230, 240], "d2": [212, 140] },
+      "ball": "o3",
+      "scr": [["o4", "d2"], ["o5", "d2"]],
+      "bub": { "o2": "Open!" },
+      "say": "{2} runs off both screens toward the ball. {X2} runs into {4}'s screen and gets stuck!"
+    },
+    {
+      "pos": { "d2": [300, 262, 180, 260] },
+      "ball": { "pass": ["o3", "o2"] },
+      "say": "{3} passes in to {2}, wide open on the wing. {X2} is way behind!"
+    },
+    {
+      "pos": { "d2": [345, 265] },
+      "ball": { "shot": "o2" },
+      "say": "{2} makes the three! Two screens in a row are twice as hard to get through."
+    }
+  ]
+}

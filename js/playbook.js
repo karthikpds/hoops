@@ -15,6 +15,8 @@ export const SPOTS = {
   LB: [150, 105], RB: [350, 105]    // blocks
 };
 
+/* On the half court? Only an inbounder may stand off it (see the out-of-bounds check in tools/build.js). */
+export const onCourt = q => q[0] >= 0 && q[0] <= 500 && q[1] >= 0 && q[1] <= 470;
 export const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
 export const ease = t => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
 export const isThree = q => q[1] < 142 ? Math.abs(q[0] - 250) > 220 : dist(q, BASKET) > 237.5;
@@ -36,7 +38,7 @@ const isNum = v => typeof v === "number" && Number.isFinite(v);
 function pointError(v) {
   if (typeof v === "string") return SPOTS[v] ? "" : `uses unknown spot "${v}" (spots are ${Object.keys(SPOTS).join(", ")})`;
   if (!Array.isArray(v) || (v.length !== 2 && v.length !== 4) || !v.every(isNum)) return "must be a spot name, [x, y] or [x, y, curveX, curveY]";
-  if (v[0] < 0 || v[0] > 500 || v[1] < 0 || v[1] > 470) return `[${v[0]}, ${v[1]}] is off the half court (x 0-500, y 0-470)`;
+  if (v[0] < -40 || v[0] > 540 || v[1] < -40 || v[1] > 470) return `[${v[0]}, ${v[1]}] is too far off the court (x -40 to 540, y -40 to 470; out of bounds is only for an inbounder)`;
   return "";
 }
 

@@ -1,0 +1,36 @@
+{
+  "name": "Stack Inbound",
+  "emoji": "🥞",
+  "level": 1,
+  "tags": ["inbound", "baseline out of bounds", "blob", "stack", "after timeout", "ato", "layup"],
+  "idea": "Four teammates stand side by side, then everyone sprints a different way at once.",
+  "why": "Each defender can only follow one player. When everyone breaks at the same time, somebody gets lost, and the player diving to the hoop is often wide open.",
+  "tryit": "Practice the breaks with no defense first, so everyone knows their own direction. Inbounder: slap the ball to start, then look at the hoop first.",
+  "cast": ["d1", "d2", "d3", "d4", "d5", "o1", "o2", "o3", "o4", "o5"],
+  "frames": [
+    {
+      "pos": { "o1": [330, -26], "d1": [294, 4], "o2": [196, 200], "o4": [232, 200], "o5": [268, 200], "o3": [304, 200], "d2": [196, 166], "d4": [232, 166], "d5": [268, 166], "d3": [304, 166] },
+      "ball": "o1",
+      "say": "{1} passes the ball in from behind the baseline. Everyone else lines up side by side at the free-throw line, in a *stack*."
+    },
+    {
+      "pos": { "o2": [110, 250], "d2": [128, 224], "o3": [455, 115], "d3": [420, 100], "o4": [250, 330], "d4": [250, 296] },
+      "ball": "o1",
+      "say": "*Go!* Everyone breaks a different way: {3} to the corner, {2} to the wing, and {4} back to the top."
+    },
+    {
+      "pos": { "d5": [400, 140], "o5": [262, 100] },
+      "ball": "o1",
+      "bub": { "o5": "Open!" },
+      "say": "{X5} runs out to help on {3}, so {5} turns and dives to the hoop."
+    },
+    {
+      "ball": { "pass": ["o1", "o5"] },
+      "say": "{1} passes in to {5}."
+    },
+    {
+      "ball": { "shot": "o5" },
+      "say": "Layup! When everyone breaks at once, the defense can't follow them all."
+    }
+  ]
+}
