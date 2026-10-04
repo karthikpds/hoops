@@ -33,6 +33,7 @@
     },
     {
       "ball": { "pass": ["o1", "o2"] },
+      "ask": "o2",
       "say": "{1} passes to {2} near the basket."
     },
     {

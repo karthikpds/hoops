@@ -24,6 +24,7 @@
     {
       "pos": { "d2": [300, 262, 180, 260] },
       "ball": { "pass": ["o3", "o2"] },
+      "ask": "o2",
       "say": "{3} passes in to {2}, wide open on the wing. {X2} is way behind!"
     },
     {

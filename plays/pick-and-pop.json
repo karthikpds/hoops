@@ -36,6 +36,7 @@
     {
       "pos": { "d4": [166, 290, 95, 290], "d1": [232, 298] },
       "ball": { "pass": ["o1", "o4"] },
+      "ask": "o4",
       "say": "{1} passes to {4}. {X4} is way too far away!"
     },
     {

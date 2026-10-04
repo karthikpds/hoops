@@ -41,6 +41,7 @@
     {
       "pos": { "d5": [205, 150], "d4": [318, 160] },
       "ball": { "pass": ["o1", "o5"] },
+      "ask": "o5",
       "bub": { "d5": "Uh oh!" },
       "say": "{1} passes to {5} at the elbow. {X5} has to run all the way back out!"
     },

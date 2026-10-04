@@ -38,6 +38,7 @@
     {
       "pos": { "o2": "LW", "d4": [222, 168] },
       "ball": { "pass": ["o5", "o4"] },
+      "ask": "o4",
       "say": "{5} passes out to {4}, wide open at the free-throw line."
     },
     {

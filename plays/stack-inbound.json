@@ -26,6 +26,7 @@
     },
     {
       "ball": { "pass": ["o1", "o5"] },
+      "ask": "o5",
       "say": "{1} passes in to {5}."
     },
     {

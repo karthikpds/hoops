@@ -1,0 +1,40 @@
+{
+  "name": "V-Cut",
+  "emoji": "✌️",
+  "level": 1,
+  "tags": ["cutting", "getting open", "off the ball", "passing"],
+  "idea": "Walk your defender in toward the basket, then sprint back out to get open.",
+  "why": "Your defender has to follow you in. When you suddenly turn and run back out, they are a step too slow to keep up.",
+  "tryit": "Walk in slowly, then plant your foot and push off hard. Show your hands so the passer knows you are ready.",
+  "cast": ["d1", "d2", "d3", "o1", "o2", "o3"],
+  "frames": [
+    {
+      "pos": { "o1": "TOP", "o2": [432, 178], "o3": "LW", "d2": [406, 198], "d3": [111, 253] },
+      "ball": "o1",
+      "say": "{1} has the ball, but {X2} and {X3} are guarding super close. Nobody is open yet!"
+    },
+    {
+      "pos": { "o2": [362, 128], "d2": [338, 152] },
+      "ball": "o1",
+      "say": "*V-cut:* {2} walks in toward the basket, nice and slow. {X2} follows."
+    },
+    {
+      "pos": { "o2": [420, 258], "d2": [376, 210] },
+      "ball": "o1",
+      "bub": { "o2": "Ball!" },
+      "say": "Then {2} pushes off and sprints back out. {X2} gets left behind!"
+    },
+    {
+      "pos": { "d2": [390, 230] },
+      "ball": { "pass": ["o1", "o2"] },
+      "ask": "o2",
+      "say": "{1} passes to {2}. In, then out: the path {2} ran makes a *V*!"
+    },
+    {
+      "pos": { "d2": [396, 236] },
+      "ball": { "shot": "o2" },
+      "bub": { "d2": "Too late!" },
+      "say": "Swish! Walk in slow, then cut out fast. That’s a V-cut."
+    }
+  ]
+}

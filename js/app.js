@@ -1,6 +1,6 @@
 // The page: loads the plays listed in plays/index.json, runs the library (search, level filter, links)
 // and animates the selected play on the court.
-import { BASKET as B, LEVELS as LV, checkPlay, dist, ease, isThree, posAt, resolvePlay, searchPlays } from "./playbook.js";
+import { BASKET as B, LEVELS as LV, askList, checkPlay, dist, ease, isThree, posAt, resolvePlay, searchPlays, startHolder } from "./playbook.js";
 
 const NS="http://www.w3.org/2000/svg";
 const f1=v=>v.toFixed(1);
@@ -14,6 +14,7 @@ const capEl=$("caption"),badgeEl=$("badge"),dotsEl=$("dots"),playsEl=$("plays");
 const btnPlay=$("btnPlay"),btnBack=$("btnBack"),btnNext=$("btnNext"),btnRestart=$("btnRestart"),nextPlayBtn=$("nextPlay");
 const playIcon=$("playIcon"),playTxt=$("playTxt");
 const qEl=$("q"),countEl=$("count"),shareBtn=$("btnShare"),courtEl=$("court");
+const quizEl=$("quiz"),choicesEl=$("choices");
 const ICON_PLAY='<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M7 4.8v14.4a1 1 0 0 0 1.52.85l11.3-7.2a1 1 0 0 0 0-1.7L8.52 3.95A1 1 0 0 0 7 4.8z"/></svg>';
 const ICON_PAUSE='<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><rect x="5.5" y="4.5" width="4.6" height="15" rx="1.6"/><rect x="13.9" y="4.5" width="4.6" height="15" rx="1.6"/></svg>';
 const ICON_AGAIN='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12a7.5 7.5 0 1 0 2.4-5.5"/><path d="M4.5 4v5h5"/></svg>';
@@ -23,6 +24,7 @@ let plays=[],view=[],query="",level=0,listVer=0;
 let cur=0,p=0,target=0,playing=false,holdUntil=0,speed=1,showD=true,showL=true;
 let els={},lastPathKey="",lastCapKey="",lastUI="",lastT=performance.now(),shareTimer=0;
 let vb=[-14,-14,514,484];  // court view as x0,y0,x1,y1
+let quizOn=true,quiz=null,answered=new Set(),curP={};  // "Who's open?" mode; quiz is the question on screen, if any
 const HOLD=1500;
 
 /* Loading: plays/index.json lists the play ids; each play lives in plays/<id>.json */
@@ -84,9 +86,9 @@ function buildPlayers(){
     const off=id[0]==="o",num=id.slice(1);
     const g=document.createElementNS(NS,"g");
     g.setAttribute("class","pl "+(off?"po":"pd"));
-    g.innerHTML=(off?'<circle class="halo" r="25"/>':"")+
+    g.innerHTML='<g class="in">'+(off?'<circle class="halo" r="25"/><circle class="ring" r="24"/>':"")+
       '<circle class="sh" cx="1.5" cy="3.5" r="17"/><circle class="body" r="17"/>'+
-      `<text class="lbl" y="1" text-anchor="middle" dominant-baseline="central">${off?num:"X"+num}</text>`;
+      `<text class="lbl" y="1" text-anchor="middle" dominant-baseline="central">${off?num:"X"+num}</text></g>`;
     lyPlayers.appendChild(g);els[id]=g;
   });
 }
@@ -97,7 +99,7 @@ function buildDots(){
   for(let j=1;j<=n;j++){
     const d=document.createElement("button");
     d.className="dot";d.type="button";d.setAttribute("aria-label","Go to step "+j);
-    d.addEventListener("click",()=>{playing=false;holdUntil=0;p=j;target=j;});
+    d.addEventListener("click",()=>{playing=false;holdUntil=0;p=j;target=j;quiz=null;});
     dotsEl.appendChild(d);
   }
 }
@@ -115,7 +117,7 @@ function fillInfo(){
 
 /* updateUrl=false leaves the address bar alone (used on first load, so a bare URL stays bare) */
 function selectPlay(i,updateUrl=true){
-  cur=i;p=0;target=0;playing=false;holdUntil=0;
+  cur=i;p=0;target=0;playing=false;holdUntil=0;quiz=null;answered.clear();
   frameCourt(plays[i]);buildPlayers();buildDots();fillInfo();
   lyFx.innerHTML="";lastPathKey="";lastCapKey="";lastUI="";
   playsEl.querySelectorAll(".pick").forEach(c=>c.setAttribute("aria-pressed",String(c.dataset.id===plays[i].id)));
@@ -266,7 +268,8 @@ function drawOverlay(play,k,t,P){
   lyWalls.innerHTML=w;
 
   let bub=null,op=1;
-  if(p<=0)bub=play.frames[0].bub;
+  if(quiz)bub=null;
+  else if(p<=0)bub=play.frames[0].bub;
   else if(t>.3){bub=fk.bub;op=Math.min(1,(t-.3)/.15);}
   let h="";
   if(bub){
@@ -301,6 +304,56 @@ function fmt(s){
           .replace(/\{(X?)(\d)\}/g,(m,x,d)=>`<b class="chip ${x?"cd":"co"}">${x?"X":""}${d}</b>`);
 }
 
+/* "Who's open?" mode: before a step with "ask", the play stops and waits for a tap on the open player */
+const chipOf=id=>`{${id[0]==="d"?"X":""}${id.slice(1)}}`;
+const asking=()=>!!quiz&&quiz.state!=="right";
+function needsAsk(play,k){return quizOn&&k<play.frames.length&&askList(play.frames[k].ask).length>0&&!answered.has(k);}
+function startAsk(k){
+  const play=plays[cur],b=play.frames[k].ball,holder=startHolder(b);
+  quiz={k,state:"ask",tries:0,hit:"",open:askList(play.frames[k].ask),holder,resumePlaying:playing,resumeTarget:target,
+    msg:b.pass?`Who’s open? Tap the player ${chipOf(holder)} should pass to.`:"Who’s open? Tap the open player."};
+  playing=false;target=p;holdUntil=0;
+  choicesEl.innerHTML=play.cast.filter(id=>id[0]==="o").sort().map(id=>
+    `<button type="button" class="choice" data-id="${id}" aria-label="Player ${id.slice(1)}">${id.slice(1)}</button>`).join("");
+}
+function answer(id){
+  if(!asking())return;
+  if(quiz.open.includes(id)){quiz.msg=`Yes! ${chipOf(id)} is open!`;reveal(id);cheer(curP[id]);return;}
+  quiz.state="wrong";quiz.tries++;
+  if(id===quiz.holder)quiz.msg=`${chipOf(id)} has the ball! Who should ${chipOf(id)} pass to?`;
+  else{
+    let near="",nd=80;
+    if(showD)plays[cur].cast.forEach(d=>{if(d[0]==="d"&&dist(curP[id],curP[d])<nd){nd=dist(curP[id],curP[d]);near=d;}});
+    quiz.msg=near?`Not ${chipOf(id)}. ${chipOf(near)} is right there. Try again!`:`Not ${chipOf(id)}. Look for the player with the most space. Try again!`;
+  }
+  const c=choicesEl.querySelector(`[data-id="${id}"]`);if(c){c.classList.add("no");shake(c);}
+  shake(els[id].firstChild);
+}
+/* Right answer or "Show me": mark the open player, then carry on the way the play was going */
+function reveal(id){
+  quiz.state="right";quiz.hit=id;answered.add(quiz.k);
+  playing=quiz.resumePlaying;target=quiz.resumeTarget;holdUntil=performance.now()+1200;
+}
+function showAnswer(){
+  if(!asking())return;
+  quiz.msg=`${chipOf(quiz.open[0])} is the open one. Watch!`;reveal(quiz.open[0]);
+}
+function shake(el){el.classList.remove("nope");void el.getBoundingClientRect();el.classList.add("nope");}
+function cheer(q){
+  const g=document.createElementNS(NS,"g"),y=q[1]-38<vb[1]+16?q[1]+50:q[1]-30;
+  g.innerHTML=`<g transform="translate(${f1(q[0])} ${f1(y)})"><g class="pop"><text class="fx-word" text-anchor="middle">Yes!</text></g></g>`;
+  lyFx.appendChild(g);setTimeout(()=>g.remove(),1900);
+}
+/* Tapping near a blue player on the court picks them: kinder to small fingers than hitting the circle exactly */
+function tapCourt(e){
+  if(!asking())return;
+  const m=courtEl.getScreenCTM();if(!m)return;
+  const pt=new DOMPoint(e.clientX,e.clientY).matrixTransform(m.inverse());
+  let best="",bd=48;
+  plays[cur].cast.forEach(id=>{if(id[0]==="o"&&dist([pt.x,pt.y],curP[id])<bd){bd=dist([pt.x,pt.y],curP[id]);best=id;}});
+  if(best)answer(best);
+}
+
 /* Render */
 function stepInfo(){
   if(p<=0)return {k:1,t:0};
@@ -308,7 +361,7 @@ function stepInfo(){
 }
 function render(now){
   const play=plays[cur],n=play.frames.length-1,{k,t}=stepInfo();
-  const P={};
+  const P={};curP=P;
   play.cast.forEach(id=>{
     const q=posAt(play,k,t,id);P[id]=q;
     const g=els[id];g.setAttribute("transform",`translate(${f1(q[0])} ${f1(q[1])})`);
@@ -326,9 +379,9 @@ function render(now){
   const pk=cur+"|"+stepIdx+"|"+showL;
   if(pk!==lastPathKey){drawPaths(play,stepIdx);lastPathKey=pk;}
 
-  const ck=cur+"|"+stepIdx;
+  const ck=cur+"|"+stepIdx+"|"+(quiz?quiz.state+quiz.tries+quiz.msg:"");
   if(ck!==lastCapKey){
-    capEl.innerHTML=fmt(play.frames[stepIdx].say);
+    capEl.innerHTML=fmt(quiz?quiz.msg:play.frames[stepIdx].say);
     capEl.classList.remove("fresh");void capEl.offsetWidth;capEl.classList.add("fresh");
     lastCapKey=ck;
   }
@@ -340,15 +393,19 @@ function nextUp(){
   return {pl:pool[(i+1)%pool.length],wrapped:i===pool.length-1};
 }
 function updateUI(play,n,stepIdx){
-  const done=p>=n;
-  const st=[cur,playing,done,stepIdx,p<=0,listVer].join("|");
+  const done=p>=n,ask=asking();
+  const st=[cur,playing,done,stepIdx,p<=0,listVer,quiz?quiz.state+quiz.tries:""].join("|");
   if(st===lastUI)return;lastUI=st;
   if(playing){playIcon.innerHTML=ICON_PAUSE;playTxt.textContent="Pause";}
   else if(done){playIcon.innerHTML=ICON_AGAIN;playTxt.textContent="Again";}
   else{playIcon.innerHTML=ICON_PLAY;playTxt.textContent="Play";}
-  btnPlay.classList.toggle("nudge",p<=0&&!playing);
-  btnBack.disabled=p<=0;btnNext.disabled=done;
-  badgeEl.textContent=stepIdx===0?"Start":`Step ${stepIdx} of ${n}`;
+  btnPlay.classList.toggle("nudge",p<=0&&!playing&&!ask);
+  btnPlay.disabled=ask;btnBack.disabled=p<=0;btnNext.disabled=done||ask;
+  badgeEl.textContent=ask?"Your turn":stepIdx===0?"Start":`Step ${stepIdx} of ${n}`;
+  badgeEl.classList.toggle("turn",ask);
+  quizEl.hidden=!quiz;dotsEl.hidden=!!quiz;courtEl.classList.toggle("asking",ask);
+  [...choicesEl.children].forEach(c=>{c.disabled=!ask;c.classList.toggle("yes",!!quiz&&quiz.hit===c.dataset.id);});
+  play.cast.forEach(id=>{if(id[0]==="o")els[id].classList.toggle("yes",!!quiz&&quiz.hit===id);});
   [...dotsEl.children].forEach((d,i)=>{
     const j=i+1;d.classList.toggle("done",stepIdx>0&&j<=stepIdx);d.classList.toggle("now",j===stepIdx);
   });
@@ -369,7 +426,10 @@ function stepDur(play,k){
 function tick(now){
   const dt=Math.min(60,now-lastT);lastT=now;
   const play=plays[cur];
+  // A step with a question asks it as soon as the step before ends, without waiting out the hold
+  if(p<target&&!quiz&&Math.abs(p-Math.round(p))<1e-9&&needsAsk(play,Math.round(p)+1))startAsk(Math.round(p)+1);
   if(p<target&&now>=holdUntil){
+    quiz=null;
     const k=Math.floor(p+1e-9)+1;
     let np=p+dt/(stepDur(play,k)*speed);
     // Snap when within rounding error of the step's end; otherwise p can stall at 1.9999999999999998 and k overshoots
@@ -389,24 +449,26 @@ function tick(now){
 /* Controls */
 function togglePlay(){
   const n=plays[cur].frames.length-1;
+  if(asking())return;
   if(playing){playing=false;target=p;holdUntil=0;return;}
-  if(p>=n){p=0;lyFx.innerHTML="";}
+  if(p>=n){p=0;lyFx.innerHTML="";answered.clear();quiz=null;}
   playing=true;target=n;holdUntil=0;
 }
 function stepNext(){
   const n=plays[cur].frames.length-1;
+  if(asking())return;
   playing=false;holdUntil=0;
   target=Math.min(n,Math.floor(p+1e-9)+1);
 }
 function stepBack(){
-  playing=false;holdUntil=0;
+  playing=false;holdUntil=0;quiz=null;
   const fl=Math.floor(p+1e-9);
   p=Math.abs(p-fl)<1e-6?Math.max(0,fl-1):fl;target=p;
 }
 btnPlay.addEventListener("click",togglePlay);
 btnNext.addEventListener("click",stepNext);
 btnBack.addEventListener("click",stepBack);
-btnRestart.addEventListener("click",()=>{p=0;target=0;playing=false;holdUntil=0;lyFx.innerHTML="";});
+btnRestart.addEventListener("click",()=>{p=0;target=0;playing=false;holdUntil=0;lyFx.innerHTML="";quiz=null;answered.clear();});
 nextPlayBtn.addEventListener("click",()=>{
   const {pl}=nextUp();selectPlay(plays.indexOf(pl));
 });
@@ -418,6 +480,13 @@ document.querySelectorAll("#speedSeg button").forEach(b=>{
 });
 $("togD").addEventListener("click",e=>{showD=!showD;e.currentTarget.setAttribute("aria-pressed",String(showD));});
 $("togL").addEventListener("click",e=>{showL=!showL;e.currentTarget.setAttribute("aria-pressed",String(showL));});
+$("togQ").addEventListener("click",e=>{
+  quizOn=!quizOn;e.currentTarget.setAttribute("aria-pressed",String(quizOn));
+  if(!quizOn&&quiz){if(asking()){playing=quiz.resumePlaying;target=quiz.resumeTarget;}quiz=null;}
+});
+choicesEl.addEventListener("click",e=>{const c=e.target.closest(".choice");if(c)answer(c.dataset.id);});
+$("btnShow").addEventListener("click",showAnswer);
+courtEl.addEventListener("click",tapCourt);
 
 /* Library controls */
 qEl.addEventListener("input",()=>{query=qEl.value;refreshList();});
@@ -452,6 +521,10 @@ document.addEventListener("keydown",e=>{
   if(el&&(el.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)))return;
   if(e.key==="/"){e.preventDefault();qEl.focus();qEl.select();return;}
   if(!plays.length)return;
+  if(asking()&&/^[1-5]$/.test(e.key)){
+    if(plays[cur].cast.includes("o"+e.key)){e.preventDefault();answer("o"+e.key);}
+    return;
+  }
   const onBtn=el&&el.closest&&el.closest("button");
   if(e.key===" "){if(onBtn)return;e.preventDefault();togglePlay();}
   else if(e.key==="ArrowRight"){e.preventDefault();stepNext();}

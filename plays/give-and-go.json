@@ -28,6 +28,7 @@
     {
       "pos": { "o1": [242, 86], "d1": [254, 158] },
       "ball": { "pass": ["o2", "o1"] },
+      "ask": "o1",
       "say": "{2} passes it right back to {1}."
     },
     {

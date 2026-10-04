@@ -42,6 +42,7 @@
     {
       "pos": { "d2": [238, 262, 200, 170] },
       "ball": { "pass": ["o1", "o2"] },
+      "ask": "o2",
       "say": "{1} passes back to {2}. {X2} has to run all the way out!"
     },
     {

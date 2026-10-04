@@ -28,6 +28,7 @@
     {
       "pos": { "d3": [125, 100] },
       "ball": { "pass": ["o1", "o3"] },
+      "ask": "o3",
       "say": "*Kick:* {1} passes out to {3} in the corner."
     },
     {

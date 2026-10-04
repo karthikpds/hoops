@@ -1,0 +1,45 @@
+{
+  "name": "2-on-1 Fast Break",
+  "emoji": "⚡",
+  "level": 1,
+  "tags": ["fast break", "2 on 1", "passing", "bounce pass", "layup"],
+  "idea": "When it’s two of you against one defender, make the defender pick one of you, then pass to the other.",
+  "why": "One defender can’t guard two players. If they stop the dribbler, the runner is open. If they stay with the runner, the dribbler keeps going.",
+  "tryit": "Play 2-on-1 at practice. The dribbler runs right at the defender, and the runner stays wide until the pass comes.",
+  "cast": ["d1", "o1", "o2"],
+  "frames": [
+    {
+      "pos": { "o1": [230, 440], "o2": [410, 432], "d1": [250, 150] },
+      "ball": { "dribble": "o1" },
+      "say": "*Fast break!* {1} and {2} race toward the hoop. Only {X1} got back to play defense."
+    },
+    {
+      "pos": { "o1": [250, 305], "o2": [425, 300], "d1": [250, 172] },
+      "ball": { "dribble": "o1" },
+      "say": "{1} dribbles fast up the middle. {2} runs wide down the side. It’s 2 against 1!"
+    },
+    {
+      "pos": { "o1": [250, 232], "o2": [402, 170], "d1": [250, 196] },
+      "ball": { "dribble": "o1" },
+      "bub": { "d1": "Stop!" },
+      "say": "{1} dribbles right at {X1}. {X1} has to stop {1}, or {1} will score!"
+    },
+    {
+      "pos": { "o2": [395, 150], "d1": [282, 160] },
+      "ball": { "pass": ["o1", "o2"], "bounce": true },
+      "ask": "o2",
+      "say": "{X1} is busy with {1}, so {1} passes to {2}."
+    },
+    {
+      "pos": { "o2": [305, 84, 360, 100], "d1": [270, 126] },
+      "ball": { "dribble": "o2" },
+      "say": "{2} dribbles straight to the basket. {X1} tries to get back."
+    },
+    {
+      "pos": { "d1": [282, 110] },
+      "ball": { "shot": "o2" },
+      "bub": { "d1": "Too late!" },
+      "say": "Layup! Two against one means somebody is always open."
+    }
+  ]
+}

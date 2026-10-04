@@ -83,6 +83,10 @@
           <span class="badge" id="badge">Start</span>
           <p id="caption" aria-live="polite">Loading plays…</p>
         </div>
+        <div class="quiz" id="quiz" role="group" aria-label="Pick the open player" hidden>
+          <div class="choices" id="choices"></div>
+          <button type="button" class="linkbtn" id="btnShow">Show me</button>
+        </div>
         <div class="dots" id="dots" role="group" aria-label="Jump to step"></div>
 
         <div class="controls">
@@ -106,6 +110,7 @@
             </div>
             <button class="tog" id="togD" aria-pressed="true"><span class="sw"></span>Defense</button>
             <button class="tog" id="togL" aria-pressed="true"><span class="sw"></span>Lines</button>
+            <button class="tog" id="togQ" aria-pressed="true" title="Stop before a pass and ask who’s open"><span class="sw"></span>Who’s open?</button>
           </div>
         </div>
         <button class="nextplay" id="nextPlay" hidden></button>
@@ -147,7 +152,7 @@
       </aside>
     </div>
 
-    <p class="foot">For grown-ups: use the step buttons to go one move at a time and ask “Who’s open now?” before pressing next. On a keyboard, press / to search, Space to play or pause, and the arrow keys to step.</p>
+    <p class="foot">For grown-ups: many plays stop before a big pass and ask “Who’s open?” Let kids find the open player and tap them on the court (or press 1–5). Switch off “Who’s open?” to just watch. Use the step buttons to go one move at a time. On a keyboard, press / to search, Space to play or pause, and the arrow keys to step.</p>
   </div>
 </div>
 <noscript><p class="foot" style="text-align:center">This playbook needs JavaScript to animate the plays.</p></noscript>

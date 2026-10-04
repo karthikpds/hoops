@@ -35,6 +35,7 @@
     {
       "pos": { "d5": [330, 220] },
       "ball": { "pass": ["o1", "o5"] },
+      "ask": "o5",
       "bub": { "d5": "Oops!" },
       "say": "{1} throws it across to {5}. {X5} has a long way to run back!"
     },

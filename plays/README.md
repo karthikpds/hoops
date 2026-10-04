@@ -110,6 +110,7 @@ Shots score 2 or 3 automatically from where the shooter stands.
 | `ball` | `"o1"`: o1 holds it. `{ "dribble": "o1" }`: o1 dribbles. `{ "pass": ["o1", "o2"] }`: o1 passes to o2 (add `"bounce": true` for a bounce pass). `{ "shot": "o1" }`: o1 shoots; only allowed in the last step. The ball must start each step with whoever had it when the step before ended. |
 | `scr` | Optional. Screens, as `[screener, defender]` pairs like `[["o3", "d2"]]`. Draws the yellow wall. Repeat it in every frame the screen is held. |
 | `bub` | Optional. Speech bubbles like `{ "o2": "Open!" }`. They pop up 30% into the step. Keep them to about 16 characters. |
+| `ask` | Optional. A "Who's open?" question: the open player, like `"o2"` (or a list like `["o2", "o3"]` if more than one is). The play stops before this step and waits for a tap on that player. See below. |
 | `say` | The caption. `{1}` shows a blue player chip, `{X1}` a red one, and `*word*` highlights a keyword. |
 
 The lines on the court are drawn for you: a moving screener gets a line with a T end, a moving dribbler gets a zigzag,
@@ -126,11 +127,32 @@ Only the inbounder can be off the court, and once they step on they can't go bac
 court, so guard an inbounder from just inside the line. See `box-inbound.json`, `stack-inbound.json` and
 `sideline-stagger.json`.
 
+## "Who's open?" questions
+
+Put `"ask"` on the step that passes to the open player. When the step before it ends, the play stops, the caption
+asks "Who's open? Tap the player 1 should pass to.", and kids tap a blue player on the court (or press 1–5). A wrong
+pick gets a hint ("X2 is right there"), the right one gets a "Yes!", and then the step plays. Speech bubbles are hidden
+while the question is up, so an "I'm open!" bubble doesn't give the answer away.
+
+```json
+{
+  "pos": { "d3": [125, 100] },
+  "ball": { "pass": ["o1", "o3"] },
+  "ask": "o3",
+  "say": "*Kick:* {1} passes out to {3} in the corner."
+}
+```
+
+Ask when the open player is easy to spot: the answer should be farther from every defender than any other teammate
+without the ball (the checker warns if not). One question per play is plenty. Viewers can switch the questions off
+with the "Who's open?" button.
+
 ## What `npm run build` checks
 
 - Every field is there and has the right kind of value, spot names exist, and positions are on the half court (or just off it for an inbounder).
 - Only the inbounder is ever out of bounds, and they don't step back out once they're on the court.
 - The ball moves sensibly from step to step, and a shot only happens in the last step.
+- An `ask` names offensive players who don't have the ball, and isn't on the setup. If the answer isn't the most open player when the question pops up, that's a warning.
 - Caption chips like `{3}` refer to players in the cast.
 - No two players ever overlap: it sweeps every step and fails if two players get closer than 26 units (aim for 34, a full player width).
 - Speech bubbles aren't too long (a warning, not an error).

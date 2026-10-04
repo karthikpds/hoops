@@ -1,0 +1,48 @@
+{
+  "name": "Pass & Screen Away",
+  "emoji": "🤝",
+  "level": 1,
+  "tags": ["screen", "passing", "off the ball", "teamwork", "three-pointer"],
+  "idea": "After you pass, go set a screen for a teammate on the other side.",
+  "why": "Defenders watch the ball. When you walk away from it to help a friend, nobody is ready for the screen, and your friend pops open.",
+  "tryit": "After every pass, find a friend to screen for. Stand still like a wall with your feet wide and your arms in.",
+  "cast": ["d1", "d2", "d3", "o1", "o2", "o3"],
+  "frames": [
+    {
+      "pos": { "o1": "TOP", "o2": "RW", "o3": "LW" },
+      "ball": "o1",
+      "say": "{1} has the ball at the top. {2} and {3} are out on the wings."
+    },
+    {
+      "pos": { "d1": [282, 284] },
+      "ball": { "pass": ["o1", "o2"] },
+      "say": "*Pass:* {1} passes to {2}."
+    },
+    {
+      "pos": { "o1": [140, 238], "d1": [198, 228] },
+      "ball": "o2",
+      "scr": [["o1", "d3"]],
+      "bub": { "o1": "Screen!" },
+      "say": "*Screen away:* {1} walks away from the ball and stands still next to {X3}, like a wall."
+    },
+    {
+      "pos": { "o3": [212, 322, 100, 330], "d3": [114, 220] },
+      "ball": "o2",
+      "scr": [["o1", "d3"]],
+      "bub": { "o3": "Open!", "d3": "Stuck!" },
+      "say": "{3} runs around the screen to the top. {X3} bumps into {1} and gets stuck!"
+    },
+    {
+      "pos": { "d3": [168, 290, 100, 290] },
+      "ball": { "pass": ["o2", "o3"] },
+      "ask": "o3",
+      "say": "{2} passes to {3}, who is wide open at the top."
+    },
+    {
+      "pos": { "d3": [185, 304] },
+      "ball": { "shot": "o3" },
+      "bub": { "d3": "Too late!" },
+      "say": "Swish! Pass, then go screen for a friend. That’s Pass & Screen Away."
+    }
+  ]
+}

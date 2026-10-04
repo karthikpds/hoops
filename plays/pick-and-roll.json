@@ -36,6 +36,7 @@
     {
       "pos": { "o5": [258, 84], "d5": [318, 165], "d1": [326, 276] },
       "ball": { "pass": ["o1", "o5"], "bounce": true },
+      "ask": "o5",
       "say": "{1} bounce-passes to {5}, who is rolling to the rim."
     },
     {

@@ -30,7 +30,7 @@ export function guardSpot(q, d = 34) {
 /* ---------- Checking a play file ---------- */
 
 const PLAY_KEYS = ["name", "emoji", "level", "tags", "idea", "why", "tryit", "cast", "frames"];
-const FRAME_KEYS = ["pos", "ball", "scr", "bub", "say"];
+const FRAME_KEYS = ["pos", "ball", "scr", "bub", "ask", "say"];
 const isObj = v => !!v && typeof v === "object" && !Array.isArray(v);
 const isText = v => typeof v === "string" && v.trim() !== "";
 const isNum = v => typeof v === "number" && Number.isFinite(v);
@@ -43,8 +43,11 @@ function pointError(v) {
 }
 
 /* Who has the ball when a step starts, and when it ends. */
-const startHolder = b => typeof b === "string" ? b : b.dribble || b.shot || b.pass[0];
+export const startHolder = b => typeof b === "string" ? b : b.dribble || b.shot || b.pass[0];
 const endHolder = b => typeof b === "string" ? b : b.dribble || b.shot || b.pass[1];
+
+/* A frame's "ask" as a list: the open player (or players) to tap before the step plays. */
+export const askList = ask => ask === undefined ? [] : Array.isArray(ask) ? ask : [ask];
 
 /* Returns a list of problems; an empty list means the play is safe to resolve and animate. */
 export function checkPlay(p) {
@@ -97,6 +100,12 @@ export function checkPlay(p) {
       `${at}: "scr" must be a list of [screener, defender] pairs, like [["o3", "d2"]]`);
     if (fr.bub !== undefined) need(isObj(fr.bub) && Object.entries(fr.bub).every(([id, t]) => inCast(id) && isText(t)),
       `${at}: "bub" must map players in the cast to short text, like { "o2": "Open!" }`);
+    if (fr.ask !== undefined && need(j > 0, `${at}: the setup can't have "ask"; put it on the step that passes to the open player`)) {
+      const open = askList(fr.ask);
+      if (need(open.length > 0 && open.every(off) && new Set(open).size === open.length,
+        `${at}: "ask" must name the open player, like "o2", or a list like ["o2", "o3"]`) && ok)
+        need(!open.includes(startHolder(b)), `${at}: "ask" names ${startHolder(b)}, who has the ball; name the player who is open for a pass`);
+    }
   });
   return errs;
 }

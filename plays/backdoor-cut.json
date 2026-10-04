@@ -29,6 +29,7 @@
     {
       "pos": { "o2": [268, 80], "d2": [330, 150] },
       "ball": { "pass": ["o1", "o2"], "bounce": true },
+      "ask": "o2",
       "say": "{1} throws a bounce pass to the cutter."
     },
     {

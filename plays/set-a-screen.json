@@ -30,6 +30,7 @@
     {
       "pos": { "d2": [130, 185, 125, 95] },
       "ball": { "pass": ["o1", "o2"] },
+      "ask": "o2",
       "say": "{1} passes to {2}, who is wide open."
     },
     {

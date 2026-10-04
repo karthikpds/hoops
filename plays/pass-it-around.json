@@ -26,6 +26,7 @@
     {
       "pos": { "d1": [240, 276], "d3": [128, 206], "d2": [365, 205] },
       "ball": { "pass": ["o1", "o3"] },
+      "ask": "o3",
       "bub": { "o3": "Open!" },
       "say": "{1} swings it to {3}. {X3} was helping in the middle and is still running back!"
     },

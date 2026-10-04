@@ -2,7 +2,7 @@
 // Run after adding, renaming or removing a play:  npm run build
 // Files starting with "_" (drafts) are skipped. Exits with code 1 if any play has an error.
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
-import { checkPlay, dist, onCourt, posAt, resolvePlay } from "../js/playbook.js";
+import { askList, checkPlay, dist, onCourt, posAt, resolvePlay, startHolder } from "../js/playbook.js";
 
 const DIR = new URL("../plays/", import.meta.url);
 const INDEX = new URL("index.json", DIR);
@@ -12,7 +12,8 @@ const MAX_BUBBLE = 16;  // speech bubbles get too wide past this many characters
 const errors = [], warnings = [];
 const report = (list, file, msg) => list.push({ file, msg });
 
-/* Extra checks on a resolved play: who is out of bounds, caption chips, bubble length, and players overlapping mid-move. */
+/* Extra checks on a resolved play: who is out of bounds, caption chips, bubble length, "Who's open?" answers,
+   and players overlapping mid-move. */
 function lint(play, file) {
   // Only the inbounder (holding the ball off the court in the setup) may be out of bounds, and only until they step on.
   const b0 = play.frames[0].ball, inbounder = typeof b0 === "string" ? b0 : null;
@@ -24,6 +25,18 @@ function lint(play, file) {
     else if (stepped) report(errors, file, `frame ${j}: ${pid} steps back out of bounds after coming onto the court`);
   }));
   if (b0.dribble && !onCourt(play.res[0][b0.dribble])) report(errors, file, `frame 0: ${b0.dribble} can't dribble out of bounds; give them the ball as "${b0.dribble}" to inbound it`);
+
+  // A "Who's open?" answer should have more space (distance to the nearest defender) than every other
+  // teammate without the ball at the moment the question pops up: the end of the step before.
+  const defenders = play.cast.filter(pid => pid[0] === "d");
+  const space = (r, pid) => Math.min(...defenders.map(d => dist(r[pid], r[d])));
+  play.frames.forEach((fr, j) => {
+    const open = askList(fr.ask);
+    if (!open.length || !defenders.length) return;
+    const r = play.res[j - 1], least = Math.min(...open.map(pid => space(r, pid)));
+    const rival = play.cast.find(pid => pid[0] === "o" && pid !== startHolder(fr.ball) && !open.includes(pid) && space(r, pid) >= least);
+    if (rival) report(warnings, file, `frame ${j}: "ask" says ${open.join(" or ")} is open, but ${rival} has as much space when the question pops up`);
+  });
 
   play.frames.forEach((fr, j) => {
     for (const [, x, n] of fr.say.matchAll(/\{(X?)(\d)\}/g)) {
