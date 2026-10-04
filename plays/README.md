@@ -1,5 +1,9 @@
 # Writing a play
 
+The easiest way to make a play is the play editor (`editor.html`, linked at the bottom of the site, or
+http://localhost:8000/editor.html with `npm start`): drag players around step by step, and it writes the file for you,
+checked with the same rules as below. This page explains the file itself.
+
 Each play is one JSON file in this folder. The file name becomes the play's link:
 `pick-and-roll.json` → `https://<you>.github.io/<repo>/#pick-and-roll`. Use lowercase words joined by dashes.
 Files that start with `_` (like `_my-draft.json`) are drafts: the site and the checker skip them.
@@ -65,6 +69,7 @@ If you add a play on github.com instead, the deploy workflow runs the same check
 | `name` | Play name, shown on its button and as the heading. |
 | `emoji` | One emoji for the play's button. |
 | `level` | `1` Easy, `2` Medium or `3` Tricky. |
+| `side` | Optional. `"defense"` makes it a defense play: red is "your team", the legend says so, and defenders' moves get red lines. Leave it out for an offense play. |
 | `tags` | Optional. Words people might search for, like `"screen"` or `"layup"`. Shown as buttons that find similar plays. |
 | `idea` | One-sentence summary, shown big under the name. |
 | `why` | The "Why it works" paragraph. |
@@ -107,14 +112,35 @@ Shots score 2 or 3 automatically from where the shooter stands.
 | Field | What it is |
 | --- | --- |
 | `pos` | Where players move to during this step. A spot name, `[x, y]`, or `[x, y, curveX, curveY]` to bend the path through a control point. Players you leave out stay where they are. Frame 0 must place every offensive player; a defender left out of frame 0 starts guarding their matching player. |
-| `ball` | `"o1"`: o1 holds it. `{ "dribble": "o1" }`: o1 dribbles. `{ "pass": ["o1", "o2"] }`: o1 passes to o2 (add `"bounce": true` for a bounce pass). `{ "shot": "o1" }`: o1 shoots; only allowed in the last step. The ball must start each step with whoever had it when the step before ended. |
-| `scr` | Optional. Screens, as `[screener, defender]` pairs like `[["o3", "d2"]]`. Draws the yellow wall. Repeat it in every frame the screen is held. |
+| `ball` | What the ball does in this step; see the table below. The ball must start each step with whoever had it when the step before ended. |
+| `scr` | Optional. Screens, as `[screener, defender]` pairs like `[["o3", "d2"]]`, or `[defender, player]` for a box out like `[["d5", "o5"]]`. Draws the yellow wall. Repeat it in every frame the screen is held. |
 | `bub` | Optional. Speech bubbles like `{ "o2": "Open!" }`. They pop up 30% into the step. Keep them to about 16 characters. |
 | `ask` | Optional. A "Who's open?" question: the open player, like `"o2"` (or a list like `["o2", "o3"]` if more than one is). The play stops before this step and waits for a tap on that player. See below. |
 | `say` | The caption. `{1}` shows a blue player chip, `{X1}` a red one, and `*word*` highlights a keyword. |
 
+### The ball
+
+| `ball` | What happens |
+| --- | --- |
+| `"o1"` | o1 holds it. |
+| `{ "dribble": "o1" }` | o1 dribbles. |
+| `{ "pass": ["o1", "o2"] }` | o1 passes to o2. Add `"bounce": true` for a bounce pass. |
+| `{ "handoff": ["o1", "o2"] }` | o1 hands the ball to o2 as they run close by. The ball changes hands at the moment the two are closest, so move them past each other (within 50 units). |
+| `{ "shot": "o1" }` | o1 shoots and scores. Only allowed in the last step. |
+| `{ "shot": "o1", "miss": true }` | o1 shoots and misses. The next step must be a rebound. |
+| `{ "rebound": "d5" }` | d5 (or any player) grabs the missed shot. A defensive rebound ends the play, so it must be the last step. |
+
+The setup (frame 0) can only hold or dribble.
+
 The lines on the court are drawn for you: a moving screener gets a line with a T end, a moving dribbler gets a zigzag,
-everyone else who moves gets a solid arrow, and passes and shots get dashed orange lines.
+everyone else who moves gets a solid arrow, and passes and shots get dashed orange lines. A handoff gets two short
+orange bars where the ball changes hands. In a defense play, defenders' moves get red lines too.
+
+## Defense plays
+
+Add `"side": "defense"` and tell the story from the defenders' point of view. A missed shot and a rebound make a
+good ending: see `box-out.json`. For a box out, list the defender first in `scr`, like `[["d4", "o4"], ["d5", "o5"]]`.
+`ask` questions are only about open offensive players, so defense plays usually don't have one.
 
 ## Inbound plays
 
@@ -151,7 +177,8 @@ with the "Who's open?" button.
 
 - Every field is there and has the right kind of value, spot names exist, and positions are on the half court (or just off it for an inbounder).
 - Only the inbounder is ever out of bounds, and they don't step back out once they're on the court.
-- The ball moves sensibly from step to step, and a shot only happens in the last step.
+- The ball moves sensibly from step to step: a made shot only in the last step, a missed shot followed by a rebound, and a defensive rebound last.
+- Players in a handoff get within 50 units of each other (a warning).
 - An `ask` names offensive players who don't have the ball, and isn't on the setup. If the answer isn't the most open player when the question pops up, that's a warning.
 - Caption chips like `{3}` refer to players in the cast.
 - No two players ever overlap: it sweeps every step and fails if two players get closer than 26 units (aim for 34, a full player width).

@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Play Editor · Hoops Playbook</title>
+<meta name="description" content="Draw a basketball play step by step and save it as a play file for Hoops Playbook.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏀</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/editor.css">
+<script type="module" src="js/editor.js"></script>
+</head>
+<body class="editor">
+<div class="ed-wrap">
+  <header class="ed-top">
+    <div class="logo" aria-hidden="true">🏀</div>
+    <div>
+      <h1>Play editor</h1>
+      <p>Draw a play step by step, then save it as a file for the <a href="./">playbook</a>.</p>
+    </div>
+    <div class="ed-open">
+      <label class="ed-field ed-inline"><span>Open a play</span><select id="openPlay"><option value="">Loading…</option></select></label>
+      <button type="button" class="btn" id="btnNew">New play</button>
+    </div>
+  </header>
+
+  <div class="ed-main">
+    <section class="stage ed-stage" aria-label="Court">
+      <div class="ed-steps" id="steps" role="tablist" aria-label="Steps"></div>
+      <div class="courtwrap"><div class="ed-court" id="edCourt"></div></div>
+      <p class="ed-hint" id="hint"></p>
+      <div class="ed-preview">
+        <button type="button" class="btn play" id="btnPreview"><span id="previewTxt">▶ Preview</span></button>
+        <input type="range" id="scrub" min="0" max="1" step="0.01" value="0" aria-label="Scrub through the play">
+      </div>
+    </section>
+
+    <div class="ed-side">
+      <section class="ed-card" aria-labelledby="hStep">
+        <h2 id="hStep">This step</h2>
+        <div id="stepForm"></div>
+      </section>
+
+      <section class="ed-card" aria-labelledby="hProblems">
+        <h2 id="hProblems">Checks</h2>
+        <ul class="ed-problems" id="problems"></ul>
+      </section>
+
+      <details class="ed-card" id="playCard" open>
+        <summary><h2>About the play</h2></summary>
+        <div class="ed-grid">
+          <label class="ed-field"><span>Name</span><input id="fName" maxlength="40"></label>
+          <label class="ed-field"><span>File name</span><input id="fId" maxlength="40" spellcheck="false"></label>
+          <label class="ed-field"><span>Emoji</span><input id="fEmoji" maxlength="8"></label>
+          <label class="ed-field"><span>Level</span><select id="fLevel"><option value="1">Easy</option><option value="2">Medium</option><option value="3">Tricky</option></select></label>
+          <label class="ed-field"><span>Side</span><select id="fSide"><option value="offense">Offense (blue is your team)</option><option value="defense">Defense (red is your team)</option></select></label>
+          <label class="ed-field"><span>Tags, with commas</span><input id="fTags"></label>
+        </div>
+        <label class="ed-field"><span>Big idea (one sentence)</span><textarea id="fIdea" rows="2"></textarea></label>
+        <label class="ed-field"><span>Why it works</span><textarea id="fWhy" rows="3"></textarea></label>
+        <label class="ed-field"><span>Try it at practice</span><textarea id="fTry" rows="3"></textarea></label>
+        <fieldset class="ed-cast"><legend>Players</legend><div id="cast"></div></fieldset>
+      </details>
+
+      <section class="ed-card" aria-labelledby="hOut">
+        <h2 id="hOut">Save it</h2>
+        <p class="ed-note">Nothing is saved in your browser, so copy or download the play before you leave. Put the file in <code>plays/</code> and run <code>npm run build</code>.</p>
+        <div class="ed-row">
+          <button type="button" class="btn" id="btnCopy">Copy</button>
+          <button type="button" class="btn" id="btnDownload">Download</button>
+          <span class="ed-done" id="saveTip" role="status"></span>
+        </div>
+        <textarea id="out" class="ed-out" rows="12" readonly spellcheck="false" aria-label="Play file"></textarea>
+      </section>
+    </div>
+  </div>
+</div>
+</body>
+</html>
