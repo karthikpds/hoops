@@ -7,6 +7,7 @@ how teammates work together.
 - Offense plays, from a first give and go to the triangle, plus defense plays like box outs and help side.
 - "Who's open?" questions stop the play before a big pass and let kids tap the open player.
 - Read aloud for kids who are still learning to read, Follow to watch one player's job, and a printable practice sheet.
+- Learning paths, like "Start here", "Screens" and "Defense", that list plays in the order to learn them.
 - Search by name, skill or anything in a play's description, filter by level, or press "Surprise me" for a random play.
 - Every play has its own link, like `…/#pick-and-roll`, to share with a team.
 - Each play is a small JSON file. Draw one in the play editor (`editor.html`), or write it by hand.
@@ -60,8 +61,8 @@ shared links show the preview card.
 | `js/court.js` | Draws the court, players, lines and ball as SVG. Shared by the page, the print sheet and the editor. |
 | `js/playbook.js` | Play logic without any page code: court spots, checking, resolving and formatting plays, search. Shared by the page, the editor and the checker. |
 | `tests/` | `npm test`: unit tests for `playbook.js` and `court.js`, using Node's built-in test runner. |
-| `plays/` | One JSON file per play, plus `index.json`, the list of plays the site loads. |
-| `tools/build.js` | `npm run build`: checks every play and updates `plays/index.json`. |
+| `plays/` | One JSON file per play, plus `index.json`, the list of plays the site loads, and `paths.json`, the learning paths. |
+| `tools/build.js` | `npm run build`: checks every play and the learning paths, and updates `plays/index.json`. |
 | `tools/serve.js` | `npm start`: a small local web server. |
 | `tools/share-image.html` | The picture shown when someone shares a link to the site, saved as `img/share.png`. |
 | `.github/workflows/pages.yml` | Runs the tests, checks plays and deploys to GitHub Pages on every push to `main`. |

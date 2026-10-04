@@ -54,6 +54,17 @@ h1{margin:0;font-weight:700;font-size:28px;line-height:1.05;letter-spacing:-.01e
 .search:focus-within kbd{display:none}
 .seg.lv{display:flex}
 .seg.lv button{flex:1;min-width:0;font-size:14px;font-weight:600;padding:0 4px}
+/* Learning path picker: a plain select styled like the search box */
+.pathpick{position:relative;display:flex;align-items:center;min-height:48px;border-radius:999px;border:2px solid var(--border);background:var(--surface);transition:border-color .15s,background .15s}
+.pathpick[hidden]{display:none}
+.pathpick:focus-within{border-color:var(--accent)}
+.pathpick.on{border-color:var(--accent);background:var(--accent-soft)}
+.pathpick::after{content:"";position:absolute;right:20px;top:50%;width:8px;height:8px;margin-top:-6px;border-right:2.5px solid var(--muted);border-bottom:2.5px solid var(--muted);transform:rotate(45deg);pointer-events:none}
+.pp-lbl{position:absolute;left:18px;color:var(--muted);font-size:14px;font-weight:600;pointer-events:none}
+.pathpick select{flex:1;min-width:0;height:44px;border:0;border-radius:999px;background:transparent;color:var(--ink);font:inherit;font-size:16px;font-weight:600;padding:0 42px 0 60px;outline:none;cursor:pointer;appearance:none;-webkit-appearance:none}
+.pathpick select option{background:var(--surface);color:var(--ink)}
+.pathabout{margin:-2px 4px 0;color:var(--muted);font-size:14px;line-height:1.4}
+.pathabout[hidden]{display:none}
 .count{color:var(--muted);font-size:14px;font-weight:500;white-space:nowrap;padding:0 4px}
 .empty{margin:0;padding:12px 8px;color:var(--muted);font-size:16px}
 .linkbtn{border:0;padding:0;background:none;color:var(--kw-ink);font:inherit;font-weight:600;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
@@ -86,6 +97,8 @@ h1{margin:0;font-weight:700;font-size:28px;line-height:1.05;letter-spacing:-.01e
   .top p{font-size:16px}
   .finder{flex-direction:row;flex-wrap:wrap;align-items:center;gap:10px 14px}
   .search{flex:1 1 320px}
+  .pathpick{flex:1 1 260px}
+  .pathabout{flex:1 1 100%;margin:0 4px;font-size:15px}
   .seg.lv{display:inline-flex}
   .seg.lv button{flex:none;padding:0 12px}
   .plays{flex:none;flex-direction:row;gap:10px;overflow-x:auto;overflow-y:hidden;min-height:80px;padding:4px 2px 14px;margin:0 -2px 4px;background:none;border:0;border-radius:0;box-shadow:none;scroll-snap-type:x proximity}

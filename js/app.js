@@ -1,6 +1,6 @@
 // The page: loads the plays listed in plays/index.json, runs the library (search, level filter, links)
 // and animates the selected play on the court. The court drawing itself lives in court.js.
-import { LEVELS as LV, askList, checkPlay, dist, isThree, resolvePlay, searchPlays, startHolder } from "./playbook.js";
+import { LEVELS as LV, askList, checkPaths, checkPlay, dist, isThree, resolvePlay, searchPlays, startHolder } from "./playbook.js";
 import { ballState, bubblesAt, bubblesSVG, courtBackground, courtView, esc, f1, pathsUpTo, playerSVG, playersAt, renderCourt, screensAt, stepAt, wallsSVG } from "./court.js";
 
 const NS="http://www.w3.org/2000/svg";
@@ -15,12 +15,14 @@ const btnPlay=$("btnPlay"),btnBack=$("btnBack"),btnNext=$("btnNext"),btnRestart=
 const playIcon=$("playIcon"),playTxt=$("playTxt");
 const qEl=$("q"),countEl=$("count"),shareBtn=$("btnShare"),printBtn=$("btnPrint"),courtEl=$("court");
 const quizEl=$("quiz"),choicesEl=$("choices"),followEl=$("follow"),printEl=$("printSheet"),speakBtn=$("togS"),surpriseBtn=$("btnSurprise");
+const pathPick=$("pathPick"),pathSel=$("pathSel"),pathAbout=$("pathAbout");
 const ICON_PLAY='<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M7 4.8v14.4a1 1 0 0 0 1.52.85l11.3-7.2a1 1 0 0 0 0-1.7L8.52 3.95A1 1 0 0 0 7 4.8z"/></svg>';
 const ICON_PAUSE='<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><rect x="5.5" y="4.5" width="4.6" height="15" rx="1.6"/><rect x="13.9" y="4.5" width="4.6" height="15" rx="1.6"/></svg>';
 const ICON_AGAIN='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12a7.5 7.5 0 1 0 2.4-5.5"/><path d="M4.5 4v5h5"/></svg>';
 
 /* State */
 let plays=[],view=[],query="",level=0,listVer=0;
+let paths=[],path=null;  // learning paths from plays/paths.json; path is the one picked, if any
 let cur=0,p=0,target=0,playing=false,holdUntil=0,speed=1,showD=true,showL=true;
 let els={},lastPathKey="",lastCapKey="",lastUI="",lastT=performance.now(),shareTimer=0;
 let vb=[-14,-14,514,484];  // court view as x0,y0,x1,y1
@@ -46,24 +48,51 @@ async function loadPlays(){
   return loaded.filter(Boolean);
 }
 
+/* Learning paths: plays/paths.json lists plays in the order to learn them. A path is optional, so a missing or
+   broken file just means no path picker. A play that didn't load is left out of its path. */
+async function loadPaths(){
+  try{
+    const r=await fetch("plays/paths.json",{cache:"no-cache"});
+    if(!r.ok)throw new Error("HTTP "+r.status);
+    const raw=await r.json(),errs=checkPaths(raw,plays.map(pl=>pl.id));
+    if(errs.length)console.warn("plays/paths.json: "+errs.join("; "));
+    return (Array.isArray(raw)?raw:[]).filter(pa=>pa&&typeof pa.id==="string"&&typeof pa.name==="string"&&Array.isArray(pa.plays))
+      .map(pa=>({...pa,list:pa.plays.map(id=>plays.find(pl=>pl.id===id)).filter(Boolean)}))
+      .filter(pa=>pa.list.length>1);
+  }catch(e){console.warn(`No learning paths: ${e.message}`);return [];}
+}
+function buildPaths(){
+  pathSel.insertAdjacentHTML("beforeend",paths.map(pa=>`<option value="${esc(pa.id)}">${esc(pa.emoji||"")} ${esc(pa.name)}</option>`).join(""));
+  pathPick.hidden=!paths.length;
+}
+/* Picking a path shows its plays in order and clears the search and level, so the whole path is on screen */
+function setPath(id){
+  path=paths.find(pa=>pa.id===id)||null;
+  pathSel.value=path?path.id:"";
+  pathPick.classList.toggle("on",!!path);
+  pathAbout.hidden=!path;pathAbout.textContent=path?path.about:"";
+  qEl.value="";query="";setLevel(0);
+}
+
 /* Library: search box, level filter, and the row of play chips */
 function refreshList(){
-  view=searchPlays(plays,query,level);listVer++;
+  const pool=path?path.list:plays;
+  view=searchPlays(pool,query,level);listVer++;
   playsEl.innerHTML="";
   view.forEach((pl,i)=>{
     const b=document.createElement("button");
     b.className="pick"+(query.trim()&&i===0?" hit":"");b.type="button";b.dataset.id=pl.id;
     b.setAttribute("aria-pressed",String(pl===plays[cur]));
-    b.innerHTML=`<span class="pe" aria-hidden="true">${esc(pl.emoji)}</span><span><span class="pn">${esc(pl.name)}</span><span class="pl2">${LV[pl.level]}${pl.side==="defense"?" · Defense":""}</span></span>`;
+    b.innerHTML=`<span class="pe" aria-hidden="true">${esc(pl.emoji)}</span><span><span class="pn">${esc(pl.name)}</span><span class="pl2">${path?`Play ${pool.indexOf(pl)+1} · `:""}${LV[pl.level]}${pl.side==="defense"?" · Defense":""}</span></span>`;
     b.addEventListener("click",()=>selectPlay(plays.indexOf(pl)));
     playsEl.appendChild(b);
   });
   if(!view.length){
-    playsEl.innerHTML=`<p class="empty">No ${level?LV[level].toLowerCase()+" ":""}plays match${query.trim()?` “${esc(query.trim())}”`:""}. <button type="button" class="linkbtn" id="btnClear">Show all plays</button></p>`;
-    $("btnClear").addEventListener("click",()=>{setLevel(0);setQuery("");});
+    playsEl.innerHTML=`<p class="empty">No ${level?LV[level].toLowerCase()+" ":""}plays${path?` in ${esc(path.name)}`:""} match${query.trim()?` “${esc(query.trim())}”`:""}. <button type="button" class="linkbtn" id="btnClear">Show all plays</button></p>`;
+    $("btnClear").addEventListener("click",()=>setPath(""));
   }
-  const n=plays.length,word=k=>k+(k===1?" play":" plays");
-  countEl.textContent=view.length===n?word(n):`${view.length} of ${word(n)}`;
+  const n=pool.length,word=k=>k+(k===1?" play":" plays");
+  countEl.textContent=(view.length===n?word(n):`${view.length} of ${word(n)}`)+(path?` in ${path.name}`:"");
 }
 function setQuery(s){qEl.value=s;query=s;refreshList();}
 function setLevel(l){
@@ -312,7 +341,8 @@ function updateUI(play,n,stepIdx,fl){
   });
   if(done&&!playing&&plays.length>1){
     const {pl,wrapped}=nextUp();
-    nextPlayBtn.textContent=wrapped?`🎉 You finished them all! Start again with ${pl.name}`:`🎉 Nice! Next play: ${pl.name}`;
+    nextPlayBtn.textContent=!wrapped?`🎉 Nice! Next play: ${pl.name}`
+      :path&&view.length>1?`🎉 You finished the ${path.name} path! Start again with ${pl.name}`:`🎉 You finished them all! Start again with ${pl.name}`;
     nextPlayBtn.hidden=false;
   } else nextPlayBtn.hidden=true;
 }
@@ -413,9 +443,13 @@ qEl.addEventListener("keydown",e=>{
 });
 document.querySelectorAll("#lvSeg button").forEach(b=>b.addEventListener("click",()=>setLevel(+b.dataset.level)));
 surpriseBtn.addEventListener("click",surprise);
+pathSel.addEventListener("change",()=>{
+  setPath(pathSel.value);
+  if(path&&view.length)selectPlay(plays.indexOf(view[0]));
+});
 $("piTags").addEventListener("click",e=>{
   const t=e.target.closest(".tag");if(!t)return;
-  setLevel(0);setQuery(t.textContent);
+  setPath("");setQuery(t.textContent);
   document.querySelector(".library").scrollIntoView({block:"nearest",behavior:"smooth"});
 });
 shareBtn.addEventListener("click",async()=>{
@@ -449,6 +483,7 @@ if(!plays.length){
   if(location.protocol!=="file:")capEl.innerHTML="Couldn’t load any plays. Check <b>plays/index.json</b> and the browser console for details.";
   countEl.textContent="0 plays";
 } else {
+  paths=await loadPaths();buildPaths();
   refreshList();
   const i=indexFromHash();selectPlay(Math.max(i,0),false);
   btnPlay.disabled=false;btnRestart.disabled=false;shareBtn.hidden=false;printBtn.hidden=false;surpriseBtn.disabled=plays.length<2;

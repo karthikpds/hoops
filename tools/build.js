@@ -1,16 +1,18 @@
 // Checks every play in plays/ and writes plays/index.json, the list of plays the page loads.
 // Run after adding, renaming or removing a play:  npm run build
-// Files starting with "_" (drafts) are skipped. Exits with code 1 if any play has an error.
+// Files starting with "_" (drafts) are skipped. Also checks the learning paths in plays/paths.json.
+// Exits with code 1 if any play or path has an error.
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
-import { checkPlay, lintPlay, resolvePlay } from "../js/playbook.js";
+import { checkPaths, checkPlay, lintPlay, resolvePlay } from "../js/playbook.js";
 
 const DIR = new URL("../plays/", import.meta.url);
 const INDEX = new URL("index.json", DIR);
+const PATHS = new URL("paths.json", DIR);
 
 const errors = [], warnings = [];
 const report = (list, file, msg) => list.push({ file, msg });
 
-const files = readdirSync(DIR).filter(f => f.endsWith(".json") && f !== "index.json" && !f.startsWith("_")).sort();
+const files = readdirSync(DIR).filter(f => f.endsWith(".json") && f !== "index.json" && f !== "paths.json" && !f.startsWith("_")).sort();
 const plays = [];
 for (const file of files) {
   const id = file.slice(0, -5);
@@ -31,6 +33,15 @@ plays.forEach(pl => {
   if (names.has(pl.name)) report(warnings, `${pl.id}.json`, `has the same name as ${names.get(pl.name)}.json`);
   names.set(pl.name, pl.id);
 });
+
+let pathCount = 0;
+if (existsSync(PATHS)) {
+  let paths;
+  try { paths = JSON.parse(readFileSync(PATHS, "utf8")); }
+  catch (e) { report(errors, "paths.json", `not valid JSON: ${e.message}`); }
+  if (paths !== undefined) checkPaths(paths, files.map(f => f.slice(0, -5))).forEach(msg => report(errors, "paths.json", msg));
+  if (Array.isArray(paths)) pathCount = paths.length;
+}
 
 const gha = !!process.env.GITHUB_ACTIONS;
 const print = (kind, list) => list.forEach(({ file, msg }) =>
@@ -60,6 +71,7 @@ const text = JSON.stringify(order, null, 2) + "\n";
 const changed = !existsSync(INDEX) || readFileSync(INDEX, "utf8") !== text;
 if (changed) writeFileSync(INDEX, text);
 console.log(`✓ ${plays.length} play${plays.length === 1 ? "" : "s"} OK${warnings.length ? ` (${warnings.length} warning${warnings.length === 1 ? "" : "s"})` : ""}`);
+if (pathCount) console.log(`✓ ${pathCount} learning path${pathCount === 1 ? "" : "s"} OK`);
 if (added.length) console.log(`  added to plays/index.json: ${added.map(pl => pl.id).join(", ")}`);
 if (removed.length) console.log(`  removed from plays/index.json: ${removed.join(", ")}`);
 if (changed && !added.length && !removed.length) console.log("  plays/index.json rewritten");

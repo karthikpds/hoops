@@ -231,6 +231,29 @@ export function lintPlay(play) {
   return { errors, warnings };
 }
 
+/* ---------- Learning paths (plays/paths.json) ---------- */
+
+const PATH_KEYS = ["id", "name", "emoji", "about", "plays"];
+
+/* Checks the list of learning paths; ids are the plays that exist. Returns a list of problems. */
+export function checkPaths(paths, ids) {
+  if (!Array.isArray(paths)) return ["paths.json must be a list of paths, like [{ \"id\": \"start-here\", ... }]"];
+  const errs = [], seen = new Set();
+  paths.forEach((pa, i) => {
+    const at = isObj(pa) && isText(pa.id) ? `path "${pa.id}"` : `path ${i + 1}`;
+    if (!isObj(pa)) { errs.push(`${at} must be an object`); return; }
+    Object.keys(pa).filter(k => !PATH_KEYS.includes(k)).forEach(k => errs.push(`${at}: unknown field "${k}" (fields are ${PATH_KEYS.join(", ")})`));
+    if (!(typeof pa.id === "string" && /^[a-z0-9]+(-[a-z0-9]+)*$/.test(pa.id))) errs.push(`${at}: "id" must be lowercase words joined by dashes, like "start-here"`);
+    else if (seen.has(pa.id)) errs.push(`${at}: another path has the same id`);
+    seen.add(pa.id);
+    ["name", "emoji", "about"].forEach(k => { if (!isText(pa[k])) errs.push(`${at}: "${k}" must be some text`); });
+    if (!Array.isArray(pa.plays) || pa.plays.length < 2) { errs.push(`${at}: "plays" must list at least two play ids, in the order to learn them`); return; }
+    pa.plays.forEach(id => { if (!ids.includes(id)) errs.push(`${at}: "${id}" is not a play (there is no plays/${id}.json)`); });
+    if (new Set(pa.plays).size !== pa.plays.length) errs.push(`${at}: lists a play twice`);
+  });
+  return errs;
+}
+
 /* ---------- Writing a play file ---------- */
 
 /* JSON on one line with a space inside braces and after commas: { "o1": "TOP", "o2": [160, 100] } */

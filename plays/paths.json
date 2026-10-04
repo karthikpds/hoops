@@ -1,0 +1,58 @@
+[
+  {
+    "id": "start-here",
+    "name": "Start here",
+    "emoji": "⭐",
+    "about": "New to basketball? Start with these. Pass, cut, dribble, and grab the rebound.",
+    "plays": ["pass-it-around", "give-and-go", "v-cut", "dribble-drive", "fast-break", "box-out"]
+  },
+  {
+    "id": "getting-open",
+    "name": "Getting open",
+    "emoji": "🏃",
+    "about": "Ways to get open, even when you don't have the ball.",
+    "plays": ["v-cut", "backdoor-cut", "fill-the-spot", "post-up", "drive-and-kick", "the-weave"]
+  },
+  {
+    "id": "screens",
+    "name": "Screens",
+    "emoji": "🧱",
+    "about": "Stand still like a wall so a teammate can run free. First learn what a screen is, then try the trickier ones.",
+    "plays": ["set-a-screen", "pass-and-screen-away", "dribble-handoff", "zipper", "floppy", "hammer"]
+  },
+  {
+    "id": "pick-and-roll",
+    "name": "Pick and roll",
+    "emoji": "🤝",
+    "about": "Two players team up: one screens for the dribbler, then rolls or pops to get open.",
+    "plays": ["pick-and-roll", "pick-and-pop", "high-pick-and-roll", "horns", "spain-pick-and-roll"]
+  },
+  {
+    "id": "defense",
+    "name": "Defense",
+    "emoji": "🛡️",
+    "about": "This time you're the red team. Stop the shot, help a teammate, and get the rebound.",
+    "plays": ["close-out", "box-out", "help-side", "switch"]
+  },
+  {
+    "id": "inbounds",
+    "name": "Inbound plays",
+    "emoji": "📣",
+    "about": "Plays for passing the ball in from out of bounds, from the baseline and from the side.",
+    "plays": ["stack-inbound", "line-inbound", "box-inbound", "screen-the-screener", "sideline-stagger", "elevator-doors"]
+  },
+  {
+    "id": "beat-the-zone",
+    "name": "Beat the zone",
+    "emoji": "🧩",
+    "about": "When defenders guard areas instead of players, find the gaps and move the ball.",
+    "plays": ["zone-buster", "beat-the-box-and-one"]
+  },
+  {
+    "id": "triangle",
+    "name": "Triangle offense",
+    "emoji": "🔺",
+    "about": "Learn the triangle setup first, then the four ways to run it.",
+    "plays": ["triangle-offense", "triangle-post-pass", "triangle-two-man-game", "triangle-corner-pass", "triangle-weakside-flash"]
+  }
+]

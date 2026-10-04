@@ -3,12 +3,12 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
 import {
-  BASKET, SPOTS, askList, ballKind, checkPlay, dist, endHolder, formatPlay, guardSpot, isThree, lintPlay,
+  BASKET, SPOTS, askList, ballKind, checkPaths, checkPlay, dist, endHolder, formatPlay, guardSpot, isThree, lintPlay,
   posAt, resolvePlay, searchPlays, startHolder
 } from "../js/playbook.js";
 
 const DIR = new URL("../plays/", import.meta.url);
-const files = readdirSync(DIR).filter(f => f.endsWith(".json") && f !== "index.json" && !f.startsWith("_"));
+const files = readdirSync(DIR).filter(f => f.endsWith(".json") && f !== "index.json" && f !== "paths.json" && !f.startsWith("_"));
 const read = f => readFileSync(new URL(f, DIR), "utf8");
 const all = files.map(f => resolvePlay(JSON.parse(read(f)), f.slice(0, -5)));
 
@@ -37,6 +37,25 @@ test("every play in plays/ passes the checks and the lint", () => {
 test("plays/index.json lists every play exactly once", () => {
   const ids = JSON.parse(read("index.json"));
   assert.deepEqual([...ids].sort(), files.map(f => f.slice(0, -5)).sort());
+});
+
+test("plays/paths.json only lists plays that exist", () => {
+  assert.deepEqual(checkPaths(JSON.parse(read("paths.json")), files.map(f => f.slice(0, -5))), []);
+});
+
+test("checkPaths catches broken paths", () => {
+  const ids = ["give-and-go", "v-cut", "box-out"];
+  const path = () => ({ id: "start-here", name: "Start here", emoji: "⭐", about: "First plays.", plays: ["give-and-go", "v-cut"] });
+  const errs = edit => { const p = path(); edit(p); return checkPaths([p], ids); };
+  assert.deepEqual(errs(() => {}), []);
+  hasError(checkPaths({}, ids), "must be a list");
+  hasError(errs(p => { p.id = "Start Here"; }), `"id" must be lowercase`);
+  hasError(errs(p => { delete p.about; }), `"about" must be some text`);
+  hasError(errs(p => { p.color = "red"; }), `unknown field "color"`);
+  hasError(errs(p => { p.plays = ["v-cut"]; }), "at least two play ids");
+  hasError(errs(p => { p.plays.push("horns"); }), `"horns" is not a play`);
+  hasError(errs(p => { p.plays.push("v-cut"); }), "lists a play twice");
+  hasError(checkPaths([path(), path()], ids), "same id");
 });
 
 test("formatPlay writes every play file exactly as it is stored", () => {

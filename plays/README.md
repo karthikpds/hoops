@@ -18,6 +18,24 @@ It checks every play and updates `index.json`, the list the site loads. The orde
 site; a new play is slotted in after the last play of the same level, and you can reorder the list by hand.
 If you add a play on github.com instead, the deploy workflow runs the same check and updates the list for you.
 
+## Learning paths
+
+`paths.json` groups plays into paths, like "Start here" or "Defense", shown in the "Path" menu on the site. Each path
+lists play ids in the order to learn them, easiest first. A play can be in several paths, or in none.
+
+```json
+{
+  "id": "start-here",
+  "name": "Start here",
+  "emoji": "⭐",
+  "about": "New to basketball? Start with these.",
+  "plays": ["pass-it-around", "give-and-go", "v-cut"]
+}
+```
+
+`npm run build` checks that every id in `plays` is a play file here. Because of these two files, a play can't be
+called `index.json` or `paths.json`.
+
 ## A complete example
 
 ```json
