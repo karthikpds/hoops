@@ -30,6 +30,7 @@
     },
     {
       "ball": { "pass": ["o4", "o3"], "bounce": true },
+      "ask": "o3",
       "say": "{4} turns and bounce-passes to {3}."
     },
     {

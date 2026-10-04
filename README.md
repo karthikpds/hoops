@@ -7,7 +7,7 @@ how teammates work together.
 - Offense plays, from a first give and go to the triangle, plus defense plays like box outs and help side.
 - "Who's open?" questions stop the play before a big pass and let kids tap the open player.
 - Read aloud for kids who are still learning to read, Follow to watch one player's job, and a printable practice sheet.
-- Search by name, skill or anything in a play's description, and filter by level.
+- Search by name, skill or anything in a play's description, filter by level, or press "Surprise me" for a random play.
 - Every play has its own link, like `…/#pick-and-roll`, to share with a team.
 - Each play is a small JSON file. Draw one in the play editor (`editor.html`), or write it by hand.
 
@@ -45,6 +45,8 @@ One-time setup:
 2. In the repository, open **Settings → Pages**, and under **Build and deployment** set **Source** to **GitHub Actions**.
 
 After that, every push to `main` checks the plays and publishes the site to `https://<your-user>.github.io/<repo-name>/`.
+If you publish your own copy, change the `og:url` and `og:image` addresses near the top of `index.html` to your site, so
+shared links show the preview card.
 
 ## What's where
 
@@ -61,4 +63,5 @@ After that, every push to `main` checks the plays and publishes the site to `htt
 | `plays/` | One JSON file per play, plus `index.json`, the list of plays the site loads. |
 | `tools/build.js` | `npm run build`: checks every play and updates `plays/index.json`. |
 | `tools/serve.js` | `npm start`: a small local web server. |
+| `tools/share-image.html` | The picture shown when someone shares a link to the site, saved as `img/share.png`. |
 | `.github/workflows/pages.yml` | Runs the tests, checks plays and deploys to GitHub Pages on every push to `main`. |

@@ -5,6 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Hoops Playbook</title>
 <meta name="description" content="Animated basketball plays. Search for a play, press Play, and watch how teammates work together.">
+<!-- Link previews. Crawlers don't run the page's script, so every link (even #play-name) shows this one card. Image source: tools/share-image.html -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Hoops Playbook">
+<meta property="og:title" content="Hoops Playbook: animated basketball plays for kids">
+<meta property="og:description" content="Pick a play, press Play, and watch how teammates work together. Then guess who’s open!">
+<meta property="og:url" content="https://karthikpds.github.io/hoops/">
+<meta property="og:image" content="https://karthikpds.github.io/hoops/img/share.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="A basketball half court with blue and red players and arrows showing a play">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏀</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -37,6 +48,10 @@
       <span class="count" id="count" aria-live="polite"></span>
     </div>
     <nav class="plays" id="plays" aria-label="Choose a play"></nav>
+    <div class="libfoot">
+      <button type="button" class="libbtn" id="btnSurprise" disabled><span aria-hidden="true">🎲</span>Surprise me</button>
+      <a class="libbtn" href="editor.html"><span aria-hidden="true">✏️</span>Draw a play</a>
+    </div>
   </aside>
 
   <div class="content">

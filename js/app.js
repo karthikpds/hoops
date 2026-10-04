@@ -14,7 +14,7 @@ const capEl=$("caption"),badgeEl=$("badge"),dotsEl=$("dots"),playsEl=$("plays");
 const btnPlay=$("btnPlay"),btnBack=$("btnBack"),btnNext=$("btnNext"),btnRestart=$("btnRestart"),nextPlayBtn=$("nextPlay");
 const playIcon=$("playIcon"),playTxt=$("playTxt");
 const qEl=$("q"),countEl=$("count"),shareBtn=$("btnShare"),printBtn=$("btnPrint"),courtEl=$("court");
-const quizEl=$("quiz"),choicesEl=$("choices"),followEl=$("follow"),printEl=$("printSheet"),speakBtn=$("togS");
+const quizEl=$("quiz"),choicesEl=$("choices"),followEl=$("follow"),printEl=$("printSheet"),speakBtn=$("togS"),surpriseBtn=$("btnSurprise");
 const ICON_PLAY='<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M7 4.8v14.4a1 1 0 0 0 1.52.85l11.3-7.2a1 1 0 0 0 0-1.7L8.52 3.95A1 1 0 0 0 7 4.8z"/></svg>';
 const ICON_PAUSE='<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><rect x="5.5" y="4.5" width="4.6" height="15" rx="1.6"/><rect x="13.9" y="4.5" width="4.6" height="15" rx="1.6"/></svg>';
 const ICON_AGAIN='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12a7.5 7.5 0 1 0 2.4-5.5"/><path d="M4.5 4v5h5"/></svg>';
@@ -70,6 +70,11 @@ function setLevel(l){
   level=l;
   document.querySelectorAll("#lvSeg button").forEach(x=>x.setAttribute("aria-pressed",String(+x.dataset.level===l)));
   refreshList();
+}
+/* "Surprise me": a random play from the list on screen (or the whole library), never the one already showing */
+function surprise(){
+  const pool=(view.length>1?view:plays).filter(pl=>pl!==plays[cur]);
+  if(pool.length)selectPlay(plays.indexOf(pool[Math.floor(Math.random()*pool.length)]));
 }
 function chipFor(pl){return playsEl.querySelector(`.pick[data-id="${pl.id}"]`);}
 /* Scroll the play list (only the list, never the page) so this play is in view.
@@ -407,6 +412,7 @@ qEl.addEventListener("keydown",e=>{
   }
 });
 document.querySelectorAll("#lvSeg button").forEach(b=>b.addEventListener("click",()=>setLevel(+b.dataset.level)));
+surpriseBtn.addEventListener("click",surprise);
 $("piTags").addEventListener("click",e=>{
   const t=e.target.closest(".tag");if(!t)return;
   setLevel(0);setQuery(t.textContent);
@@ -445,6 +451,6 @@ if(!plays.length){
 } else {
   refreshList();
   const i=indexFromHash();selectPlay(Math.max(i,0),false);
-  btnPlay.disabled=false;btnRestart.disabled=false;shareBtn.hidden=false;printBtn.hidden=false;
+  btnPlay.disabled=false;btnRestart.disabled=false;shareBtn.hidden=false;printBtn.hidden=false;surpriseBtn.disabled=plays.length<2;
   requestAnimationFrame(t=>{lastT=t;tick(t);});
 }

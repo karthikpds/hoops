@@ -31,6 +31,7 @@
     },
     {
       "ball": { "pass": ["o4", "o3"] },
+      "ask": "o3",
       "say": "{4} drops a pass to {3}."
     },
     {

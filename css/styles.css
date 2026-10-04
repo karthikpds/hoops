@@ -71,6 +71,12 @@ h1{margin:0;font-weight:700;font-size:28px;line-height:1.05;letter-spacing:-.01e
 .pick[aria-pressed="true"] .pe{background:rgba(255,255,255,.22)}
 .pick.hit:not([aria-pressed="true"]){border-color:var(--accent);border-style:dashed}
 
+/* Under the list: "Surprise me" and the link to the play editor */
+.libfoot{flex:none;display:flex;gap:8px;margin-top:12px}
+.libbtn{flex:1;min-width:0;min-height:46px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:0 10px;border-radius:14px;border:2px solid var(--border);background:var(--surface);color:var(--ink);font:inherit;font-weight:600;font-size:15px;text-decoration:none;white-space:nowrap;cursor:pointer;transition:border-color .15s}
+.libbtn:hover{border-color:var(--accent)}
+.libbtn:disabled{opacity:.38;cursor:default;border-color:var(--border)}
+
 /* Phones and small tablets: no room for a side panel, so the library sits on top with a sideways-scrolling row of plays */
 @media (max-width:879px){
   .wrap{display:block;padding-bottom:40px}
@@ -86,6 +92,8 @@ h1{margin:0;font-weight:700;font-size:28px;line-height:1.05;letter-spacing:-.01e
   .pick{flex:0 0 auto;width:auto;scroll-snap-align:start;padding:8px 16px 8px 8px;border-radius:999px;border-color:var(--border);background:var(--surface)}
   .pick:hover{border-color:var(--accent);background:var(--surface)}
   .pick .pn{white-space:nowrap}
+  .libfoot{margin:0 0 16px}
+  .libbtn{flex:none;padding:0 16px}
 }
 
 /* Main layout */
