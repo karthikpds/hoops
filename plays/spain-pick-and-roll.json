@@ -1,0 +1,54 @@
+{
+  "name": "Spain Pick & Roll",
+  "emoji": "🇪🇸",
+  "level": 3,
+  "tags": ["spain pick and roll", "after timeout", "ato", "pick and roll", "back screen", "three-pointer"],
+  "idea": "A pick and roll with a sneaky third player who screens the roller's defender, then pops out for a shot.",
+  "why": "The pick frees the dribbler, the back screen frees the roller, and the shooter pops out behind them. The defense has to stop three things at once, so someone is always open. It's named after Spain's national team, which made it famous.",
+  "tryit": "Shooter: wait until the big rolls, screen their defender from behind, then pop straight out to the top. Dribbler: look at the hoop first, then the roller, then the shooter.",
+  "cast": ["d1", "d2", "d3", "d4", "d5", "o1", "o2", "o3", "o4", "o5"],
+  "frames": [
+    {
+      "pos": { "o1": [250, 345], "d1": [250, 310], "o2": [200, 120], "o3": "LC", "o4": "RC", "o5": [300, 130] },
+      "ball": { "dribble": "o1" },
+      "say": "Spain pick and roll uses three players: {1} dribbles, {5} sets a pick, and {2} sneaks in to help. {3} and {4} wait in the corners."
+    },
+    {
+      "pos": { "o5": [284, 302], "d5": [300, 245], "o2": [195, 215], "d2": [210, 185] },
+      "ball": { "dribble": "o1" },
+      "scr": [["o5", "d1"]],
+      "bub": { "o5": "Pick!" },
+      "say": "{5} runs up and sets a *pick* on {X1}. {2} follows right behind."
+    },
+    {
+      "pos": { "o1": [352, 248, 338, 352], "d1": [258, 323], "d5": [320, 230], "o2": [300, 195], "d2": [265, 165] },
+      "ball": { "dribble": "o1" },
+      "scr": [["o5", "d1"]],
+      "say": "{1} dribbles around the pick and {X1} gets stuck. Meanwhile {2} sneaks up right behind {X5}."
+    },
+    {
+      "pos": { "o5": [270, 140, 248, 232], "d1": [375, 280], "d2": [255, 100] },
+      "ball": { "dribble": "o1" },
+      "scr": [["o2", "d5"]],
+      "bub": { "d2": "Stop the roll!" },
+      "say": "*Roll:* {5} rolls to the hoop while {2} sets a *back screen* on {X5}. {X2} leaves {2} to stop {5}!"
+    },
+    {
+      "pos": { "o2": [225, 320] },
+      "ball": { "dribble": "o1" },
+      "bub": { "o2": "Open!" },
+      "say": "*Pop:* {2} pops out to the top of the key. Nobody is guarding {2}!"
+    },
+    {
+      "pos": { "d2": [238, 262, 200, 170] },
+      "ball": { "pass": ["o1", "o2"] },
+      "say": "{1} passes back to {2}. {X2} has to run all the way out!"
+    },
+    {
+      "pos": { "d2": [236, 288] },
+      "ball": { "shot": "o2" },
+      "bub": { "d2": "Too late!" },
+      "say": "{2} drains the three! Drive, roll, or pop: the Spain pick and roll gives {1} three choices."
+    }
+  ]
+}
