@@ -15,10 +15,17 @@
       "say": "You’re on defense. {X2} is helping in the middle, far away from {2}."
     },
     {
-      "pos": { "d2": [368, 212], "d1": [280, 290] },
+      "pos": { "d1": [280, 290] },
       "ball": { "pass": ["o1", "o2"] },
+      "bub": { "d2": "Uh oh!" },
+      "say": "{1} passes to {2}. Now {2} is ready to shoot, and {X2} is far away!"
+    },
+    {
+      "pos": { "d2": [368, 212] },
+      "ball": "o2",
+      "where": "d2",
       "bub": { "d2": "Ball!" },
-      "say": "*Close out!* {1} passes to {2}, so {X2} sprints toward {2}."
+      "say": "*Close out!* {X2} sprints toward {2} to stop the shot."
     },
     {
       "pos": { "d2": [389, 222] },

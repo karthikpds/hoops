@@ -22,6 +22,7 @@
     {
       "pos": { "o1": [200, 205, 200, 330], "d1": [262, 280] },
       "ball": { "dribble": "o1" },
+      "where": "o1",
       "bub": { "o1": "Go!" },
       "say": "*Drive:* Then {1} pushes off and dribbles hard the other way, right past {X1}."
     },

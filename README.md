@@ -5,7 +5,7 @@ how teammates work together.
 
 - An animated half court with playbook lines (cuts, dribbles, passes, handoffs, screens), speech bubbles, step-by-step captions and a celebration when the shot goes in.
 - Offense plays, from a first triple threat and give and go to the triangle and the flex, plus defense plays like box outs and help side.
-- "Who's open?" questions stop the play before a big pass and let kids tap the open player.
+- Questions stop the play and let kids answer on the court: "Who's open?" before a big pass (tap the open player), and "Where should 2 go?" before a big move (tap the spot).
 - Read aloud for kids who are still learning to read, Follow to watch one player's job, and a printable practice sheet.
 - Learning paths, like "Start here", "Screens" and "Defense", that list plays in the order to learn them.
 - A glossary of basketball words: each play explains its words, searching a word (or tapping a tag) explains it, and the whole list is one tap away.

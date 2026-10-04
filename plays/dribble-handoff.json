@@ -28,6 +28,7 @@
     {
       "pos": { "o2": [262, 120, 290, 230], "d2": [360, 205] },
       "ball": { "dribble": "o2" },
+      "where": "o2",
       "say": "{2} has a clear path and dribbles straight to the hoop!"
     },
     {

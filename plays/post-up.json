@@ -16,6 +16,7 @@
     {
       "pos": { "o5": [358, 112], "d5": [335, 135] },
       "ball": "o1",
+      "where": "o5",
       "bub": { "o5": "Ball here!" },
       "say": "*Post up:* {5} runs to the block, gets low and wide, and keeps {X5} on their back."
     },

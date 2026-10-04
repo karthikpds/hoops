@@ -24,6 +24,7 @@
     {
       "pos": { "d2": [286, 72] },
       "ball": "o1",
+      "where": "d2",
       "bub": { "d2": "Help!" },
       "say": "*Help!* {X2} slides over and stops {1} before the layup."
     },

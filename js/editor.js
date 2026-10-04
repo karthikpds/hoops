@@ -281,9 +281,21 @@ function renderStepForm() {
     twoPlayers(kind) ? h("label", { class: "ed-field ed-inline" }, h("span", {}, "To"),
       h("select", { onchange: e => setBall(kind, a, e.target.value) }, options(offense, b))) : null);
 
-  const askRow = sel === 0 ? null : h("label", { class: "ed-field ed-inline" }, h("span", {}, "“Who’s open?” question"),
-    h("select", { onchange: e => { if (e.target.value) fr.ask = e.target.value; else delete fr.ask; changed(false); } },
-      options(offense, askList(fr.ask)[0] || "", [["", "No question"]])));
+  // One question per step: "ask" (who's open for this pass) or "where" (where does a player on your team run this step)
+  const mine = play.cast.filter(id => id[0] === (play.side === "defense" ? "d" : "o"));
+  const question = fr.where ? "where:" + fr.where : askList(fr.ask).length ? "ask:" + askList(fr.ask)[0] : "";
+  const askRow = sel === 0 ? null : h("label", { class: "ed-field ed-inline" }, h("span", {}, "Question"),
+    h("select", { onchange: e => {
+      const [kind, id] = e.target.value.split(":");
+      delete fr.ask; delete fr.where;
+      if (kind) fr[kind] = id;
+      changed(false);
+    } },
+      h("option", { value: "", selected: !question }, "No question"),
+      h("optgroup", { label: "Who’s open? (the player the pass goes to)" },
+        offense.map(id => h("option", { value: "ask:" + id, selected: question === "ask:" + id }, `${name(id)} is open`))),
+      h("optgroup", { label: "Where should … go? (a player who moves this step)" },
+        mine.map(id => h("option", { value: "where:" + id, selected: question === "where:" + id }, `Where should ${name(id)} go?`)))));
 
   const scr = fr.scr || [];
   const scrRows = scr.map((s, i) => h("div", { class: "ed-row" },
@@ -355,6 +367,7 @@ function setCast(id, box) {
       if (fr.scr) fr.scr = fr.scr.filter(s => !s.includes(id));
       const open = askList(fr.ask).filter(x => x !== id);
       if (open.length) fr.ask = open.length === 1 ? open[0] : open; else delete fr.ask;
+      if (fr.where === id) delete fr.where;
     });
   }
   changed(true);

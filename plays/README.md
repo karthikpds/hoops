@@ -152,6 +152,7 @@ Shots score 2 or 3 automatically from where the shooter stands.
 | `scr` | Optional. Screens, as `[screener, defender]` pairs like `[["o3", "d2"]]`, or `[defender, player]` for a box out like `[["d5", "o5"]]`. Draws the yellow wall. Repeat it in every frame the screen is held. |
 | `bub` | Optional. Speech bubbles like `{ "o2": "Open!" }`. They pop up 30% into the step. Keep them to about 16 characters. |
 | `ask` | Optional. A "Who's open?" question: the open player, like `"o2"` (or a list like `["o2", "o3"]` if more than one is). The play stops before this step and waits for a tap on that player. See below. |
+| `where` | Optional. A "Where should … go?" question about a player on your team who moves in this step, like `"o2"` (or `"d2"` in a defense play). The play stops before this step and waits for a tap on the spot where that player ends up. A step can have `ask` or `where`, not both. See below. |
 | `say` | The caption. `{1}` shows a blue player chip, `{X1}` a red one, and `*word*` highlights a keyword. |
 
 ### The ball
@@ -176,7 +177,8 @@ orange bars where the ball changes hands. In a defense play, defenders' moves ge
 
 Add `"side": "defense"` and tell the story from the defenders' point of view. A missed shot and a rebound make a
 good ending: see `box-out.json`. For a box out, list the defender first in `scr`, like `[["d4", "o4"], ["d5", "o5"]]`.
-`ask` questions are only about open offensive players, so defense plays usually don't have one.
+`ask` questions are only about open offensive players, so a defense play asks `where` questions instead, like
+"Where should X2 go?" before a defender slides over to help (see `help-side.json`).
 
 ## Inbound plays
 
@@ -189,7 +191,11 @@ Only the inbounder can be off the court, and once they step on they can't go bac
 court, so guard an inbounder from just inside the line. See `box-inbound.json`, `stack-inbound.json` and
 `sideline-stagger.json`.
 
-## "Who's open?" questions
+## Questions
+
+There are two kinds. Viewers can switch them off with the "Questions" button. One question per play is plenty.
+
+### "Who's open?"
 
 Put `"ask"` on the step that passes to the open player. When the step before it ends, the play stops, the caption
 asks "Who's open? Tap the player 1 should pass to.", and kids tap a blue player on the court (or press 1–5). A wrong
@@ -206,8 +212,28 @@ while the question is up, so an "I'm open!" bubble doesn't give the answer away.
 ```
 
 Ask when the open player is easy to spot: the answer should be farther from every defender than any other teammate
-without the ball (the checker warns if not). One question per play is plenty. Viewers can switch the questions off
-with the "Who's open?" button.
+without the ball (the checker warns if not).
+
+### "Where should … go?"
+
+Put `"where"` on a step where a player on your team runs somewhere important, like a cut to the basket or a defender
+sliding over to help. When the step before it ends, the play stops, the caption asks "Where should 5 go? Tap the spot
+on the court." (or "dribble", if that player is dribbling), and kids tap the court. A tap within 60 units (6 feet) of
+where the player ends the step is right: a green ring marks the spot and the player runs there. A miss gets a hint,
+like "X2 is standing there" or "Try closer to the hoop".
+
+```json
+{
+  "pos": { "o5": [358, 112] },
+  "ball": "o1",
+  "where": "o5",
+  "say": "*Post up:* {5} runs to the block, gets low and wide, and keeps {X5} on their back."
+}
+```
+
+Ask about a move with one clear answer, and make sure the step before sets it up: in `close-out.json` the pass comes
+first, then the question asks where X2 should run. The player has to move more than 70 units, or a tap on the
+player would count as right (the checker fails it).
 
 ## What `npm run build` checks
 
@@ -216,6 +242,7 @@ with the "Who's open?" button.
 - The ball moves sensibly from step to step: a made shot only in the last step, a missed shot followed by a rebound, and a defensive rebound last.
 - Players in a handoff get within 50 units of each other (a warning).
 - An `ask` names offensive players who don't have the ball, and isn't on the setup. If the answer isn't the most open player when the question pops up, that's a warning.
+- A `where` names a player on your team who moves more than 70 units in that step, isn't on the setup, and isn't on the same step as an `ask`.
 - Caption chips like `{3}` refer to players in the cast.
 - No two players ever overlap: it sweeps every step and fails if two players get closer than 26 units (aim for 34, a full player width).
 - Speech bubbles aren't too long (a warning, not an error).

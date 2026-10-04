@@ -249,6 +249,10 @@ dialog.glossary::backdrop{background:rgba(10,18,35,.55)}
 .pl .ring{fill:none;stroke:#fff;stroke-width:3;stroke-dasharray:6 5;opacity:0;transition:opacity .15s}
 #court.asking .po{cursor:pointer}
 #court.asking .po .ring{animation:tapme 1.2s ease-in-out infinite}
+#court.placing{cursor:crosshair}
+#court.placing .pl.mover .ring{stroke:#FFC93C;stroke-width:4;animation:tapme 1.2s ease-in-out infinite}
+.spot-ok{fill:rgba(28,154,85,.28);stroke:var(--yes);stroke-width:4;transform-box:fill-box;transform-origin:center;animation:spotin .35s ease-out}
+.spot-no{fill:none;stroke:#E0294A;stroke-width:4.5;stroke-linecap:round;animation:fadeout .9s ease-in forwards}
 .pl.yes .ring{opacity:1;stroke:var(--yes);stroke-width:5;stroke-dasharray:none;animation:none}
 .pl .in.nope{animation:nope .4s ease-in-out}
 .ballc{fill:#F7811F;stroke:#6E3109;stroke-width:1.6}
@@ -285,12 +289,15 @@ dialog.glossary::backdrop{background:rgba(10,18,35,.55)}
 @keyframes conf{0%{opacity:1;transform:translate(0,0)}100%{opacity:0;transform:translate(var(--dx),var(--dy))}}
 @keyframes netw{0%{transform:scaleY(1)}35%{transform:scaleY(1.6) scaleX(.85)}100%{transform:scaleY(1)}}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+@keyframes spotin{from{transform:scale(.4);opacity:0}to{transform:none;opacity:1}}
+@keyframes fadeout{0%,55%{opacity:1}100%{opacity:0}}
 @keyframes tapme{0%,100%{opacity:.35}50%{opacity:1}}
 @keyframes nope{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
 
 @media (prefers-reduced-motion:reduce){
   .pl.has .halo,.btn.play.nudge,#caption.fresh,.pl .in.nope,.choice.nope{animation:none}
-  #court.asking .po .ring{animation:none;opacity:.8}
+  #court.asking .po .ring,#court.placing .pl.mover .ring{animation:none;opacity:.8}
+  .spot-ok{animation:none}
 }
 @media (max-width:560px){
   .transport{width:100%}

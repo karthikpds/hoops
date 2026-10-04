@@ -27,6 +27,7 @@
     {
       "pos": { "o3": [182, 90, 420, 40] },
       "ball": "o4",
+      "where": "o3",
       "bub": { "o3": "Flex cut!" },
       "say": "*Flex cut:* {3} runs along the baseline, right past {5}, to the basket on the ball side."
     },

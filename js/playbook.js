@@ -33,7 +33,7 @@ export function guardSpot(q, d = 34) {
 export const DATA_FILES = ["index.json", "paths.json", "glossary.json", "bundle.json"];
 
 const PLAY_KEYS = ["name", "emoji", "level", "side", "tags", "idea", "why", "tryit", "cast", "frames"];
-const FRAME_KEYS = ["pos", "ball", "ask", "scr", "bub", "say"];
+const FRAME_KEYS = ["pos", "ball", "ask", "where", "scr", "bub", "say"];
 const BALL_KEYS = { dribble: ["dribble"], pass: ["pass", "bounce"], handoff: ["handoff"], shot: ["shot", "miss"], rebound: ["rebound"] };
 const isObj = v => !!v && typeof v === "object" && !Array.isArray(v);
 const isText = v => typeof v === "string" && v.trim() !== "";
@@ -127,6 +127,11 @@ export function checkPlay(p) {
         `${at}: "ask" must name the open player, like "o2", or a list like ["o2", "o3"]`) && ok)
         need(!open.includes(startHolder(b)), `${at}: "ask" names ${startHolder(b)}, who has the ball; name the player who is open for a pass`);
     }
+    if (fr.where !== undefined && need(j > 0, `${at}: the setup can't have "where"; put it on the step where the player moves`)) {
+      const mine = p.side === "defense" ? def : off;
+      need(mine(fr.where), `${at}: "where" must name a player on your team who moves in this step, like "${p.side === "defense" ? "d2" : "o2"}"`);
+      need(fr.ask === undefined, `${at}: a step can have "ask" or "where", not both`);
+    }
   });
   return errs;
 }
@@ -176,8 +181,9 @@ export function posAt(play, k, t, id) {
 export const MIN_GAP = 26;     // closest two player centers may get (circles have radius 17)
 export const MAX_BUBBLE = 16;  // speech bubbles get too wide past this many characters
 export const MAX_HANDOFF = 50; // giver and taker must get at least this close to hand the ball over
+export const WHERE_RADIUS = 60; // a tap this close to where the player ends up answers a "where" question
 
-/* Who is out of bounds, caption chips, bubble length, handoff distance, "Who's open?" answers,
+/* Who is out of bounds, caption chips, bubble length, handoff distance, "Who's open?" answers, "where" moves,
    and players overlapping mid-move. Returns { errors, warnings } as lists of messages. */
 export function lintPlay(play) {
   const errors = [], warnings = [];
@@ -202,6 +208,13 @@ export function lintPlay(play) {
     const r = play.res[j - 1], least = Math.min(...open.map(pid => space(r, pid)));
     const rival = play.cast.find(pid => pid[0] === "o" && pid !== startHolder(fr.ball) && !open.includes(pid) && space(r, pid) >= least);
     if (rival) warnings.push(`frame ${j}: "ask" says ${open.join(" or ")} is open, but ${rival} has as much space when the question pops up`);
+  });
+  // A "where" answer is a tap near the spot the player runs to, so the run has to be long enough that a tap on the
+  // player (where they start) doesn't count too
+  play.frames.forEach((fr, j) => {
+    if (!fr.where || !j) return;
+    const d = dist(play.res[j - 1][fr.where], play.res[j][fr.where]);
+    if (d <= WHERE_RADIUS + 10) errors.push(`step ${j}: "where" asks about ${fr.where}, who only moves ${d.toFixed(0)}; ask about a move longer than ${WHERE_RADIUS + 10}`);
   });
 
   play.frames.forEach((fr, j) => {

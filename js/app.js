@@ -1,6 +1,6 @@
 // The page: loads the library (library.js), runs it (search, level filter, paths, glossary, links)
 // and animates the selected play on the court. The court drawing itself lives in court.js.
-import { LEVELS as LV, askList, checkGlossary, checkPaths, checkPlay, dist, isThree, lookUp, normalize, resolvePlay, searchPlays, startHolder } from "./playbook.js";
+import { BASKET, LEVELS as LV, WHERE_RADIUS, askList, checkGlossary, checkPaths, checkPlay, dist, isThree, lookUp, normalize, resolvePlay, searchPlays, startHolder } from "./playbook.js";
 import { loadLibrary } from "./library.js";
 import { ballState, bubblesAt, bubblesSVG, courtBackground, courtView, esc, f1, pathsUpTo, playerSVG, playersAt, renderCourt, screensAt, stepAt, wallsSVG } from "./court.js";
 
@@ -29,7 +29,7 @@ let glossary=[];  // basketball words from plays/glossary.json
 let cur=0,p=0,target=0,playing=false,holdUntil=0,speed=1,showD=true,showL=true;
 let els={},lastPathKey="",lastCapKey="",lastUI="",lastT=performance.now(),shareTimer=0;
 let vb=[-14,-14,514,484];  // court view as x0,y0,x1,y1
-let quizOn=true,quiz=null,answered=new Set(),curP={};  // "Who's open?" mode; quiz is the question on screen, if any
+let quizOn=true,quiz=null,answered=new Set(),curP={};  // questions on or off; quiz is the question on screen, if any
 let follow="";  // the one player being followed; everyone else fades
 let speakOn=false,speakUntil=0,speakTok=0;  // read aloud; speakUntil is when the current caption should be done
 const HOLD=1500;
@@ -249,20 +249,32 @@ function setSpeak(on){
   if(on)speak(capText());
 }
 
-/* "Who's open?" mode: before a step with "ask", the play stops and waits for a tap on the open player */
+/* Questions: before a step with "ask" or "where", the play stops and waits for an answer.
+   "ask" (kind "who") is "Who's open?": tap the open player, or press 1-5.
+   "where" (kind "where") is "Where should 2 go?": tap within WHERE_RADIUS of the spot that player runs to this step. */
 const chipOf=id=>`{${id[0]==="d"?"X":""}${id.slice(1)}}`;
 const asking=()=>!!quiz&&quiz.state!=="right";
-function needsAsk(play,k){return quizOn&&k<play.frames.length&&askList(play.frames[k].ask).length>0&&!answered.has(k);}
+function needsAsk(play,k){
+  if(!quizOn||k>=play.frames.length||answered.has(k))return false;
+  const fr=play.frames[k];
+  return askList(fr.ask).length>0||(!!fr.where&&(showD||fr.where[0]!=="d"));  // no "where" about a hidden defender
+}
 function startAsk(k){
-  const play=plays[cur],b=play.frames[k].ball,holder=startHolder(b);
-  quiz={k,state:"ask",tries:0,hit:"",open:askList(play.frames[k].ask),holder,resumePlaying:playing,resumeTarget:target,
-    msg:b.pass?`Who’s open? Tap the player ${chipOf(holder)} should pass to.`:"Who’s open? Tap the open player."};
+  const play=plays[cur],fr=play.frames[k],b=fr.ball,holder=startHolder(b);
+  const base={k,state:"ask",tries:0,hit:"",holder,resumePlaying:playing,resumeTarget:target};
+  if(fr.where){
+    const id=fr.where;
+    quiz={...base,kind:"where",mover:id,spot:play.res[k][id],msg:`Where should ${chipOf(id)} ${b.dribble===id?"dribble":"go"}? Tap the spot on the court.`};
+    choicesEl.innerHTML="";
+  } else {
+    quiz={...base,kind:"who",open:askList(fr.ask),msg:b.pass?`Who’s open? Tap the player ${chipOf(holder)} should pass to.`:"Who’s open? Tap the open player."};
+    choicesEl.innerHTML=play.cast.filter(id=>id[0]==="o").sort().map(id=>
+      `<button type="button" class="choice" data-id="${id}" aria-label="Player ${id.slice(1)}">${id.slice(1)}</button>`).join("");
+  }
   playing=false;target=p;holdUntil=0;
-  choicesEl.innerHTML=play.cast.filter(id=>id[0]==="o").sort().map(id=>
-    `<button type="button" class="choice" data-id="${id}" aria-label="Player ${id.slice(1)}">${id.slice(1)}</button>`).join("");
 }
 function answer(id){
-  if(!asking())return;
+  if(!asking()||quiz.kind!=="who")return;
   if(quiz.open.includes(id)){quiz.msg=`Yes! ${chipOf(id)} is open!`;reveal(id);cheer(curP[id]);return;}
   quiz.state="wrong";quiz.tries++;
   if(id===quiz.holder)quiz.msg=`${chipOf(id)} has the ball! Who should ${chipOf(id)} pass to?`;
@@ -274,21 +286,50 @@ function answer(id){
   const c=choicesEl.querySelector(`[data-id="${id}"]`);if(c){c.classList.add("no");shake(c);}
   shake(els[id].firstChild);
 }
-/* Right answer or "Show me": mark the open player, then carry on the way the play was going */
+/* A tap during a "where" question. A miss gets a hint: who is standing there, or which way to look. */
+function answerSpot(q){
+  if(!asking()||quiz.kind!=="where")return;
+  const {mover,spot}=quiz,d=dist(q,spot);
+  if(d<=WHERE_RADIUS){quiz.msg=`Yes! That’s where ${chipOf(mover)} should go!`;reveal(mover);markSpot(spot);cheer(spot);return;}
+  quiz.state="wrong";quiz.tries++;
+  let near="",nd=30;
+  plays[cur].cast.forEach(id=>{if((showD||id[0]!=="d")&&dist(q,curP[id])<nd){nd=dist(q,curP[id]);near=id;}});
+  const toHoop=dist(spot,BASKET)-dist(q,BASKET);
+  const hint=Math.abs(toHoop)>40?`Try ${toHoop<0?"closer to":"farther from"} the hoop.`:`Try more to the ${spot[0]<q[0]?"left":"right"}.`;
+  quiz.msg=near===mover?`That’s where ${chipOf(mover)} is now. ${hint}`
+    :near?`${chipOf(near)} is standing there. ${hint}`
+    :d<WHERE_RADIUS*2?`So close! ${hint}`:`Not there. ${hint}`;
+  missMark(q);shake(els[mover].firstChild);
+}
+/* Where the answer is: a green ring that the player then runs into. A miss leaves a red x that fades. */
+function markSpot(q){
+  const g=document.createElementNS(NS,"g");
+  g.innerHTML=`<g transform="translate(${f1(q[0])} ${f1(q[1])})"><circle class="spot-ok" r="${WHERE_RADIUS*.55}"/></g>`;
+  lyFx.appendChild(g);setTimeout(()=>g.remove(),2600);
+}
+function missMark(q){
+  const g=document.createElementNS(NS,"g");
+  g.innerHTML=`<g transform="translate(${f1(q[0])} ${f1(q[1])})"><path class="spot-no" d="M-8 -8 L8 8 M8 -8 L-8 8"/></g>`;
+  lyFx.appendChild(g);setTimeout(()=>g.remove(),900);
+}
+/* Right answer or "Show me": mark the answer, then carry on the way the play was going */
 function reveal(id){
   quiz.state="right";quiz.hit=id;answered.add(quiz.k);
   playing=quiz.resumePlaying;target=quiz.resumeTarget;holdUntil=performance.now()+1200;
 }
 function showAnswer(){
   if(!asking())return;
-  quiz.msg=`${chipOf(quiz.open[0])} is the open one. Watch!`;reveal(quiz.open[0]);
+  if(quiz.kind==="where"){quiz.msg=`${chipOf(quiz.mover)} goes here. Watch!`;reveal(quiz.mover);markSpot(quiz.spot);}
+  else{quiz.msg=`${chipOf(quiz.open[0])} is the open one. Watch!`;reveal(quiz.open[0]);}
 }
 function shake(el){el.classList.remove("nope");void el.getBoundingClientRect();el.classList.add("nope");}
-/* A tap on the court picks the nearest player: during a question it answers it, otherwise it follows a player on your team.
+/* A tap on the court answers a "where" question with the spot tapped. Otherwise it picks the nearest player: during a
+   "who" question it answers it, and with no question it follows a player on your team.
    Tapping near a player counts too, which is kinder to small fingers than hitting the circle exactly. */
 function tapCourt(e){
   const m=courtEl.getScreenCTM();if(!m)return;
   const pt=new DOMPoint(e.clientX,e.clientY).matrixTransform(m.inverse()),ask=asking();
+  if(ask&&quiz.kind==="where"){answerSpot([pt.x,pt.y]);return;}
   const side=ask?"o":team(plays[cur]);
   let best="",bd=ask?48:30;
   plays[cur].cast.forEach(id=>{if(id[0]===side&&(showD||id[0]!=="d")&&dist([pt.x,pt.y],curP[id])<bd){bd=dist([pt.x,pt.y],curP[id]);best=id;}});
@@ -352,10 +393,12 @@ function updateUI(play,n,stepIdx,fl){
   btnPlay.disabled=ask;btnBack.disabled=p<=0;btnNext.disabled=done||ask;
   badgeEl.textContent=ask?"Your turn":stepIdx===0?"Start":`Step ${stepIdx} of ${n}`;
   badgeEl.classList.toggle("turn",ask);
-  quizEl.hidden=!quiz;dotsEl.hidden=!!quiz;courtEl.classList.toggle("asking",ask);
+  const where=ask&&quiz.kind==="where";
+  quizEl.hidden=!quiz;dotsEl.hidden=!!quiz;courtEl.classList.toggle("asking",ask&&!where);courtEl.classList.toggle("placing",where);
   [...choicesEl.children].forEach(c=>{c.disabled=!ask;c.classList.toggle("yes",!!quiz&&quiz.hit===c.dataset.id);});
   play.cast.forEach(id=>{
     els[id].classList.toggle("yes",!!quiz&&quiz.hit===id);
+    els[id].classList.toggle("mover",where&&quiz.mover===id);
     els[id].classList.toggle("dim",!!fl&&fl!==id);
   });
   [...dotsEl.children].forEach((d,i)=>{
@@ -496,7 +539,7 @@ document.addEventListener("keydown",e=>{
   if(el&&(el.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)))return;
   if(e.key==="/"){e.preventDefault();qEl.focus();qEl.select();return;}
   if(!plays.length)return;
-  if(asking()&&/^[1-5]$/.test(e.key)){
+  if(asking()&&quiz.kind==="who"&&/^[1-5]$/.test(e.key)){
     if(plays[cur].cast.includes("o"+e.key)){e.preventDefault();answer("o"+e.key);}
     return;
   }

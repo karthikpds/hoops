@@ -84,6 +84,17 @@ test("formatPlay writes every play file exactly as it is stored", () => {
   for (const f of files) assert.equal(formatPlay(JSON.parse(read(f))), read(f), f);
 });
 
+test("checkPlay and lintPlay check \"where\" questions", () => {
+  hasError(errorsFor(p => { p.frames[1].where = "d2"; }), `"where" must name a player on your team`);
+  hasError(errorsFor(p => { p.frames[0].where = "o2"; }), `the setup can't have "where"`);
+  hasError(errorsFor(p => { p.frames[2].where = "o2"; }), `"ask" or "where", not both`);
+  assert.deepEqual(errorsFor(p => { p.frames[1].where = "o2"; }), []);
+  const lint = edit => { const p = base(); edit(p); return lintPlay(resolvePlay(p, "t")).errors; };
+  assert.deepEqual(lint(p => { p.frames[1].where = "o2"; }), [], "o2 runs far enough to ask where");
+  hasError(lint(p => { p.frames[1].pos.o2 = [400, 220]; p.frames[1].where = "o2"; }), `"where" asks about o2, who only moves`);
+  assert.deepEqual(errorsFor(p => { p.side = "defense"; p.frames[1].pos.d2 = [440, 170]; p.frames[1].where = "d2"; }), [], "a defense play asks about defenders");
+});
+
 test("formatPlay puts fields in the standard order", () => {
   const p = base();
   const shuffled = { frames: p.frames.map(fr => ({ say: fr.say, ...fr })), cast: p.cast, ...p };

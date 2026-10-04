@@ -22,6 +22,7 @@
     {
       "pos": { "o4": [405, 172, 330, 150] },
       "ball": "o1",
+      "where": "o4",
       "scr": [["o4", "d2"]],
       "say": "{4} runs over and sets a *screen* on {X2}. Screens work great on a defender who chases one player."
     },
