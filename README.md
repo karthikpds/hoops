@@ -11,6 +11,7 @@ how teammates work together.
 - A glossary of basketball words: each play explains its words, searching a word (or tapping a tag) explains it, and the whole list is one tap away.
 - Search by name, skill or anything in a play's description, filter by level, or press "Surprise me" for a random play.
 - Every play has its own link, like `…/#pick-and-roll`, to share with a team.
+- Works offline: after one visit, the site keeps working without internet, so you can use it in a gym with no Wi-Fi.
 - Each play is a small JSON file. Draw one in the play editor (`editor.html`), or write it by hand.
 
 ## Preview it on your computer
@@ -22,7 +23,7 @@ npm start
 ```
 
 Then open http://localhost:8000. (Opening `index.html` straight from disk won't work, because browsers block it from
-loading the play files.)
+loading the play files.) The offline copy is off on localhost; open http://localhost:8000/?offline to try it.
 
 ## Add a play
 
@@ -58,11 +59,12 @@ shared links show the preview card.
 | `editor.html` | The play editor. |
 | `css/styles.css` | Styles, including light and dark themes and the print sheet. `css/editor.css` adds the editor's. |
 | `js/app.js` | Runs the library (search, paths, glossary) and the controls, and animates the court. |
-| `js/library.js` | Loads the plays, paths and glossary, in one request when the bundle is there. Shared by the page and the editor. |
+| `js/library.js` | Loads the plays, paths and glossary, in one request when the bundle is there, and saves the site for offline use. Shared by the page and the editor. |
+| `sw.js` | The service worker that keeps a copy of the site for offline use. It only saves the site's own files. |
 | `js/editor.js` | The play editor. |
 | `js/court.js` | Draws the court, players, lines and ball as SVG. Shared by the page, the print sheet and the editor. |
 | `js/playbook.js` | Play logic without any page code: court spots, checking, resolving and formatting plays, search. Shared by the page, the editor and the checker. |
-| `tests/` | `npm test`: unit tests for `playbook.js` and `court.js`, using Node's built-in test runner. |
+| `tests/` | `npm test`: unit tests for `playbook.js`, `court.js` and the offline copy, using Node's built-in test runner. |
 | `plays/` | One JSON file per play, plus `index.json`, the list of plays the site loads, `paths.json`, the learning paths, and `glossary.json`, the basketball words. |
 | `tools/build.js` | `npm run build`: checks every play, the learning paths and the glossary, and updates `plays/index.json`. With `--bundle` (the deploy), also writes `plays/bundle.json`. |
 | `tools/bundle.js` | Puts every play, the paths and the glossary into one file, so the site loads in one request. |

@@ -3,7 +3,7 @@
 // Nothing is kept in the browser: the play lives in this page until it's copied or downloaded.
 import { SPOTS, askList, ballKind, checkPlay, dist, endHolder, formatPlay, lintPlay, normalize, resolvePlay } from "./playbook.js";
 import { renderCourt } from "./court.js";
-import { loadLibrary } from "./library.js";
+import { loadLibrary, saveForOffline } from "./library.js";
 
 const $ = id => document.getElementById(id);
 const IDS = ["d1", "d2", "d3", "d4", "d5", "o1", "o2", "o3", "o4", "o5"];  // defenders first, so offense draws on top
@@ -446,6 +446,8 @@ $("btnDownload").addEventListener("click", () => {
   $("saveTip").textContent = `Downloaded ${fileId || "my-play"}.json`; dirty = false;
 });
 window.addEventListener("beforeunload", e => { if (dirty) { e.preventDefault(); e.returnValue = ""; } });
+
+saveForOffline();
 
 /* Start with a new play, and fill the "Open a play" list from the library */
 load(template(), "");

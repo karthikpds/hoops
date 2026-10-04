@@ -25,3 +25,12 @@ export async function loadLibrary() {
   ]);
   return { ids, plays: new Map(ids.map((id, i) => [id, list[i]])), paths, glossary };
 }
+
+/* Saves the site for offline use (sw.js). Skipped on localhost, so the worker never sticks to other projects served
+   there; add ?offline to the address (like http://localhost:8000/?offline) to try it with npm start. */
+export function saveForOffline() {
+  if (!("serviceWorker" in navigator)) return;
+  const local = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+  if (local && !new URLSearchParams(location.search).has("offline")) return;
+  navigator.serviceWorker.register("sw.js").catch(e => console.warn(`Couldn't save the site for offline use: ${e.message}`));
+}

@@ -1,7 +1,7 @@
 // The page: loads the library (library.js), runs it (search, level filter, paths, glossary, links)
 // and animates the selected play on the court. The court drawing itself lives in court.js.
 import { BASKET, LEVELS as LV, WHERE_RADIUS, askList, checkGlossary, checkPaths, checkPlay, dist, isThree, lookUp, normalize, resolvePlay, searchPlays, startHolder } from "./playbook.js";
-import { loadLibrary } from "./library.js";
+import { loadLibrary, saveForOffline } from "./library.js";
 import { ballState, bubblesAt, bubblesSVG, courtBackground, courtView, esc, f1, pathsUpTo, playerSVG, playersAt, renderCourt, screensAt, stepAt, wallsSVG } from "./court.js";
 
 const NS="http://www.w3.org/2000/svg";
@@ -548,6 +548,11 @@ document.addEventListener("keydown",e=>{
   else if(e.key==="ArrowRight"){e.preventDefault();stepNext();}
   else if(e.key==="ArrowLeft"){e.preventDefault();stepBack();}
 });
+
+/* Offline: sw.js keeps a copy of the site, and this note says when that copy is what's showing */
+const offlineEl=$("offline"),showOffline=()=>{offlineEl.hidden=navigator.onLine;};
+window.addEventListener("online",showOffline);window.addEventListener("offline",showOffline);showOffline();
+saveForOffline();
 
 /* Start */
 let lib=null;

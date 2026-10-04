@@ -43,6 +43,10 @@ button{font-family:inherit}
 h1{margin:0;font-weight:700;font-size:28px;line-height:1.05;letter-spacing:-.01em}
 .top p{margin:4px 0 0;color:var(--muted);font-size:14px;line-height:1.35}
 
+/* Shown when there's no internet and the saved copy of the site is on screen */
+.offline{margin:-6px 0 12px;padding:8px 12px;border-radius:12px;border:2px dashed var(--border);background:var(--surface2);color:var(--muted);font-size:14px;font-weight:500;line-height:1.4}
+.offline[hidden]{display:none}
+
 /* Library: search + level filter */
 .finder{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
 .search{position:relative;display:flex;align-items:center;min-height:50px;border-radius:999px;border:2px solid var(--border);background:var(--surface);transition:border-color .15s}
