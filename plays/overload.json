@@ -1,0 +1,40 @@
+{
+  "name": "Overload",
+  "emoji": "⚖️",
+  "level": 2,
+  "tags": ["overload", "zone offense", "zone", "short corner", "passing", "jump shot"],
+  "idea": "Against a zone, put more players on one side of the court than the defense can guard there.",
+  "why": "Each zone defender guards an area. Put four players on one side, where only three defenders guard, and someone has to be open. Quick passes find them before the zone can catch up.",
+  "tryit": "Set up at the slot, the wing, the corner and the short corner on the same side. Pass around the outside, and look for whoever has no defender in their area.",
+  "cast": ["d1", "d2", "d3", "d4", "d5", "o1", "o2", "o3", "o4", "o5"],
+  "frames": [
+    {
+      "pos": { "o1": "RS", "o2": "RW", "o3": "RC", "o4": [400, 45], "o5": "HP", "d1": [185, 262], "d2": [315, 262], "d3": [135, 135], "d4": [365, 135], "d5": [250, 95] },
+      "ball": "o1",
+      "bub": { "d4": "My area!" },
+      "say": "Red is playing a *2-3 zone*. Blue puts four players on one side of the court. That's an *overload*."
+    },
+    {
+      "pos": { "d1": [318, 282], "d2": [380, 222], "d3": [225, 148], "d4": [420, 140], "d5": [310, 85] },
+      "ball": { "pass": ["o1", "o2"] },
+      "say": "{1} passes to {2} on the wing. The zone slides over toward the ball."
+    },
+    {
+      "pos": { "d4": [445, 105], "d3": [242, 152] },
+      "ball": { "pass": ["o2", "o3"] },
+      "bub": { "d4": "Corner!", "o4": "Open!" },
+      "say": "{2} passes to {3} in the corner, and {X4} runs out to guard {3}. Now nobody is guarding the area next to the baseline."
+    },
+    {
+      "ball": { "pass": ["o3", "o4"] },
+      "ask": "o4",
+      "say": "{3} passes to {4} in the *short corner*. Too many blue players on that side, and not enough red ones!"
+    },
+    {
+      "pos": { "d5": [350, 62] },
+      "ball": { "shot": "o4" },
+      "bub": { "d5": "Too late!" },
+      "say": "Bucket! An overload puts more players on one side than the zone can guard."
+    }
+  ]
+}

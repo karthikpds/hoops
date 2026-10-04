@@ -1,0 +1,48 @@
+{
+  "name": "Flare Screen",
+  "emoji": "🎆",
+  "level": 2,
+  "tags": ["flare screen", "screen", "off the ball", "shooter", "three-pointer"],
+  "idea": "After you pass, a teammate screens your defender, and you drift away from the ball to the open wing for a shot.",
+  "why": "After a pass, your defender turns to watch the ball and steps toward it. A flare screen blocks the way back, so you can drift away to the other wing where nobody is. Defenders expect cuts toward the ball, not away from it.",
+  "tryit": "Pass to the wing, then wait for the screen. Fade away from the ball, back toward the 3-point line, with your hands ready to catch.",
+  "cast": ["d1", "d2", "d4", "o1", "o2", "o4"],
+  "frames": [
+    {
+      "pos": { "o1": "TOP", "o2": "RW", "o4": "LE" },
+      "ball": "o1",
+      "say": "{1} has the ball at the top, {2} is on the wing, and {4} is by the free-throw line."
+    },
+    {
+      "pos": { "d1": [288, 300] },
+      "ball": { "pass": ["o1", "o2"] },
+      "bub": { "d1": "Ball!" },
+      "say": "{1} passes to {2}. {X1} turns to watch the ball and steps toward it."
+    },
+    {
+      "pos": { "o4": [254, 298, 200, 250], "d4": [212, 262] },
+      "ball": "o2",
+      "scr": [["o4", "d1"]],
+      "bub": { "o4": "Screen!" },
+      "say": "{4} runs up and sets a screen on {X1}, on the side away from the ball."
+    },
+    {
+      "pos": { "o1": [85, 238, 160, 345] },
+      "ball": "o2",
+      "scr": [["o4", "d1"]],
+      "bub": { "o1": "Flare!", "d1": "Stuck!" },
+      "say": "*Flare:* {1} drifts away from the ball to the other wing. {X1} bumps into {4} and gets stuck!"
+    },
+    {
+      "ball": { "pass": ["o2", "o1"] },
+      "ask": "o1",
+      "say": "{2} throws the ball all the way across to {1}."
+    },
+    {
+      "pos": { "d4": [146, 246] },
+      "ball": { "shot": "o1" },
+      "bub": { "d4": "Too late!" },
+      "say": "Swish! A flare screen takes you away from the ball, to where nobody is."
+    }
+  ]
+}

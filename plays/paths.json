@@ -25,14 +25,14 @@
     "name": "Screens",
     "emoji": "🧱",
     "about": "Stand still like a wall so a teammate can run free. First learn what a screen is, then try the trickier ones.",
-    "plays": ["set-a-screen", "pass-and-screen-away", "down-screen", "dribble-handoff", "zipper", "floppy", "hammer"]
+    "plays": ["set-a-screen", "pass-and-screen-away", "down-screen", "flare-screen", "ucla-cut", "dribble-handoff", "zipper", "floppy", "hammer"]
   },
   {
     "id": "pick-and-roll",
     "name": "Pick and roll",
     "emoji": "🤝",
     "about": "Two players team up: one screens for the dribbler, then rolls or pops to get open.",
-    "plays": ["pick-and-roll", "pick-and-pop", "high-pick-and-roll", "horns", "spain-pick-and-roll"]
+    "plays": ["pick-and-roll", "pick-and-pop", "slip-screen", "high-pick-and-roll", "horns", "spain-pick-and-roll"]
   },
   {
     "id": "defense",
@@ -53,7 +53,7 @@
     "name": "Beat the zone",
     "emoji": "🧩",
     "about": "When defenders guard areas instead of players, find the gaps and move the ball.",
-    "plays": ["zone-buster", "beat-the-box-and-one"]
+    "plays": ["zone-buster", "skip-pass", "overload", "beat-the-box-and-one"]
   },
   {
     "id": "triangle",

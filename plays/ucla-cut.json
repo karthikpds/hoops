@@ -1,0 +1,45 @@
+{
+  "name": "UCLA Cut",
+  "emoji": "🐻",
+  "level": 2,
+  "tags": ["ucla cut", "back screen", "screen", "cutting", "high post", "layup"],
+  "idea": "Pass to the wing, then cut off a screen at the high post, straight to the basket.",
+  "why": "After a pass, your defender watches the ball. A teammate at the high post screens behind them, so when you cut to the basket, your defender runs into the screen. It's named after UCLA, the college team that made it famous.",
+  "tryit": "Pass to the wing, take one step away, then cut hard past your screener's shoulder, so close you could touch them. Hand up for the ball!",
+  "cast": ["d1", "d2", "d5", "o1", "o2", "o5"],
+  "frames": [
+    {
+      "pos": { "o1": "TOP", "o2": "RW", "o5": "RE" },
+      "ball": "o1",
+      "say": "{1} has the ball at the top. {2} is on the wing and {5} is at the high post."
+    },
+    {
+      "pos": { "d1": [282, 300] },
+      "ball": { "pass": ["o1", "o2"] },
+      "say": "{1} passes to {2}. {X1} turns to watch the ball."
+    },
+    {
+      "pos": { "o5": [298, 258], "d5": [324, 232] },
+      "ball": "o2",
+      "scr": [["o5", "d1"]],
+      "bub": { "o5": "Screen!" },
+      "say": "{5} steps up and sets a screen right behind {X1}."
+    },
+    {
+      "pos": { "o1": [270, 104, 245, 220] },
+      "ball": "o2",
+      "scr": [["o5", "d1"]],
+      "bub": { "o1": "UCLA!", "d1": "Stuck!" },
+      "say": "*UCLA cut:* {1} cuts right past {5}, straight to the basket. {X1} runs into {5}!"
+    },
+    {
+      "ball": { "pass": ["o2", "o1"] },
+      "ask": "o1",
+      "say": "{2} passes to {1}, cutting to the hoop."
+    },
+    {
+      "ball": { "shot": "o1" },
+      "say": "Layup! Pass, then cut off the high post screen. That's the UCLA cut."
+    }
+  ]
+}

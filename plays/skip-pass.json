@@ -1,0 +1,39 @@
+{
+  "name": "Skip Pass",
+  "emoji": "🦘",
+  "level": 2,
+  "tags": ["skip pass", "zone offense", "zone", "passing", "ball movement", "three-pointer"],
+  "idea": "When the zone slides over to the ball, throw a long pass over it to the open shooter on the other side.",
+  "why": "A zone moves together toward the ball, so the far side of the court gets empty. A skip pass jumps over everyone to that side, and the zone has a long way to run to catch up.",
+  "tryit": "Use two hands and step into the pass so it's strong enough to go all the way across. Shooter on the far side: stay wide, hands ready.",
+  "cast": ["d1", "d2", "d3", "d4", "d5", "o1", "o2", "o3", "o4", "o5"],
+  "frames": [
+    {
+      "pos": { "o1": "TOP", "o2": "RW", "o3": "LW", "o4": "RC", "o5": [150, 98], "d1": [185, 262], "d2": [315, 262], "d3": [135, 135], "d4": [365, 135], "d5": [250, 95] },
+      "ball": "o1",
+      "say": "Red is playing a *2-3 zone*. Each defender guards an area by the basket or up top."
+    },
+    {
+      "pos": { "d1": [282, 285], "d2": [385, 220], "d3": [205, 130], "d4": [425, 138], "d5": [305, 98] },
+      "ball": { "pass": ["o1", "o2"] },
+      "say": "{1} passes to {2}. The whole zone slides over toward the ball."
+    },
+    {
+      "pos": { "o2": [430, 190], "d2": [402, 168], "d1": [262, 232], "d4": [440, 128], "d3": [228, 120] },
+      "ball": { "dribble": "o2" },
+      "bub": { "o3": "I'm open!" },
+      "say": "{2} dribbles toward the corner, and the zone keeps sliding to stop {2}. Look at the other side!"
+    },
+    {
+      "ball": { "pass": ["o2", "o3"] },
+      "ask": "o3",
+      "say": "*Skip pass:* {2} throws the ball over the zone, all the way across to {3}."
+    },
+    {
+      "pos": { "d3": [140, 200] },
+      "ball": { "shot": "o3" },
+      "bub": { "d3": "Too far!" },
+      "say": "Swish! When the zone slides to the ball, skip it to the other side."
+    }
+  ]
+}

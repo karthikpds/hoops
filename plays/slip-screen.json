@@ -1,0 +1,38 @@
+{
+  "name": "Slip Screen",
+  "emoji": "🍌",
+  "level": 2,
+  "tags": ["slip screen", "screen", "pick and roll", "reading the defense", "bounce pass", "layup"],
+  "idea": "When the defense jumps out early to stop a pick, the screener skips the screen and slips straight to the basket.",
+  "why": "Some defenders jump out before the pick is even set. That leaves the screener's defender out of position, far from the basket. If the screener slips away before setting the screen, nobody is guarding them on the way to the hoop.",
+  "tryit": "Screener: run up like you're setting a pick, but if your defender jumps out early, don't stop. Turn and sprint to the hoop with your hand up for the ball.",
+  "cast": ["d1", "d2", "d5", "o1", "o2", "o5"],
+  "frames": [
+    {
+      "pos": { "o1": "TOP", "o2": "RW", "o5": "HP" },
+      "ball": { "dribble": "o1" },
+      "say": "{1} is dribbling at the top. {5}, our big player, is by the free-throw line."
+    },
+    {
+      "pos": { "o5": [276, 262], "d5": [318, 278, 320, 210] },
+      "ball": { "dribble": "o1" },
+      "bub": { "d5": "Not this time!" },
+      "say": "{5} runs up to set a pick for {1}. {X5} jumps out early to stop {1}, before the pick is even set!"
+    },
+    {
+      "pos": { "o5": [262, 108] },
+      "ball": { "dribble": "o1" },
+      "bub": { "o5": "Slip!", "d5": "Uh oh!" },
+      "say": "*Slip:* {5} doesn't stop to screen. {5} slips away and runs straight to the basket."
+    },
+    {
+      "ball": { "pass": ["o1", "o5"], "bounce": true },
+      "ask": "o5",
+      "say": "{1} bounce-passes to {5}, all alone under the basket."
+    },
+    {
+      "ball": { "shot": "o5" },
+      "say": "Layup! When the defense jumps out early, slip the screen."
+    }
+  ]
+}
