@@ -1,0 +1,48 @@
+{
+  "name": "Horns",
+  "emoji": "🐂",
+  "level": 3,
+  "tags": ["horns", "double screen", "screen", "pick and roll", "pick and pop", "three-pointer"],
+  "idea": "Two bigs at the elbows both set screens, so the dribbler can go either way. Then one rolls and one pops.",
+  "why": "With a screen on each side, the defense can't guess which way the dribbler will go. After the screen, one big rolls to the hoop and the other pops out to shoot. The defense can't cover both, so somebody gets open.",
+  "tryit": "Bigs: never do the same thing. If your partner rolls to the hoop, you pop out to the 3-point line. Dribbler: watch your defender and go the way they aren't leaning.",
+  "cast": ["d1", "d2", "d3", "d4", "d5", "o1", "o2", "o3", "o4", "o5"],
+  "frames": [
+    {
+      "pos": { "o1": [250, 345], "d1": [250, 310], "o2": "RC", "o3": "LC", "o4": "LE", "o5": "RE" },
+      "ball": { "dribble": "o1" },
+      "say": "This is *Horns*. {4} and {5} stand at the elbows like a bull's horns, and {2} and {3} wait in the corners."
+    },
+    {
+      "pos": { "o4": [210, 300], "o5": [292, 300], "d1": [260, 312], "d4": [180, 240], "d5": [320, 240] },
+      "ball": { "dribble": "o1" },
+      "scr": [["o4", "d1"], ["o5", "d1"]],
+      "say": "{4} and {5} both come up and set a *screen*, one on each side of {X1}. {X1} has to guess which way {1} will go."
+    },
+    {
+      "pos": { "o1": [148, 248, 162, 352], "d1": [242, 323], "d4": [128, 220] },
+      "ball": { "dribble": "o1" },
+      "scr": [["o4", "d1"]],
+      "bub": { "d4": "Stop!" },
+      "say": "{X1} leans toward {5}, so {1} goes the other way around {4}. {X4} jumps out to stop {1}."
+    },
+    {
+      "pos": { "o4": [238, 120, 252, 232], "o5": [385, 275], "d1": [188, 290, 210, 325], "d5": [258, 88] },
+      "ball": { "dribble": "o1" },
+      "bub": { "o5": "Open!" },
+      "say": "*One rolls, one pops:* {4} rolls to the basket and {5} pops out to the 3-point line. {X5} runs to stop {4}."
+    },
+    {
+      "pos": { "d5": [330, 220] },
+      "ball": { "pass": ["o1", "o5"] },
+      "bub": { "d5": "Oops!" },
+      "say": "{1} throws it across to {5}. {X5} has a long way to run back!"
+    },
+    {
+      "pos": { "d5": [360, 250] },
+      "ball": { "shot": "o5" },
+      "bub": { "d5": "Too late!" },
+      "say": "{5} makes the three! In Horns, one big rolls and one pops, so somebody is always open."
+    }
+  ]
+}
