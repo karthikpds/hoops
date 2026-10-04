@@ -1,0 +1,31 @@
+{
+  "name": "Triangle Offense",
+  "emoji": "🔺",
+  "level": 3,
+  "tags": ["triangle offense", "triangle", "spacing", "inside cut", "positions"],
+  "idea": "Five spots with perfect spacing: three players make a triangle on one side, and two play together on the other.",
+  "why": "Players stand 15 to 18 feet apart: too far for one defender to guard two players, but close enough for quick, safe passes. From the triangle, the player on the wing can pass four different ways, so the defense never knows what's coming.",
+  "tryit": "Put flat cones on the five spots: corner, wing, post, top, and the other side. Run the inside cut until everyone can find their spot without looking.",
+  "cast": ["o1", "o2", "o3", "o4", "o5"],
+  "frames": [
+    {
+      "pos": { "o1": [310, 345], "o2": "RW", "o3": [190, 345], "o4": "LW", "o5": [220, 120] },
+      "ball": "o1",
+      "say": "The *triangle offense* starts with two guards up top, two players on the wings, and {5} near the basket."
+    },
+    {
+      "ball": { "pass": ["o1", "o2"] },
+      "say": "{1} passes to {2} on the wing."
+    },
+    {
+      "pos": { "o1": [472, 92, 310, 190], "o5": [325, 137], "o3": "TOP", "o4": [150, 165] },
+      "ball": "o2",
+      "say": "*Inside cut:* {1} cuts to the corner. {5} slides over to the post, {3} fills the top, and {4} moves to the other side."
+    },
+    {
+      "ball": "o2",
+      "bub": { "o1": "Corner", "o2": "Trigger", "o5": "Post", "o3": "Trail", "o4": "Opposite" },
+      "say": "The *triangle* is set: {1}, {2} and {5} on one side, {3} and {4} on the other. {2} can pass four ways, and each one starts a different play."
+    }
+  ]
+}

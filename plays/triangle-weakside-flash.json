@@ -1,0 +1,42 @@
+{
+  "name": "Triangle: Weakside Flash",
+  "emoji": "⚡",
+  "level": 3,
+  "tags": ["triangle offense", "triangle", "weakside flash", "blind pig", "backdoor", "high post", "layup"],
+  "idea": "When the top is denied, a teammate flashes to the high post and the denied player cuts backdoor.",
+  "why": "A defender who jumps into the passing lane can't see behind them. The flash gives the wing a safe pass, and the top player cuts behind their defender for an easy layup. Coaches call this the blind pig.",
+  "tryit": "Opposite: when you see the top being denied, sprint to the high post with your hands up. Top player: wait for the catch, then cut backdoor behind your defender.",
+  "cast": ["d1", "d2", "d3", "d4", "d5", "o1", "o2", "o3", "o4", "o5"],
+  "frames": [
+    {
+      "pos": { "o1": "RC", "o2": "RW", "o5": [325, 137], "o3": "TOP", "o4": [150, 165], "d1": [438, 86], "d2": [392, 213], "d5": [302, 110], "d3": [286, 314], "d4": [173, 140] },
+      "ball": "o2",
+      "bub": { "d3": "No pass!" },
+      "say": "{X3} jumps into the passing lane, so {2} can't pass to {3} at the top."
+    },
+    {
+      "pos": { "o4": [225, 205], "d4": [216, 170] },
+      "ball": "o2",
+      "say": "*Weakside flash:* {4} sprints up to the high post to get open."
+    },
+    {
+      "ball": { "pass": ["o2", "o4"] },
+      "say": "{2} passes to {4} at the high post."
+    },
+    {
+      "pos": { "o3": [262, 92, 285, 230] },
+      "ball": "o4",
+      "bub": { "o3": "Backdoor!" },
+      "say": "{X3} is still guarding the pass, so {3} cuts *backdoor* behind {X3}, straight to the hoop."
+    },
+    {
+      "ball": { "pass": ["o4", "o3"] },
+      "say": "{4} drops a pass to {3}."
+    },
+    {
+      "pos": { "d3": [285, 180] },
+      "ball": { "shot": "o3" },
+      "say": "Layup! When your defender jumps into the passing lane, cut behind them."
+    }
+  ]
+}

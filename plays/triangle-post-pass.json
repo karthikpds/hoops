@@ -1,0 +1,49 @@
+{
+  "name": "Triangle: Post Pass",
+  "emoji": "🎯",
+  "level": 3,
+  "tags": ["triangle offense", "triangle", "post", "line of deployment", "high post", "jump shot"],
+  "idea": "The wing passes into the post, then teammates cut so the post player has someone to pass to.",
+  "why": "When the wing, the post and the hoop are in a straight line, the post defender has to stay behind, so the pass inside is safe. Then the cuts keep the other defenders too busy to help.",
+  "tryit": "Post: stand on the high side of the block, in a straight line between the wing and the hoop. Cutters: cut hard and never jog. A lazy cut lets your defender help.",
+  "cast": ["d1", "d2", "d3", "d4", "d5", "o1", "o2", "o3", "o4", "o5"],
+  "frames": [
+    {
+      "pos": { "o1": "RC", "o2": "RW", "o5": [325, 137], "o3": "TOP", "o4": [150, 165], "d1": [438, 86], "d2": [388, 258], "d5": [302, 110], "d3": [250, 301], "d4": [173, 140] },
+      "ball": "o2",
+      "say": "From the triangle, {2} looks inside first. {2}, {5} and the hoop are in a straight line, so {X5} is stuck behind {5}."
+    },
+    {
+      "ball": { "pass": ["o2", "o5"] },
+      "say": "{2} passes into the *post* to {5}."
+    },
+    {
+      "pos": { "o1": [105, 70, 300, -10], "d1": [150, 100, 300, 66] },
+      "ball": "o5",
+      "say": "{1} cuts along the baseline to the other side, and {X1} has to chase."
+    },
+    {
+      "pos": { "o2": [200, 170, 360, 200], "d2": [330, 240] },
+      "ball": "o5",
+      "scr": [["o2", "d4"]],
+      "say": "{2} cuts over the top of {5} and sets a *screen* on {X4}."
+    },
+    {
+      "pos": { "o4": [250, 190, 190, 240] },
+      "ball": "o5",
+      "scr": [["o2", "d4"]],
+      "bub": { "o4": "Open!" },
+      "say": "{4} runs around the screen to the free-throw line. {X4} is stuck!"
+    },
+    {
+      "pos": { "o2": "LW", "d4": [222, 168] },
+      "ball": { "pass": ["o5", "o4"] },
+      "say": "{5} passes out to {4}, wide open at the free-throw line."
+    },
+    {
+      "ball": { "shot": "o4" },
+      "bub": { "d4": "Too late!" },
+      "say": "{4} makes the jump shot! In the triangle, every pass starts cuts that get someone open."
+    }
+  ]
+}

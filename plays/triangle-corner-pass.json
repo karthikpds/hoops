@@ -1,0 +1,44 @@
+{
+  "name": "Triangle: Corner Pass",
+  "emoji": "📐",
+  "level": 3,
+  "tags": ["triangle offense", "triangle", "corner", "back screen", "layup"],
+  "idea": "The wing passes to the corner, then the post sets a back screen so the wing can cut to the hoop.",
+  "why": "After the pass to the corner, the wing's defender turns to watch the ball. A back screen from the post catches them from behind, and the wing gets a free run to the basket.",
+  "tryit": "Corner: catch, look inside first, then look for the cutter. Post: set the back screen right behind the wing's defender, then get ready to set a pick for the corner if nothing is open.",
+  "cast": ["d1", "d2", "d3", "d4", "d5", "o1", "o2", "o3", "o4", "o5"],
+  "frames": [
+    {
+      "pos": { "o1": "RC", "o2": "RW", "o5": [325, 137], "o3": "TOP", "o4": [150, 165], "d1": [438, 86], "d2": [388, 258], "d5": [302, 110], "d3": [250, 301], "d4": [173, 140] },
+      "ball": "o2",
+      "say": "{1}, {2} and {5} are in the triangle. Watch what happens when {2} passes to the corner."
+    },
+    {
+      "pos": { "d1": [440, 130] },
+      "ball": { "pass": ["o2", "o1"] },
+      "say": "{2} passes to {1} in the *corner*."
+    },
+    {
+      "pos": { "o5": [362, 228], "d5": [335, 190] },
+      "ball": "o1",
+      "scr": [["o5", "d2"]],
+      "say": "{5} steps out and sets a *back screen* on {X2}, right behind {X2}'s back."
+    },
+    {
+      "pos": { "o2": [280, 90, 380, 170], "d2": [392, 245] },
+      "ball": "o1",
+      "scr": [["o5", "d2"]],
+      "bub": { "o2": "Open!" },
+      "say": "{2} cuts to the hoop, and {X2} runs right into {5}!"
+    },
+    {
+      "ball": { "pass": ["o1", "o2"] },
+      "say": "{1} passes to {2} near the basket."
+    },
+    {
+      "pos": { "d5": [305, 120] },
+      "ball": { "shot": "o2" },
+      "say": "Layup! Pass to the corner, back screen, cut. That's the corner pass."
+    }
+  ]
+}

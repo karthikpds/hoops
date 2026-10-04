@@ -1,0 +1,40 @@
+{
+  "name": "Triangle: Two-Man Game",
+  "emoji": "🤝",
+  "level": 3,
+  "tags": ["triangle offense", "triangle", "two-player game", "pinch post", "high post", "layup"],
+  "idea": "The wing passes back to the top, and the top player and the high post play two-on-two on the empty side.",
+  "why": "With three players on one side, the other side of the floor is wide open. The top player passes to the high post and cuts right past, and their defender gets left behind.",
+  "tryit": "Top player: pass to the high post, then cut hard right past them with your hands ready. High post: catch, turn to face the hoop, and hit the cutter with a bounce pass.",
+  "cast": ["d1", "d2", "d3", "d4", "d5", "o1", "o2", "o3", "o4", "o5"],
+  "frames": [
+    {
+      "pos": { "o1": "RC", "o2": "RW", "o5": [325, 137], "o3": "TOP", "o4": [150, 165], "d1": [438, 86], "d2": [392, 213], "d5": [302, 110], "d3": [250, 301], "d4": [173, 140] },
+      "ball": "o2",
+      "say": "{X2} is guarding the pass into the post, so {2} looks back to the top instead."
+    },
+    {
+      "pos": { "o4": "HP", "d4": [238, 158], "d3": [218, 318] },
+      "ball": { "pass": ["o2", "o3"] },
+      "say": "{2} passes back to {3}, and {4} steps up to the *high post*. Now {3} and {4} can play on the empty side."
+    },
+    {
+      "ball": { "pass": ["o3", "o4"] },
+      "say": "{3} passes to {4} at the high post..."
+    },
+    {
+      "pos": { "o3": [255, 92, 340, 240], "d3": [280, 230] },
+      "ball": "o4",
+      "bub": { "o3": "Open!" },
+      "say": "...and cuts hard right past {4}. {X3} is a step behind!"
+    },
+    {
+      "ball": { "pass": ["o4", "o3"], "bounce": true },
+      "say": "{4} turns and bounce-passes to {3}."
+    },
+    {
+      "ball": { "shot": "o3" },
+      "say": "Layup! Pass to the high post, then cut. That's the two-player game."
+    }
+  ]
+}
