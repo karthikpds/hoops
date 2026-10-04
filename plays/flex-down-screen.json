@@ -1,0 +1,54 @@
+{
+  "name": "Flex: Down Screen",
+  "emoji": "🎈",
+  "level": 3,
+  "tags": ["flex offense", "flex", "down screen", "screen the screener", "flex cut", "screen", "three-pointer"],
+  "idea": "If the flex cut is covered, the passer screens down for the screener, who pops up to the top for a shot.",
+  "why": "The defense is busy stopping the flex cut, so nobody is ready for the second screen. The player who just set a screen gets screened, and pops up wide open. Every flex has two chances to score.",
+  "tryit": "Down screener: as soon as the cutter goes, run down and stand still next to the screener's defender. Screener: wait for it, then pop up to the top with your hands ready to shoot.",
+  "cast": ["d1", "d2", "d3", "d4", "d5", "o1", "o2", "o3", "o4", "o5"],
+  "frames": [
+    {
+      "pos": { "o1": "RS", "o4": "LS", "o5": "RB", "o3": "RC", "o2": "LC", "d5": [330, 140], "d3": [450, 130] },
+      "ball": "o1",
+      "say": "Blue is set up in the *flex*. This time, watch {1} and {5}."
+    },
+    {
+      "pos": { "d1": [330, 245], "d4": [190, 282] },
+      "ball": { "pass": ["o1", "o4"] },
+      "say": "*Pass across:* {1} passes over to {4} to start the flex."
+    },
+    {
+      "pos": { "o5": [418, 125], "d5": [395, 160] },
+      "ball": "o4",
+      "scr": [["o5", "d3"]],
+      "bub": { "o5": "Flex screen!" },
+      "say": "*Flex screen:* {5} steps out from the block and screens {X3}."
+    },
+    {
+      "pos": { "o3": [182, 90, 420, 40], "d4": [165, 265] },
+      "ball": "o4",
+      "scr": [["o5", "d3"]],
+      "bub": { "d4": "No pass!" },
+      "say": "{3} cuts along the baseline, but {X4} jumps in the way with hands up. {4} can't pass inside."
+    },
+    {
+      "pos": { "o1": [375, 195, 395, 270], "o5": [345, 290, 488, 250], "d3": [215, 112, 470, 30], "d1": [352, 225] },
+      "ball": "o4",
+      "scr": [["o1", "d5"]],
+      "bub": { "o5": "Open!", "d5": "Stuck!" },
+      "say": "*Down screen:* {1} runs down and screens {X5}, and {5} pops up to the top. {X5} is stuck, and {X3} runs back to {3}."
+    },
+    {
+      "ball": { "pass": ["o4", "o5"] },
+      "ask": "o5",
+      "say": "{4} passes across the top to {5}."
+    },
+    {
+      "pos": { "d1": [338, 258] },
+      "ball": { "shot": "o5" },
+      "bub": { "d1": "Too late!" },
+      "say": "Swish! The screener got screened. When the flex cut is covered, look for the down screen."
+    }
+  ]
+}

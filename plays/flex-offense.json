@@ -1,0 +1,51 @@
+{
+  "name": "Flex Offense",
+  "emoji": "♾️",
+  "level": 3,
+  "tags": ["flex offense", "flex", "continuity", "flex cut", "down screen", "screen the screener", "spacing", "positions"],
+  "idea": "Pass across the top, cut along the baseline, screen down, and you're set up to do it all again on the other side.",
+  "why": "The flex never stops. Every pass across the top starts the same two screens, so the defense has to stop the same moves again and again. Everyone takes a turn at every spot, so everyone learns every job.",
+  "tryit": "Walk through it with no defense first. Say each job out loud: pass across, flex screen, flex cut, down screen. Then run it on the other side without stopping.",
+  "cast": ["o1", "o2", "o3", "o4", "o5"],
+  "frames": [
+    {
+      "pos": { "o1": "RS", "o4": "LS", "o5": "RB", "o3": "RC", "o2": "LC" },
+      "ball": "o1",
+      "bub": { "o1": "Top", "o4": "Top", "o5": "Block", "o3": "Corner", "o2": "Corner" },
+      "say": "This is the *flex*: two players at the top, two in the corners, and {5} on the block, on the same side as the ball."
+    },
+    {
+      "ball": { "pass": ["o1", "o4"] },
+      "say": "*Pass across:* {1} passes over to {4}. That pass starts the flex."
+    },
+    {
+      "pos": { "o5": [418, 125] },
+      "ball": "o4",
+      "bub": { "o5": "Flex screen!" },
+      "say": "*Flex screen:* {5} steps out from the block to set a screen for {3}."
+    },
+    {
+      "pos": { "o3": [182, 90, 420, 40] },
+      "ball": "o4",
+      "bub": { "o3": "Flex cut!" },
+      "say": "*Flex cut:* {3} runs along the baseline, right past {5}, to the basket on the ball side."
+    },
+    {
+      "pos": { "o1": [375, 195, 395, 270], "o5": [345, 290, 488, 250] },
+      "ball": "o4",
+      "bub": { "o1": "Down screen!" },
+      "say": "*Down screen:* {1} runs down and screens for {5}, and {5} pops up to the top. The screener gets screened!"
+    },
+    {
+      "pos": { "o1": "RC" },
+      "ball": "o4",
+      "bub": { "o3": "Block", "o2": "Corner", "o1": "Corner" },
+      "say": "{1} slides to the corner. Look: everyone is in a flex spot again, just flipped. Now {3} is on the block."
+    },
+    {
+      "ball": { "pass": ["o4", "o5"] },
+      "bub": { "o3": "Flex screen!", "o2": "Flex cut!" },
+      "say": "{4} passes across to {5}, and the flex starts again on the other side: {3} screens and {2} cuts."
+    }
+  ]
+}

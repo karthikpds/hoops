@@ -1,0 +1,50 @@
+{
+  "name": "Triple Threat",
+  "emoji": "🔱",
+  "level": 1,
+  "tags": ["triple threat", "fundamentals", "shooting", "passing", "dribbling", "driving", "reading the defense", "three-pointer"],
+  "idea": "When you catch the ball, get low and face the hoop. Now you can shoot, pass or dribble.",
+  "why": "From the triple threat, your defender can't tell what you'll do next. If they stay back, you shoot. If they run up close, you drive past. If a helper comes, you pass to the teammate they left.",
+  "tryit": "Catch, bend your knees, and hold the ball by your hip with your eyes on the hoop. Have a partner stand far away (shoot), then close (drive), and call out what you'd do.",
+  "cast": ["d1", "d2", "d3", "o1", "o2", "o3"],
+  "frames": [
+    {
+      "pos": { "o1": "TOP", "o2": "RW", "o3": "LW", "d2": [372, 192] },
+      "ball": "o1",
+      "say": "{1} has the ball at the top. {2} and {3} are on the wings."
+    },
+    {
+      "pos": { "d1": [262, 296] },
+      "ball": { "pass": ["o1", "o2"] },
+      "say": "{1} passes to {2} on the wing."
+    },
+    {
+      "ball": "o2",
+      "bub": { "o2": "Triple threat!" },
+      "say": "*Triple threat:* {2} gets low, holds the ball by the hip and looks at the hoop. Now {2} can *shoot*, *pass* or *dribble*."
+    },
+    {
+      "pos": { "d2": [394, 210] },
+      "ball": "o2",
+      "bub": { "d2": "No shot!" },
+      "say": "{X2} runs up close with hands high. Too close to shoot? Then go right past!"
+    },
+    {
+      "pos": { "o2": [372, 118, 462, 168], "d2": [404, 176], "d3": [292, 150, 180, 150] },
+      "ball": { "dribble": "o2" },
+      "bub": { "d3": "Stop!" },
+      "say": "*Dribble:* {2} drives past {X2} toward the hoop. Uh oh, {X3} leaves {3} to stop the drive."
+    },
+    {
+      "ball": { "pass": ["o2", "o3"] },
+      "ask": "o3",
+      "say": "*Pass:* {X3} left {3} all alone, so {2} passes to {3}."
+    },
+    {
+      "pos": { "d3": [150, 190] },
+      "ball": { "shot": "o3" },
+      "bub": { "d3": "Too late!" },
+      "say": "{3} shoots! From the triple threat, you're ready to shoot, pass or dribble."
+    }
+  ]
+}

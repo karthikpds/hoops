@@ -11,6 +11,7 @@
   "line-inbound",
   "box-out",
   "close-out",
+  "triple-threat",
   "backdoor-cut",
   "drive-and-kick",
   "set-a-screen",
@@ -24,6 +25,7 @@
   "zipper",
   "help-side",
   "switch",
+  "down-screen",
   "pick-and-roll",
   "pick-and-pop",
   "high-pick-and-roll",
@@ -36,5 +38,8 @@
   "triangle-post-pass",
   "triangle-two-man-game",
   "triangle-corner-pass",
-  "triangle-weakside-flash"
+  "triangle-weakside-flash",
+  "flex-offense",
+  "flex-cut",
+  "flex-down-screen"
 ]

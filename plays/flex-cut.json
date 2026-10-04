@@ -1,0 +1,47 @@
+{
+  "name": "Flex: Flex Cut",
+  "emoji": "✂️",
+  "level": 3,
+  "tags": ["flex offense", "flex", "flex cut", "flex screen", "baseline cut", "screen", "layup"],
+  "idea": "After the pass across the top, the corner player cuts along the baseline off the flex screen for a layup.",
+  "why": "The flex screen comes from the block, right where the corner defender has to run. If they bump into it, the cutter is wide open by the basket, on the same side as the ball.",
+  "tryit": "Cutter: wait for the pass across the top, then sprint along the baseline, close to the screener's hip. Passer: look inside right away, before the defense can catch up.",
+  "cast": ["d1", "d2", "d3", "d4", "d5", "o1", "o2", "o3", "o4", "o5"],
+  "frames": [
+    {
+      "pos": { "o1": "RS", "o4": "LS", "o5": "RB", "o3": "RC", "o2": "LC", "d5": [330, 140], "d3": [450, 130] },
+      "ball": "o1",
+      "say": "Blue is set up in the *flex*: {1} and {4} at the top, {3} and {2} in the corners, and {5} on the block."
+    },
+    {
+      "pos": { "d1": [330, 245], "d4": [190, 282] },
+      "ball": { "pass": ["o1", "o4"] },
+      "say": "*Pass across:* {1} passes over to {4}. That pass starts the flex."
+    },
+    {
+      "pos": { "o5": [418, 125], "d5": [395, 160] },
+      "ball": "o4",
+      "scr": [["o5", "d3"]],
+      "bub": { "o5": "Flex screen!" },
+      "say": "*Flex screen:* {5} steps out from the block and stands still next to {X3}."
+    },
+    {
+      "pos": { "o3": [182, 90, 420, 40] },
+      "ball": "o4",
+      "scr": [["o5", "d3"]],
+      "bub": { "o3": "Open!", "d3": "Stuck!" },
+      "say": "*Flex cut:* {3} sprints along the baseline, right past {5}. {X3} bumps into the screen and gets stuck!"
+    },
+    {
+      "ball": { "pass": ["o4", "o3"] },
+      "ask": "o3",
+      "say": "{4} passes inside to {3}, all alone by the basket."
+    },
+    {
+      "pos": { "d2": [140, 95] },
+      "ball": { "shot": "o3" },
+      "bub": { "d2": "Too late!" },
+      "say": "Layup! That's the flex cut. Next, see what happens when the defense stops it."
+    }
+  ]
+}

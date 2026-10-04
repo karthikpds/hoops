@@ -3,8 +3,8 @@
     "id": "start-here",
     "name": "Start here",
     "emoji": "⭐",
-    "about": "New to basketball? Start with these. Pass, cut, dribble, and grab the rebound.",
-    "plays": ["pass-it-around", "give-and-go", "v-cut", "dribble-drive", "fast-break", "box-out"]
+    "about": "New to basketball? Start with these. Catch, pass, cut, dribble, and grab the rebound.",
+    "plays": ["triple-threat", "pass-it-around", "give-and-go", "v-cut", "dribble-drive", "fast-break", "box-out"]
   },
   {
     "id": "getting-open",
@@ -18,7 +18,7 @@
     "name": "Screens",
     "emoji": "🧱",
     "about": "Stand still like a wall so a teammate can run free. First learn what a screen is, then try the trickier ones.",
-    "plays": ["set-a-screen", "pass-and-screen-away", "dribble-handoff", "zipper", "floppy", "hammer"]
+    "plays": ["set-a-screen", "pass-and-screen-away", "down-screen", "dribble-handoff", "zipper", "floppy", "hammer"]
   },
   {
     "id": "pick-and-roll",
@@ -54,5 +54,12 @@
     "emoji": "🔺",
     "about": "Learn the triangle setup first, then the four ways to run it.",
     "plays": ["triangle-offense", "triangle-post-pass", "triangle-two-man-game", "triangle-corner-pass", "triangle-weakside-flash"]
+  },
+  {
+    "id": "flex",
+    "name": "Flex offense",
+    "emoji": "♾️",
+    "about": "Learn the flex pattern first, then its two ways to score: the flex cut and the down screen.",
+    "plays": ["flex-offense", "flex-cut", "flex-down-screen"]
   }
 ]

@@ -1,0 +1,49 @@
+{
+  "name": "Down Screen",
+  "emoji": "⬇️",
+  "level": 2,
+  "tags": ["down screen", "pin down", "screen", "curl", "off the ball", "reading the defense", "jump shot"],
+  "idea": "A teammate runs down to screen for you. Read your defender: if they chase behind you, curl into the middle.",
+  "why": "A defender who chases right behind you can't also be in front of you. Curling tight around the screen leaves them stuck on the screener, and you pop up open in the middle. If your defender stays back instead, step out to the wing for a shot.",
+  "tryit": "Screener: run down toward the baseline and stop, feet wide. Cutter: wait until the screen is set, run your defender into it, and look back: chaser behind you? Curl. Defender back? Pop out.",
+  "cast": ["d1", "d2", "d4", "o1", "o2", "o4"],
+  "frames": [
+    {
+      "pos": { "o1": "TOP", "o2": [128, 105], "o4": "LS", "d1": [282, 318], "d2": [160, 125], "d4": [118, 282] },
+      "ball": "o1",
+      "say": "{2} is stuck down low by the basket, and {X2} is right next to them."
+    },
+    {
+      "pos": { "o4": [165, 165], "d4": [112, 226] },
+      "ball": "o1",
+      "scr": [["o4", "d2"]],
+      "bub": { "o4": "Screen!" },
+      "say": "*Down screen:* {4} runs down toward the baseline and stands still next to {X2}."
+    },
+    {
+      "pos": { "o2": [100, 170], "d2": [120, 140, 148, 96] },
+      "ball": "o1",
+      "scr": [["o4", "d2"]],
+      "bub": { "d2": "Got you!" },
+      "say": "{2} runs up around the screen. {X2} chases right behind {2}."
+    },
+    {
+      "pos": { "o2": [230, 195, 125, 214], "d2": [130, 178] },
+      "ball": "o1",
+      "scr": [["o4", "d2"]],
+      "bub": { "o2": "Curl!", "d2": "Oof!" },
+      "say": "*Curl:* {X2} is right behind, so {2} curls tight around {4} into the middle. {X2} bumps into {4}!"
+    },
+    {
+      "ball": { "pass": ["o1", "o2"] },
+      "ask": "o2",
+      "say": "{1} passes to {2}, wide open in the middle."
+    },
+    {
+      "pos": { "d4": [200, 215] },
+      "ball": { "shot": "o2" },
+      "bub": { "d4": "Too late!" },
+      "say": "Swish! Chaser behind you? Curl. Defender stays back? Pop out to the wing."
+    }
+  ]
+}
