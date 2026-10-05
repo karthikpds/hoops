@@ -3,10 +3,13 @@
 <head>
 <meta charset="utf-8">
 <title>Share image · Hoops Playbook</title>
+<link rel="icon" href="data:,">
 <!--
-  The 1200×630 picture link previews show (img/share.png, named in index.html's og:image tag).
-  To remake it after changing this page, run npm start, then:
+  The 1200×630 pictures link previews show. Without ?play= it's the site's picture, img/share.png (named in
+  index.html's og:image tag). To remake it after changing this page, run npm start, then:
   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless --hide-scrollbars --force-device-scale-factor=1 --window-size=1200,630 --virtual-time-budget=5000 --screenshot=img/share.png http://localhost:8000/tools/share-image.html
+  With ?play=<id> it's that play's picture: tools/share.js takes one of each for the deploy (p/<id>/card.png).
+  The page sets data-ready on <body> once the court is drawn.
 -->
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../css/styles.css">
@@ -23,17 +26,35 @@
   .frame{background:var(--apron);border-radius:28px;padding:10px;box-shadow:var(--shadow)}
   .frame svg{display:block;width:100%;height:auto;border-radius:20px}
   .pl.has .halo{opacity:1;animation:none}
+  /* A play's picture: the site's name small, the play big */
+  .site{display:flex;align-items:center;gap:12px;font-size:24px;font-weight:600;color:var(--muted)}
+  .site .logo{width:46px;height:46px;font-size:26px}
+  .play h1{margin-top:30px;font-size:60px;line-height:1.02}
+  .play .emoji{display:block;font-size:64px;line-height:1;margin-bottom:12px}
+  .play .lvl{margin-top:14px;font-size:24px;font-weight:600;color:var(--kw-ink)}
+  .play .lede{margin-top:18px;font-size:28px}
 </style>
 <script type="module">
-import { resolvePlay } from "../js/playbook.js";
-import { renderCourt } from "../js/court.js";
-const id = "drive-and-kick", at = 3;  // the play and timeline position drawn on the court
-const raw = await (await fetch(`../plays/${id}.json`)).json();
-document.getElementById("pic").innerHTML = renderCourt(resolvePlay(raw, id), at, { bubbles: false, label: "Drive and kick" });
+import { LEVELS, resolvePlay } from "../js/playbook.js";
+import { ballState, cameraView, esc, playersAt, renderCourt, stepAt } from "../js/court.js";
+const asked = new URLSearchParams(location.search).get("play");
+const id = asked || "drive-and-kick";
+const play = resolvePlay(await (await fetch(`../plays/${encodeURIComponent(id)}.json`)).json(), id);
+const n = play.frames.length - 1;
+// The site's picture shows Drive & Kick at the kick; a play's picture shows the whole play up to its last step (the shot, if it ends with one)
+const at = asked ? (play.frames[n].ball.shot ? n - 1 : n) : 3;
+const { k, t } = stepAt(at), y = ballState(play, k, t, playersAt(play, k, t)).g[1];
+document.getElementById("pic").innerHTML = renderCourt(play, at, { bubbles: false, label: play.name, view: cameraView(play, y) });
+if (asked) document.getElementById("text").innerHTML =
+  `<div class="site"><div class="logo" aria-hidden="true">🏀</div>Hoops Playbook</div>` +
+  `<div class="play"><h1><span class="emoji">${esc(play.emoji)}</span>${esc(play.name)}</h1>` +
+  `<div class="lvl">${LEVELS[play.level]}${play.side === "defense" ? " · Defense" : ""} play</div><p class="lede">${esc(play.idea)}</p></div>`;
+await document.fonts.ready;
+document.body.dataset.ready = "1";
 </script>
 </head>
 <body>
-  <div>
+  <div id="text">
     <div class="brand"><div class="logo" aria-hidden="true">🏀</div><h1>Hoops<br>Playbook</h1></div>
     <p class="lede">Animated basketball plays that show kids how teammates work together.</p>
     <div class="feats"><span class="hot">▶ Watch it move</span><span>👆 Who’s open?</span></div>

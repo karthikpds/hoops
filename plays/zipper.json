@@ -33,10 +33,15 @@
       "say": "*Handoff:* {1} runs right behind {2} and takes the ball back. {X1} gets stuck on {2}."
     },
     {
-      "pos": { "o1": [305, 75, 440, 180] },
+      "pos": { "o1": [410, 200, 420, 290] },
       "ball": { "dribble": "o1" },
       "bub": { "o1": "Go!" },
-      "say": "{1} has a clear path and dribbles all the way to the hoop."
+      "say": "{1} has a clear path and dribbles toward the hoop, around {X2}."
+    },
+    {
+      "pos": { "o1": [305, 75, 400, 110] },
+      "ball": { "dribble": "o1" },
+      "say": "{1} keeps dribbling, all the way to the basket."
     },
     {
       "pos": { "d2": [330, 120] },

@@ -1,0 +1,55 @@
+{
+  "name": "Press Break",
+  "emoji": "🔓",
+  "level": 3,
+  "court": "full",
+  "tags": ["press break", "press", "full court", "inbound", "trap", "passing", "2-on-1", "layup"],
+  "idea": "When the other team guards the whole court, pass the ball to the middle, then pass it ahead before they can trap you.",
+  "why": "A press wants you to dribble into a trap. But passes are faster than any defender. A pass to the middle leaves the trap behind the ball, and a pass ahead finds teammates running free, often with more players than the defense has back.",
+  "tryit": "Practice five against five on the whole court. The rule: never dribble into a trap. When you're trapped, pivot, stay calm, and look for the middle. Everyone else: come toward the ball or run ahead.",
+  "cast": ["d1", "d2", "d3", "d4", "d5", "o1", "o2", "o3", "o4", "o5"],
+  "frames": [
+    {
+      "pos": { "o4": [330, 966], "o1": [160, 860], "o2": [370, 830], "o5": [250, 650], "o3": [70, 440], "d4": [300, 912], "d1": [175, 800], "d2": [360, 770], "d5": [250, 590], "d3": [250, 330] },
+      "ball": "o4",
+      "say": "Red just scored, so blue passes in from under red's hoop, at the far end of the court. Red is *pressing*: guarding the whole court so blue can't bring the ball up."
+    },
+    {
+      "pos": { "o1": [95, 885], "d1": [140, 840] },
+      "ball": { "pass": ["o4", "o1"] },
+      "say": "{1} cuts to the corner to get open, and {4} passes it in fast."
+    },
+    {
+      "pos": { "d4": [140, 915], "d1": [125, 845], "o4": [290, 900], "o5": [215, 770], "d5": [120, 700], "d2": [300, 720], "o2": [430, 640] },
+      "ball": "o1",
+      "where": "o5",
+      "bub": { "d4": "Trap!", "d1": "Trap!" },
+      "say": "*Trap!* {X4} and {X1} trap {1} in the corner. {5} runs to the middle, right behind the trap, and {4} steps in to help."
+    },
+    {
+      "pos": { "d2": [270, 745], "o2": [440, 450], "o3": [90, 300] },
+      "ball": { "pass": ["o1", "o5"] },
+      "say": "*Pass to the middle!* {1} stays calm and passes over the trap to {5}. Now the trap is behind the ball!"
+    },
+    {
+      "pos": { "o2": [430, 380], "d3": [320, 300], "d2": [290, 560], "d5": [160, 520] },
+      "ball": { "pass": ["o5", "o2"] },
+      "say": "{5} turns and passes ahead to {2}, racing up the side. A pass is faster than any defender."
+    },
+    {
+      "pos": { "o2": [370, 210], "o3": [170, 150], "d3": [345, 240] },
+      "ball": { "dribble": "o2" },
+      "bub": { "o3": "Open!" },
+      "say": "{2} dribbles at the basket. {X3} is the only red player back and has to stop {2}, so {3} is all alone."
+    },
+    {
+      "pos": { "o3": [205, 105] },
+      "ball": { "pass": ["o2", "o3"] },
+      "say": "Two players against one defender: {2} passes to {3}."
+    },
+    {
+      "ball": { "shot": "o3" },
+      "say": "Layup! Beat the press: get open, pass to the middle, then pass ahead."
+    }
+  ]
+}

@@ -5,7 +5,7 @@
 // With --bundle (the deploy uses it), also writes plays/bundle.json, the whole library in one file (tools/bundle.js).
 // Exits with code 1 if any play, path or glossary word has an error.
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
-import { DATA_FILES, checkGlossary, checkPaths, checkPlay, lintPlay, lookUp, resolvePlay } from "../js/playbook.js";
+import { DATA_FILES, checkGlossary, checkPaths, checkPlay, idError, lintPlay, lookUp, resolvePlay } from "../js/playbook.js";
 import { makeBundle } from "./bundle.js";
 
 const DIR = new URL("../plays/", import.meta.url);
@@ -17,8 +17,8 @@ const report = (list, file, msg) => list.push({ file, msg });
 const files = readdirSync(DIR).filter(f => f.endsWith(".json") && !DATA_FILES.includes(f) && !f.startsWith("_")).sort();
 const plays = [];
 for (const file of files) {
-  const id = file.slice(0, -5);
-  if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(id)) report(errors, file, `file name must be lowercase words joined by dashes, like "pick-and-roll.json"`);
+  const id = file.slice(0, -5), bad = idError(id);
+  if (bad) report(errors, file, bad);
   let raw;
   try { raw = JSON.parse(readFileSync(new URL(file, DIR), "utf8")); }
   catch (e) { report(errors, file, `not valid JSON: ${e.message}`); continue; }

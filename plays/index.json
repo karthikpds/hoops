@@ -16,6 +16,7 @@
   "jump-stop",
   "shot-fake",
   "stance-and-slide",
+  "pivot-and-protect",
   "backdoor-cut",
   "drive-and-kick",
   "set-a-screen",
@@ -64,5 +65,7 @@
   "lob-play",
   "princeton-chin",
   "ram-screen",
-  "step-up-screen"
+  "step-up-screen",
+  "diamond-press",
+  "press-break"
 ]

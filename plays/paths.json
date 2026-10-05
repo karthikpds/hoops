@@ -11,7 +11,7 @@
     "name": "One-on-one moves",
     "emoji": "🌀",
     "about": "Fakes, stops and dribble moves to get past your defender, all by yourself.",
-    "plays": ["triple-threat", "jab-step", "shot-fake", "jump-stop", "dribble-drive", "crossover", "hesitation"]
+    "plays": ["triple-threat", "jab-step", "shot-fake", "jump-stop", "pivot-and-protect", "dribble-drive", "crossover", "hesitation"]
   },
   {
     "id": "getting-open",
@@ -38,15 +38,15 @@
     "id": "defense",
     "name": "Defense",
     "emoji": "🛡️",
-    "about": "This time you're the red team. Start with your stance, then learn to deny, help, get back, and trap.",
-    "plays": ["stance-and-slide", "close-out", "box-out", "rebound-and-outlet", "deny-the-ball", "help-side", "transition-defense", "switch", "hedge-and-recover", "corner-trap", "triangle-and-two"]
+    "about": "This time you're the red team. Start with your stance, then learn to deny, help, get back, trap and press.",
+    "plays": ["stance-and-slide", "close-out", "box-out", "rebound-and-outlet", "deny-the-ball", "help-side", "transition-defense", "switch", "hedge-and-recover", "corner-trap", "diamond-press", "triangle-and-two"]
   },
   {
     "id": "inbounds",
     "name": "Inbound plays",
     "emoji": "📣",
-    "about": "Plays for passing the ball in from out of bounds, from the baseline and from the side.",
-    "plays": ["stack-inbound", "line-inbound", "box-inbound", "screen-the-screener", "sideline-stagger", "elevator-doors"]
+    "about": "Plays for passing the ball in from out of bounds: from the baseline, from the side, and against a press.",
+    "plays": ["stack-inbound", "line-inbound", "box-inbound", "screen-the-screener", "sideline-stagger", "elevator-doors", "press-break"]
   },
   {
     "id": "beat-the-zone",

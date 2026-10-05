@@ -1,7 +1,11 @@
 // Play logic with no DOM, shared by the page (js/app.js) and the play checker (tools/build.js).
 
-/* Court units: 10 = 1 ft. Baseline at y=0 (top), basket at (250, 52.5), half-court line at y=470. */
+/* Court units: 10 = 1 ft. Baseline at y=0 (top), basket at (250, 52.5), half-court line at y=470. A full-court play
+   ("court": "full") goes on to the far baseline at y=940, with red's basket at (250, 887.5). Blue always shoots at
+   the top basket. */
 export const BASKET = [250, 52.5];
+/* How far down the court a play goes: the half-court line, or the far baseline */
+export const courtEnd = play => play.court === "full" ? 940 : 470;
 export const LEVELS = ["", "Easy", "Medium", "Tricky"];
 
 /* Named spots a play file can use instead of [x, y]. */
@@ -15,8 +19,9 @@ export const SPOTS = {
   LB: [150, 105], RB: [350, 105]    // blocks
 };
 
-/* On the half court? Only an inbounder may stand off it (see the out-of-bounds check in tools/build.js). */
-export const onCourt = q => q[0] >= 0 && q[0] <= 500 && q[1] >= 0 && q[1] <= 470;
+/* On the court (the half court, or the full court when full is true)? Only an inbounder may stand off it (see the
+   out-of-bounds check in lintPlay). */
+export const onCourt = (q, full = false) => q[0] >= 0 && q[0] <= 500 && q[1] >= 0 && q[1] <= (full ? 940 : 470);
 export const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
 export const ease = t => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
 export const isThree = q => q[1] < 142 ? Math.abs(q[0] - 250) > 220 : dist(q, BASKET) > 237.5;
@@ -32,35 +37,45 @@ export function guardSpot(q, d = 34) {
 /* Files in plays/ that aren't plays, so no play can have these names */
 export const DATA_FILES = ["index.json", "paths.json", "glossary.json", "bundle.json"];
 
-const PLAY_KEYS = ["name", "emoji", "level", "side", "tags", "idea", "why", "tryit", "cast", "frames"];
-const FRAME_KEYS = ["pos", "ball", "ask", "where", "scr", "bub", "say"];
-const BALL_KEYS = { dribble: ["dribble", "cross"], pass: ["pass", "bounce", "lob"], handoff: ["handoff"], shot: ["shot", "miss"], rebound: ["rebound"], fake: ["fake"] };
+/* What's wrong with a play's file name (without ".json"), or "" if nothing is */
+export function idError(id) {
+  if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(id)) return `file name must be lowercase words joined by dashes, like "pick-and-roll"`;
+  if (DATA_FILES.includes(id + ".json")) return `"${id}" is taken: plays/${id}.json is the site's ${id} file, not a play, so pick another file name`;
+  return "";
+}
+
+const PLAY_KEYS = ["name", "emoji", "level", "side", "court", "tags", "idea", "why", "tryit", "cast", "frames"];
+const FRAME_KEYS = ["pos", "face", "ball", "ask", "where", "scr", "bub", "say"];
+const BALL_KEYS = { dribble: ["dribble", "cross"], pass: ["pass", "bounce", "lob", "stolen"], handoff: ["handoff"], shot: ["shot", "miss"], rebound: ["rebound"], fake: ["fake"] };
 const isObj = v => !!v && typeof v === "object" && !Array.isArray(v);
 const isText = v => typeof v === "string" && v.trim() !== "";
 const isNum = v => typeof v === "number" && Number.isFinite(v);
 
-function pointError(v) {
+/* A full court also has room past the far baseline, for an inbounder there */
+function pointError(v, full = false) {
+  const ymax = full ? 980 : 470;
   if (typeof v === "string") return SPOTS[v] ? "" : `uses unknown spot "${v}" (spots are ${Object.keys(SPOTS).join(", ")})`;
   if (!Array.isArray(v) || (v.length !== 2 && v.length !== 4) || !v.every(isNum)) return "must be a spot name, [x, y] or [x, y, curveX, curveY]";
-  if (v[0] < -40 || v[0] > 540 || v[1] < -40 || v[1] > 470) return `[${v[0]}, ${v[1]}] is too far off the court (x -40 to 540, y -40 to 470; out of bounds is only for an inbounder)`;
+  if (v[0] < -40 || v[0] > 540 || v[1] < -40 || v[1] > ymax) return `[${v[0]}, ${v[1]}] is too far off the court (x -40 to 540, y -40 to ${ymax}; out of bounds is only for an inbounder${full ? "" : `, and y past 470 needs "court": "full"`})`;
   return "";
 }
 
 /* What a frame's ball does: "hold", "dribble", "pass", "handoff", "shot", "rebound" or "fake" (a shot fake: the ball
-   goes up and comes back down, and the holder keeps it). A dribble with "cross" switches hands: a crossover. */
+   goes up and comes back down, and the holder keeps it). A dribble with "cross" switches hands: a crossover. A pass
+   with "stolen" never gets there: a player on the other team grabs it, a steal. */
 export const ballKind = b => typeof b === "string" ? "hold" : Object.keys(BALL_KEYS).find(k => k in b);
 /* Who has the ball when a step starts, and when it ends. Nobody has it during a rebound's start or after a miss. */
 export const startHolder = b => typeof b === "string" ? b : b.dribble || b.shot || b.fake || (b.pass || b.handoff || [null])[0];
-export const endHolder = b => typeof b === "string" ? b : b.dribble || b.rebound || b.fake || (b.shot ? (b.miss ? null : b.shot) : (b.pass || b.handoff)[1]);
+export const endHolder = b => typeof b === "string" ? b : b.dribble || b.rebound || b.fake || b.stolen || (b.shot ? (b.miss ? null : b.shot) : (b.pass || b.handoff)[1]);
 
-/* Which team has the ball as step k starts: "o" (blue) until a red player grabs a rebound, then "d" (red), and
-   back to "o" after a blue rebound. Red can hold, dribble, pass and hand off, but never shoots: its basket is at the
-   other end of the court. */
+/* Which team has the ball as step k starts: "o" (blue) until a red player grabs a rebound or steals a pass, then
+   "d" (red), and back to "o" after a blue rebound or steal. Red can hold, dribble, pass and hand off, but never
+   shoots: its basket is at the other end of the court. */
 export function teamWithBall(frames, k) {
   let team = "o";
   for (let j = 1; j < k && j < frames.length; j++) {
-    const b = frames[j] && frames[j].ball;
-    if (b && typeof b === "object" && typeof b.rebound === "string") team = b.rebound[0];
+    const b = frames[j] && frames[j].ball, got = b && typeof b === "object" && (b.rebound || b.stolen);
+    if (typeof got === "string") team = got[0];
   }
   return team;
 }
@@ -76,6 +91,7 @@ export function checkPlay(p) {
   ["name", "emoji", "idea", "why", "tryit"].forEach(k => need(isText(p[k]), `"${k}" must be some text`));
   need([1, 2, 3].includes(p.level), `"level" must be 1 (Easy), 2 (Medium) or 3 (Tricky)`);
   if (p.side !== undefined) need(p.side === "offense" || p.side === "defense", `"side" must be "offense" or "defense"`);
+  if (p.court !== undefined) need(p.court === "full", `"court" must be "full" for a full-court play (leave it out for a half court)`);
   if (p.tags !== undefined) need(Array.isArray(p.tags) && p.tags.every(isText), `"tags" must be a list of words, like ["passing", "layup"]`);
   if (!need(Array.isArray(p.cast) && p.cast.length > 0 && p.cast.every(id => /^[od][1-5]$/.test(id)), `"cast" must list players like "o1" (offense) and "d1" (defense)`)) return errs;
   need(new Set(p.cast).size === p.cast.length, `"cast" lists a player twice`);
@@ -96,7 +112,7 @@ export function checkPlay(p) {
     if (need(isObj(pos), `${at}: "pos" must be an object like { "o1": "TOP" }`)) {
       Object.entries(pos).forEach(([id, v]) => {
         if (!need(inCast(id), `${at}: "${id}" is in pos but not in the cast`)) return;
-        const e = pointError(v);
+        const e = pointError(v, p.court === "full");
         need(!e, `${at}: ${id} ${e}`);
       });
       if (j === 0) p.cast.forEach(id => {
@@ -115,7 +131,9 @@ export function checkPlay(p) {
     if (kind === "hold") ok = need(ours(b), `${at}: ball holder "${b}" must be ${one}`);
     else if (kind === "dribble") ok = need(ours(b.dribble), `${at}: dribbler "${b.dribble}" must be ${one}`);
     else if (kind === "pass") ok = need(two(b.pass), `${at}: "pass" must be [from, to] with two different ${both}`) &&
-      need(!(b.bounce && b.lob), `${at}: a pass can be a bounce pass or a lob, not both`);
+      need(!(b.bounce && b.lob), `${at}: a pass can be a bounce pass or a lob, not both`) &&
+      need(b.stolen === undefined || (typeof b.stolen === "string" && inCast(b.stolen) && b.stolen[0] !== team),
+        `${at}: "stolen" must name the player on the other team who steals the pass, like "${team === "o" ? "d" : "o"}2"`);
     else if (kind === "handoff") ok = need(two(b.handoff), `${at}: "handoff" must be [from, to] with two different ${both}`);
     else if (kind === "shot") ok = need(team === "o", noShot) && need(off(b.shot), `${at}: shooter "${b.shot}" must be an offensive player in the cast`);
     else if (kind === "rebound") ok = need(inCast(b.rebound), `${at}: rebounder "${b.rebound}" must be a player in the cast`);
@@ -136,12 +154,17 @@ export function checkPlay(p) {
     }
     prevBall = ok ? b : null;
     if (ok && kind === "rebound") team = b.rebound[0];
+    if (ok && b.stolen) team = b.stolen[0];
 
     if (fr.scr !== undefined) need(Array.isArray(fr.scr) && fr.scr.every(s => Array.isArray(s) && s.length === 2 && ((off(s[0]) && def(s[1])) || (def(s[0]) && off(s[1])))),
       `${at}: "scr" must be a list of [screener, defender] pairs, like [["o3", "d2"]] (or [defender, player] for a box out)`);
     if (fr.bub !== undefined) need(isObj(fr.bub) && Object.entries(fr.bub).every(([id, t]) => inCast(id) && isText(t)),
       `${at}: "bub" must map players in the cast to short text, like { "o2": "Open!" }`);
-    if (fr.ask !== undefined && need(j > 0, `${at}: the setup can't have "ask"; put it on the step that passes to the open player`)) {
+    if (fr.face !== undefined) need(isObj(fr.face) && Object.entries(fr.face).every(([id, v]) =>
+      inCast(id) && v !== id && (inCast(v) || v === "HOOP" || (!pointError(v, p.court === "full") && (typeof v === "string" || v.length === 2)))),
+      `${at}: "face" must map players in the cast to what they turn toward: another player, "HOOP", a spot or [x, y], like { "o1": "o2" }`);
+    if (fr.ask !== undefined && need(j > 0, `${at}: the setup can't have "ask"; put it on the step that passes to the open player`) &&
+      need(!(ok && b.stolen), `${at}: a pass that gets stolen can't have "ask": nobody was open for it`)) {
       const open = askList(fr.ask);
       if (need(open.length > 0 && open.every(ours) && new Set(open).size === open.length,
         `${at}: "ask" must name the open player on the team with the ball, like "${team}2", or a list like ["${team}2", "${team}3"]`) && ok)
@@ -158,12 +181,13 @@ export function checkPlay(p) {
 
 /* ---------- Resolving a play for animation ---------- */
 
-/* Fills in every player's spot for every frame (res) plus curve control points (ctrl), when each handoff
-   happens (handoffT: the moment giver and taker are closest), where a missed shot bounces to (missAt), and which
-   side of the holder the ball is on at the end of each frame (hand: 1 right, -1 left; a crossover switches it,
-   and a new holder starts on the right). Call only on a play that passed checkPlay. */
+/* Fills in every player's spot for every frame (res) plus curve control points (ctrl), which way players with a
+   "face" are turned (face: an angle, kept until a later "face" turns them again), when each handoff happens
+   (handoffT: the moment giver and taker are closest), where a missed shot bounces to (missAt), and which side of the
+   holder the ball is on at the end of each frame (hand: 1 right, -1 left; a crossover switches it, and a new holder
+   starts on the right). Call only on a play that passed checkPlay. */
 export function resolvePlay(raw, id) {
-  const play = { id, tags: [], side: "offense", ...raw, res: [], ctrl: [], handoffT: [], missAt: [], hand: [] };
+  const play = { id, tags: [], side: "offense", ...raw, res: [], ctrl: [], face: [], handoffT: [], missAt: [], hand: [] };
   play.frames.forEach((fr, j) => {
     const r = {}, c = {}, pos = fr.pos || {};
     play.cast.forEach(pid => {
@@ -173,6 +197,14 @@ export function resolvePlay(raw, id) {
     });
     if (j === 0) play.cast.forEach(pid => { if (!r[pid]) { r[pid] = guardSpot(r["o" + pid.slice(1)]); c[pid] = null; } });
     play.res.push(r); play.ctrl.push(c);
+  });
+  play.frames.forEach((fr, j) => {
+    const f = {}, face = fr.face || {};
+    play.cast.forEach(pid => {
+      const v = face[pid], q = v === undefined ? null : v === "HOOP" ? BASKET : typeof v === "string" ? play.res[j][v] || SPOTS[v] : v, me = play.res[j][pid];
+      f[pid] = q && dist(q, me) > 1 ? Math.atan2(q[1] - me[1], q[0] - me[0]) : j > 0 ? play.face[j - 1][pid] : null;
+    });
+    play.face.push(f);
   });
   play.frames.forEach((fr, k) => {
     const b = fr.ball;
@@ -199,27 +231,45 @@ export function posAt(play, k, t, id) {
   return [a[0] + (b[0] - a[0]) * e, a[1] + (b[1] - a[1]) * e];
 }
 
+/* Which way player id faces at time t (0..1) through step k, as an angle (0 is to the right of the court, and
+   Math.PI / 2 is down toward half court), turning the short way round. null when they have no "face". */
+export function faceAt(play, k, t, id) {
+  const a = play.face && play.face[k - 1] && play.face[k - 1][id], b = play.face && play.face[k] && play.face[k][id];
+  if (b === null || b === undefined) return null;
+  if (a === null || a === undefined) return b;
+  const turn = ((b - a) % (2 * Math.PI) + 3 * Math.PI) % (2 * Math.PI) - Math.PI;
+  return a + turn * ease(t);
+}
+
+/* How far player id runs in step k, along the curve if there is one */
+export function runLength(play, k, id) {
+  let L = 0, prev = posAt(play, k, 0, id);
+  for (let i = 1; i <= 40; i++) { const q = posAt(play, k, i / 40, id); L += dist(prev, q); prev = q; }
+  return L;
+}
+
 /* ---------- Lint: checks that need a resolved play ---------- */
 
 export const MIN_GAP = 26;     // closest two player centers may get (circles have radius 17)
 export const MAX_BUBBLE = 16;  // speech bubbles get too wide past this many characters
 export const MAX_HANDOFF = 50; // giver and taker must get at least this close to hand the ball over
 export const WHERE_RADIUS = 60; // a tap this close to where the player ends up answers a "where" question
+export const MAX_RUN = 250;     // every step lasts about the same time, so a longer run looks like a player zooming
 
 /* Who is out of bounds, caption chips, bubble length, handoff distance, "Who's open?" answers, "where" moves,
-   and players overlapping mid-move. Returns { errors, warnings } as lists of messages. */
+   runs too long for one step, and players overlapping mid-move. Returns { errors, warnings } as lists of messages. */
 export function lintPlay(play) {
   const errors = [], warnings = [];
   // Only the inbounder (holding the ball off the court in the setup) may be out of bounds, and only until they step on.
-  const b0 = play.frames[0].ball, inbounder = typeof b0 === "string" ? b0 : null;
+  const b0 = play.frames[0].ball, inbounder = typeof b0 === "string" ? b0 : null, full = play.court === "full";
   let stepped = false;
   play.res.forEach((r, j) => play.cast.forEach(pid => {
-    if (pid === inbounder && onCourt(r[pid])) stepped = true;
-    if (onCourt(r[pid])) return;
+    if (pid === inbounder && onCourt(r[pid], full)) stepped = true;
+    if (onCourt(r[pid], full)) return;
     if (pid !== inbounder) errors.push(`frame ${j}: ${pid} is out of bounds; only the inbounder (the player holding the ball in the setup) can stand off the court`);
     else if (stepped) errors.push(`frame ${j}: ${pid} steps back out of bounds after coming onto the court`);
   }));
-  if (b0.dribble && !onCourt(play.res[0][b0.dribble])) errors.push(`frame 0: ${b0.dribble} can't dribble out of bounds; give them the ball as "${b0.dribble}" to inbound it`);
+  if (b0.dribble && !onCourt(play.res[0][b0.dribble], full)) errors.push(`frame 0: ${b0.dribble} can't dribble out of bounds; give them the ball as "${b0.dribble}" to inbound it`);
 
   // A "Who's open?" answer should have more space (distance to the nearest player on the other team) than every
   // other teammate without the ball at the moment the question pops up: the end of the step before.
@@ -252,6 +302,10 @@ export function lintPlay(play) {
       const t = play.handoffT[j], d = dist(posAt(play, j, t, h[0]), posAt(play, j, t, h[1]));
       if (d > MAX_HANDOFF) warnings.push(`step ${j}: ${h[0]} and ${h[1]} are ${d.toFixed(0)} apart at their closest; bring them within ${MAX_HANDOFF} to hand the ball over`);
     }
+  });
+  for (let k = 1; k < play.frames.length; k++) play.cast.forEach(pid => {
+    const L = runLength(play, k, pid);
+    if (L > MAX_RUN) warnings.push(`step ${k}: ${pid} runs ${L.toFixed(0)} in one step, so they look like they're zooming; split the run into two steps, or start closer (keep runs under ${MAX_RUN})`);
   });
   for (let k = 1; k < play.frames.length; k++) {
     const close = {};

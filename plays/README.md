@@ -33,7 +33,8 @@ lists play ids in the order to learn them, easiest first. A play can be in sever
 }
 ```
 
-`npm run build` checks that every id in `plays` is a play file here.
+`npm run build` checks that every id in `plays` is a play file here. A path has its own link, like
+`https://<you>.github.io/<repo>/#path=start-here`, which opens the path at its first play.
 
 ## Glossary
 
@@ -50,9 +51,9 @@ or plurals, and `means` is one or two short sentences a young kid can follow. Ev
 
 ## Reserved names
 
-`index.json`, `paths.json`, `glossary.json` and `bundle.json` aren't plays, so no play can have those names.
-`bundle.json` is every play in one file, so the site loads in one request. The deploy writes it and `npm start` serves
-it fresh, so you never edit or commit it.
+`index.json`, `paths.json`, `glossary.json` and `bundle.json` aren't plays, so no play can have those names (the
+checker and the play editor both say so). `bundle.json` is every play in one file, so the site loads in one request.
+The deploy writes it and `npm start` serves it fresh, so you never edit or commit it.
 
 ## A complete example
 
@@ -106,6 +107,7 @@ it fresh, so you never edit or commit it.
 | `emoji` | One emoji for the play's button. |
 | `level` | `1` Easy, `2` Medium or `3` Tricky. |
 | `side` | Optional. `"defense"` makes it a defense play: red is "your team", the legend says so, and defenders' moves get red lines. Leave it out for an offense play. |
+| `court` | Optional. `"full"` for a full-court play, like a press; see below. Leave it out for a half court. |
 | `tags` | Optional. Words people might search for, like `"screen"` or `"layup"`. Shown as buttons that find similar plays. |
 | `idea` | One-sentence summary, shown big under the name. |
 | `why` | The "Why it works" paragraph. |
@@ -143,11 +145,15 @@ it fresh, so you never edit or commit it.
 The 3-point line is 237.5 units from the basket, and straight along the sides in the corners (x < 30 or x > 470 while y < 142).
 Shots score 2 or 3 automatically from where the shooter stands.
 
+Every step takes about the same time (1.8 seconds when someone moves), so keep each player's move in a step under 250
+units, 25 feet. A longer run looks like the player is zooming past everyone: split it into two steps, or start closer.
+
 ## Frame fields
 
 | Field | What it is |
 | --- | --- |
 | `pos` | Where players move to during this step. A spot name, `[x, y]`, or `[x, y, curveX, curveY]` to bend the path through a control point. Players you leave out stay where they are. Frame 0 must place every offensive player; a defender left out of frame 0 starts guarding their matching player. |
+| `face` | Optional. Which way players turn by the end of this step, like `{ "o1": "o2" }`: toward another player, `"HOOP"`, a spot name or `[x, y]`. See "Facing" below. |
 | `ball` | What the ball does in this step; see the table below. The ball must start each step with whoever had it when the step before ended. |
 | `scr` | Optional. Screens, as `[screener, defender]` pairs like `[["o3", "d2"]]`, or `[defender, player]` for a box out like `[["d5", "o5"]]`. Draws the yellow wall. Repeat it in every frame the screen is held. |
 | `bub` | Optional. Speech bubbles like `{ "o2": "Open!" }`. They pop up 30% into the step. Keep them to about 16 characters. |
@@ -163,10 +169,11 @@ Shots score 2 or 3 automatically from where the shooter stands.
 | `{ "dribble": "o1" }` | o1 dribbles. Add `"cross": true` for a crossover: the ball bounces across to o1's other hand early in the step, and stays there until o1 passes or shoots. |
 | `{ "fake": "o1" }` | o1 does a shot fake: lifts the ball like a shot, then brings it back down and keeps it. |
 | `{ "pass": ["o1", "o2"] }` | o1 passes to o2. Add `"bounce": true` for a bounce pass, or `"lob": true` for a high lob pass over the defense. |
+| `{ "pass": ["o1", "o3"], "stolen": "d3" }` | o1 throws to o3, but d3 steals it: the ball flies to d3, and now red has the ball. Move the stealer into the passing lane in the same step, like the end of `corner-trap.json`. A stolen pass can't have `ask`, and red can steal from blue or blue from red. |
 | `{ "handoff": ["o1", "o2"] }` | o1 hands the ball to o2 as they run close by. The ball changes hands at the moment the two are closest, so move them past each other (within 50 units). |
 | `{ "shot": "o1" }` | o1 shoots and scores. Only allowed in the last step. |
 | `{ "shot": "o1", "miss": true }` | o1 shoots and misses. The next step must be a rebound. |
-| `{ "rebound": "d5" }` | d5 (or any player) grabs the missed shot. After a red rebound, red has the ball: red players can hold, dribble, pass and hand off (but not shoot, since red's basket is at the other end), like the outlet pass in `rebound-and-outlet.json`. |
+| `{ "rebound": "d5" }` | d5 (or any player) grabs the missed shot. After a red rebound (or a steal), red has the ball: red players can hold, dribble, pass and hand off (but not shoot, since red's basket is at the other end), like the outlet pass in `rebound-and-outlet.json`. |
 
 The setup (frame 0) can only hold or dribble, and can't cross over.
 
@@ -181,6 +188,22 @@ good ending: see `box-out.json`. For a box out, list the defender first in `scr`
 Most defense plays ask `where` questions, like "Where should X2 go?" before a defender slides over to help (see
 `help-side.json`). Once red has the ball after a rebound, an `ask` can be about red players too, like who's open for
 the outlet pass.
+
+## Full-court plays
+
+Add `"court": "full"` and the court goes on past half court (y = 470) to the far baseline at y = 940, with red's hoop
+at (250, 887.5). Blue still shoots at the top hoop, and red never shoots. Spot names are all on the top half. The site
+shows a half-court-sized window that follows the ball, so keep the passes that matter within about 400 units of each
+other; the editor and the print sheet show the whole court. After red scores, blue inbounds from past the far
+baseline, like `"o4": [330, 966]` (y up to 980). See `press-break.json` and `diamond-press.json`.
+
+## Facing
+
+Players are circles with no front or back, so add `face` when it matters which way someone is turned, like a pivot.
+`"face": { "o1": "o2" }` turns o1 toward o2 by the end of the step; the target can also be `"HOOP"`, a spot name or
+`[x, y]`. A player with a `face` gets a little nose on their circle that shows which way they face, and keeps facing
+that way until a later `face` turns them again. They turn the short way round. A ball holder who faces somewhere holds
+the ball out in front, so turning your back to a defender puts the ball on the far side: see `pivot-and-protect.json`.
 
 ## Inbound plays
 
@@ -239,10 +262,12 @@ player would count as right (the checker fails it).
 
 ## What `npm run build` checks
 
-- Every field is there and has the right kind of value, spot names exist, and positions are on the half court (or just off it for an inbounder).
+- The file name is lowercase words joined by dashes, and isn't one of the reserved names above.
+- Every field is there and has the right kind of value, spot names exist, and positions are on the court (or just off it for an inbounder).
 - Only the inbounder is ever out of bounds, and they don't step back out once they're on the court.
 - The ball moves sensibly from step to step: a made shot only in the last step, a missed shot followed by a rebound, and after a red rebound only red players have the ball, and red never shoots.
 - Players in a handoff get within 50 units of each other (a warning).
+- Nobody runs more than 250 units in one step (a warning).
 - An `ask` names players on the team with the ball who don't have it, and isn't on the setup. If the answer isn't the most open player when the question pops up, that's a warning.
 - A `where` names a player on your team who moves more than 70 units in that step, isn't on the setup, and isn't on the same step as an `ask`.
 - Caption chips like `{3}` refer to players in the cast.
@@ -256,3 +281,4 @@ player would count as right (the checker fails it).
 - Short, friendly sentences in sentence case.
 - Move the defenders too. The play makes more sense when you see them react.
 - If a player has to get around someone, give their move a curve instead of running straight through.
+- Keep each move under 25 feet (250 units). Two short steps read better than one long sprint.

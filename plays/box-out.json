@@ -10,13 +10,14 @@
   "cast": ["d1", "d4", "d5", "o1", "o4", "o5"],
   "frames": [
     {
-      "pos": { "o1": "TOP", "o4": [150, 150], "o5": [350, 150], "d4": [190, 175], "d5": [310, 175] },
+      "pos": { "o1": "TOP", "o4": [150, 150], "o5": [350, 150], "d4": [188, 190], "d5": [312, 190] },
       "ball": "o1",
-      "say": "This time you’re on defense! {1} has the ball. {X4} and {X5} step toward the middle to watch the ball."
+      "say": "This time you’re on defense! {1} has the ball. {X4} and {X5} step toward the middle to watch the ball. When a shot goes up, every defender has a job."
     },
     {
-      "pos": { "d1": [250, 306], "o4": [165, 128], "d4": [187, 108], "o5": [335, 128], "d5": [313, 108] },
+      "pos": { "d1": [250, 306], "o4": [165, 128], "d4": [187, 108, 210, 140], "o5": [335, 128], "d5": [313, 108, 290, 140] },
       "ball": { "shot": "o1", "miss": true },
+      "where": "d5",
       "scr": [["d4", "o4"], ["d5", "o5"]],
       "bub": { "d1": "Hands up!", "d5": "Box out!" },
       "say": "{1} shoots and misses! {X4} and {X5} turn, find their player, and push back with their backs. That’s a *box out*."

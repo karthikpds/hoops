@@ -3,8 +3,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
 import {
-  BASKET, DATA_FILES, SPOTS, askList, ballKind, checkGlossary, checkPaths, checkPlay, dist, lookUp, teamWithBall, endHolder, formatPlay, guardSpot, isThree, lintPlay,
-  posAt, resolvePlay, searchPlays, startHolder
+  BASKET, DATA_FILES, MAX_RUN, SPOTS, askList, ballKind, checkGlossary, checkPaths, checkPlay, dist, lookUp, teamWithBall, endHolder, faceAt, formatPlay, guardSpot, idError, isThree, lintPlay,
+  onCourt, posAt, resolvePlay, runLength, searchPlays, startHolder
 } from "../js/playbook.js";
 
 const DIR = new URL("../plays/", import.meta.url);
@@ -32,6 +32,10 @@ test("every play in plays/ passes the checks and the lint", () => {
     const play = all.find(p => p.id === f.slice(0, -5));
     assert.deepEqual(lintPlay(play).errors, [], f);
   }
+});
+
+test("no play has a run too long for one step", () => {
+  for (const play of all) assert.deepEqual(lintPlay(play).warnings.filter(w => w.includes("in one step")), [], play.id);
 });
 
 test("plays/index.json lists every play exactly once", () => {
@@ -201,6 +205,75 @@ test("checkPlay handles screens, box outs, bubbles and questions", () => {
   hasError(errorsFor(p => { p.frames[2].ask = "o1"; }), `"ask" names o1, who has the ball`);
   hasError(errorsFor(p => { p.frames[2].ask = "d2"; }), `"ask" must name the open player`);
   assert.deepEqual(errorsFor(p => { p.cast.push("o3"); p.frames[0].pos.o3 = "LW"; p.frames[2].ask = ["o2", "o3"]; }), []);
+});
+
+test("a stolen pass gives the ball to the other team", () => {
+  const steal = more => p => { p.frames[2].ball = { pass: ["o1", "o2"], stolen: "d2" }; delete p.frames[2].ask; p.frames[3] = { ball: { dribble: "d2" }, say: "Go." }; if (more) more(p); };
+  assert.deepEqual(errorsFor(steal()), []);
+  const p = base(); steal()(p);
+  assert.deepEqual([1, 2, 3].map(k => teamWithBall(p.frames, k)), ["o", "o", "d"], "red has the ball from the step after the steal");
+  assert.equal(endHolder({ pass: ["o1", "o2"], stolen: "d2" }), "d2");
+  assert.equal(startHolder({ pass: ["o1", "o2"], stolen: "d2" }), "o1");
+  hasError(errorsFor(steal(p => { p.frames[2].ball.stolen = "o1"; })), `"stolen" must name the player on the other team`);
+  hasError(errorsFor(steal(p => { p.frames[2].ball.stolen = "d5"; })), `"stolen" must name the player on the other team`);
+  hasError(errorsFor(steal(p => { p.frames[2].ask = "o2"; })), "a pass that gets stolen can't have \"ask\"");
+  hasError(errorsFor(steal(p => { p.frames[3] = { ball: { shot: "d2" }, say: "Shot." }; })), "red can't shoot here");
+  hasError(errorsFor(steal(p => { p.frames[3] = { ball: "o2", say: "Hold." }; })), `ball holder "o2" must be a red player`);
+  // and blue can steal it right back
+  assert.deepEqual(errorsFor(steal(p => { p.frames[3] = { ball: { pass: ["d2", "d1"], stolen: "o1" }, say: "Back." }; p.frames[4] = { ball: { shot: "o1" }, say: "Shot." }; })), []);
+});
+
+test("a full-court play can use the whole court", () => {
+  const full = more => p => { p.court = "full"; if (more) more(p); };
+  assert.deepEqual(errorsFor(full(p => { p.frames[1].pos.o2 = [400, 800]; })), []);
+  hasError(errorsFor(p => { p.frames[1].pos.o2 = [400, 800]; }), `y past 470 needs "court": "full"`);
+  hasError(errorsFor(full(p => { p.frames[1].pos.o2 = [400, 990]; })), "too far off the court");
+  hasError(errorsFor(p => { p.court = "half"; }), `"court" must be "full"`);
+  assert.ok(onCourt([250, 900], true) && !onCourt([250, 900]) && !onCourt([250, 950], true));
+  // an inbounder may start past the far baseline
+  const p = base(); full()(p); p.frames[0].pos.o1 = [330, 966]; p.frames[0].pos.d1 = [300, 912]; p.frames[1].pos.o1 = [330, 880];
+  assert.deepEqual(checkPlay(p), []);
+  assert.deepEqual(lintPlay(resolvePlay(p, "t")).errors, []);
+  p.frames[1].pos.o2 = [415, 960];
+  hasError(lintPlay(resolvePlay(p, "t")).errors, "o2 is out of bounds");
+  assert.match(formatPlay(p), /"level": 1,\n  "court": "full",\n  "idea"/, "court comes right after level and side");
+});
+
+test("players can face a player, the hoop, a spot or a point, and turn the short way", () => {
+  const p = base();
+  p.frames[0].face = { o1: "HOOP" };
+  p.frames[1].face = { o1: "o2", o2: "LC" };
+  p.frames[2].face = { o2: [450, 300] };
+  assert.deepEqual(checkPlay(p), []);
+  const pl = resolvePlay(p, "t"), deg = a => Math.round(a * 180 / Math.PI);
+  assert.equal(deg(pl.face[0].o1), -90, "facing the hoop, straight up the court");
+  assert.equal(pl.face[0].o2, null, "no face, no facing");
+  assert.equal(deg(pl.face[2].o1), deg(pl.face[1].o1), "a facing lasts until another face");
+  assert.equal(deg(pl.face[2].o2), 90);
+  assert.equal(faceAt(pl, 1, 0, "o2"), pl.face[1].o2, "a player with no facing before just appears facing");
+  // -90 to 180 is a quarter turn the short way, through -135
+  const q = base(); q.frames[0].face = { o1: "HOOP" }; q.frames[1].face = { o1: [100, 335] };
+  const r = resolvePlay(q, "t");
+  assert.equal(deg(faceAt(r, 1, .5, "o1")), -135);
+  hasError(errorsFor(p => { p.frames[1].face = { o1: "o1" }; }), `"face" must map players`);
+  hasError(errorsFor(p => { p.frames[1].face = { o1: "o3" }; }), `"face" must map players`);
+  hasError(errorsFor(p => { p.frames[1].face = { o1: [1, 2, 3, 4] }; }), `"face" must map players`);
+  hasError(errorsFor(p => { p.frames[1].face = { o3: "HOOP" }; }), `"face" must map players`);
+});
+
+test("lintPlay warns about a run too long for one step", () => {
+  const p = base(); p.frames[1].pos.o2 = [40, 120];
+  const pl = resolvePlay(p, "t");
+  assert.ok(runLength(pl, 1, "o2") > MAX_RUN);
+  hasError(lintPlay(pl).warnings, "step 1: o2 runs 393 in one step");
+  p.frames[1].pos.o2 = [415, 238, 500, 100];  // a curve back to where they started still runs a long way
+  assert.ok(runLength(resolvePlay(p, "t"), 1, "o2") > 50);
+});
+
+test("idError keeps play names away from the site's own files", () => {
+  assert.equal(idError("pick-and-roll"), "");
+  assert.match(idError("Pick and Roll"), /lowercase words joined by dashes/);
+  for (const f of DATA_FILES) assert.match(idError(f.slice(0, -5)), /is taken/);
 });
 
 test("ball helpers", () => {

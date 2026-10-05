@@ -27,10 +27,17 @@
       "say": "{3} pops out toward the corner and {2} runs up to the top. {X2} and {X3} get stuck on the screens!"
     },
     {
-      "pos": { "d5": [418, 122, 360, 190], "o5": [285, 92] },
+      "pos": { "d5": [418, 122, 360, 190] },
       "ball": "o1",
+      "bub": { "d5": "Stop!" },
+      "say": "{X5} jumps out to stop {3}. Now nobody is guarding {5}!"
+    },
+    {
+      "pos": { "o5": [272, 80] },
+      "ball": "o1",
+      "where": "o5",
       "bub": { "o5": "Open!" },
-      "say": "{X5} jumps out to stop {3}, so {5} turns and dives to the hoop."
+      "say": "{5} turns and dives to the hoop."
     },
     {
       "ball": { "pass": ["o1", "o5"] },

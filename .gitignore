@@ -3,3 +3,5 @@ node_modules/
 .claude/settings.local.json
 # Built by the deploy (node tools/build.js --bundle) and served fresh by npm start
 plays/bundle.json
+# Written by the deploy (node tools/share.js --images) and made on the fly by npm start
+p/

@@ -3,9 +3,9 @@
   "emoji": "🪤",
   "level": 3,
   "side": "defense",
-  "tags": ["defense", "trap", "double team", "corner", "rotate", "team defense"],
+  "tags": ["defense", "trap", "double team", "corner", "rotate", "steal", "team defense"],
   "idea": "When the dribbler goes into the corner, two defenders trap them, and the sideline and baseline do the rest.",
-  "why": "In the corner, the sideline and the baseline work like two more defenders: the dribbler can't step out. With two defenders in front, they can't dribble or see over to pass, so they have to throw a long, slow pass, and a defender who rotated over can get there in time.",
+  "why": "In the corner, the sideline and the baseline work like two more defenders: the dribbler can't step out. With two defenders in front, they can't dribble or see over to pass, so they have to throw a long, slow pass, and a defender who rotated over can step in and steal it.",
   "tryit": "Trappers: stand hip to hip so there's no gap to split, with your hands high, but don't reach. Everyone else: move toward the ball and guard the closest passing lane.",
   "cast": ["d1", "d2", "d3", "o1", "o2", "o3"],
   "frames": [
@@ -15,23 +15,29 @@
       "say": "You’re on defense. {1} has the ball on the wing. Red wants {1} to dribble toward the corner."
     },
     {
-      "pos": { "o1": [452, 128, 470, 190], "d1": [425, 150] },
+      "pos": { "o1": [452, 128, 470, 190], "d1": [425, 150], "d2": [305, 268] },
       "ball": { "dribble": "o1" },
       "bub": { "d1": "Baseline!" },
-      "say": "{X1} stays on the inside, so {1} dribbles down toward the corner."
+      "say": "{X1} stays on the inside, so {1} dribbles down toward the corner. {X2} slides toward the ball, ready to help."
     },
     {
-      "pos": { "d2": [424, 104, 360, 150], "d1": [436, 160], "d3": [262, 250] },
+      "pos": { "d2": [424, 104, 370, 170], "d1": [436, 160], "d3": [262, 250] },
       "ball": "o1",
       "where": "d2",
       "bub": { "d1": "Trap!", "d2": "Trap!" },
       "say": "*Trap!* {X2} leaves {2} and runs over to trap {1} with {X1}. {X3} slides to the middle to guard two players at once."
     },
     {
-      "pos": { "d3": [120, 225] },
-      "ball": { "pass": ["o1", "o3"] },
+      "pos": { "d3": [150, 218] },
+      "ball": { "pass": ["o1", "o3"], "stolen": "d3" },
       "bub": { "d3": "Got it!" },
-      "say": "{1} is stuck, so {1} throws a long, slow pass over to {3}. {X3} gets there in time!"
+      "say": "{1} is stuck, so {1} throws a long, slow pass over to {3}. {X3} jumps into the *passing lane* and *steals* it!"
+    },
+    {
+      "pos": { "d3": [175, 415, 120, 330], "d2": [400, 330, 330, 200], "o3": [120, 300] },
+      "ball": { "dribble": "d3" },
+      "bub": { "d3": "Go!" },
+      "say": "Now red has the ball! {X3} dribbles the other way, toward red's hoop, and {X2} races up the court too. A good trap gets the ball back."
     }
   ]
 }

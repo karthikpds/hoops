@@ -247,6 +247,9 @@ dialog.glossary::backdrop{background:rgba(10,18,35,.55)}
 .pl .sh{fill:rgba(40,20,0,.2)}
 .pl .body{stroke:#fff;stroke-width:3}
 .po .body{fill:#2459E0} .pd .body{fill:#E0294A}
+/* The nose that shows which way a player faces (only for players with a "face") */
+.pl .face{stroke:#fff;stroke-width:3;stroke-linejoin:round}
+.po .face{fill:#2459E0} .pd .face{fill:#E0294A}
 .pl .lbl{fill:#fff;font-family:var(--font);font-weight:700;font-size:17px;pointer-events:none}
 .pd .lbl{font-size:12.5px}
 .pl .halo{fill:rgba(255,201,60,.25);stroke:#FFC93C;stroke-width:3;opacity:0;transform-box:fill-box;transform-origin:center;transition:opacity .15s}
@@ -334,6 +337,7 @@ dialog.glossary::backdrop{background:rgba(10,18,35,.55)}
   .ps-grid figure{margin:0;break-inside:avoid}
   .ps-grid svg{display:block;width:100%;height:auto;border:1px solid #C9D2DE;border-radius:8px}
   .ps-grid figcaption{font-size:12px;line-height:1.4;margin-top:5px}
+  .ps-q{display:block;margin-top:4px;padding:3px 7px;border-radius:7px;background:var(--accent-soft);font-weight:500;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .print-sheet .lines *{stroke:#8E99A8}
   .print-sheet .hooplbl{fill:#56627A}
   .ps-notes{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:16px;break-inside:avoid}

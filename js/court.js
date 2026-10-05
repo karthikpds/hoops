@@ -1,6 +1,6 @@
 // Court drawing shared by the page (js/app.js), the play editor (js/editor.js) and the print sheet.
 // Everything here builds SVG markup as strings and touches no DOM, so it also runs in Node for the tests.
-import { BASKET as B, dist, ease, posAt, teamWithBall } from "./playbook.js";
+import { BASKET as B, courtEnd, dist, ease, faceAt, posAt, teamWithBall } from "./playbook.js";
 
 export const f1 = v => v.toFixed(1);
 export const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
@@ -18,24 +18,41 @@ const LINES = `<g class="lines">
   <path d="M158 72 H170 M158 100 H170 M158 128 H170 M158 156 H170 M330 72 H342 M330 100 H342 M330 128 H342 M330 156 H342"/>
 </g>`;
 
+const hoop = id => `<line class="board" x1="220" y1="40" x2="280" y2="40"/><line class="board-arm" x1="250" y1="40" x2="250" y2="45"/>
+<path class="net"${id} d="M243.5 56 L246.5 70 H253.5 L256.5 56 M246.5 70 L250 58 L253.5 70"/><circle class="rim" cx="250" cy="52.5" r="7.5"/>`;
+
 /* Floor, paint, lines, backboard, rim and net. The page's court (main) gets the wood floor and the net's id
-   for the swish; copies on the print sheet and in the editor get a plain floor. */
-export function courtBackground(main = false) {
+   for the swish; copies on the print sheet and in the editor get a plain floor. A full court adds the far half,
+   the same lines flipped, with red's hoop at the bottom. */
+export function courtBackground(main = false, full = false) {
+  const H = full ? 940 : 470, apron = `<rect class="apron" x="-80" y="-80" width="660" height="${H + 130}"/>`;
   const floor = main
     ? `<defs><pattern id="wood" width="44" height="470" patternUnits="userSpaceOnUse"><rect class="floor" width="44" height="470"/><rect class="floor2" x="22" width="22" height="470"/><rect class="plank" x="0" width="1" height="470"/></pattern></defs>
-<rect class="apron" x="-80" y="-80" width="660" height="600"/><rect x="0" y="0" width="500" height="470" fill="url(#wood)"/>`
-    : `<rect class="apron" x="-80" y="-80" width="660" height="600"/><rect class="floor" x="0" y="0" width="500" height="470"/>`;
-  return `${floor}<rect class="paint" x="170" y="0" width="160" height="190"/>${LINES}
-<line class="board" x1="220" y1="40" x2="280" y2="40"/><line class="board-arm" x1="250" y1="40" x2="250" y2="45"/>
-<path class="net"${main ? ' id="net"' : ""} d="M243.5 56 L246.5 70 H253.5 L256.5 56 M246.5 70 L250 58 L253.5 70"/>
-<circle class="rim" cx="250" cy="52.5" r="7.5"/><text class="hooplbl" x="292" y="30">Hoop</text>`;
+${apron}<rect x="0" y="0" width="500" height="${H}" fill="url(#wood)"/>`
+    : `${apron}<rect class="floor" x="0" y="0" width="500" height="${H}"/>`;
+  const half = id => `<rect class="paint" x="170" y="0" width="160" height="190"/>${LINES}\n${hoop(id)}`;
+  return `${floor}${half(main ? ' id="net"' : "")}<text class="hooplbl" x="292" y="30">Hoop</text>` +
+    (full ? `<g transform="translate(0 940) scale(1 -1)">${half("")}</g><text class="hooplbl" x="208" y="921" text-anchor="end">Red’s hoop</text>` : "");
 }
 
-/* The half court plus a thin apron, widened on any side where an inbounder stands out of bounds: [x0, y0, x1, y1] */
+/* The whole court plus a thin apron, widened on any side where an inbounder stands out of bounds: [x0, y0, x1, y1] */
 export function courtView(play) {
-  let x0 = -14, y0 = -14, x1 = 514;
-  play.res.forEach(r => Object.values(r).forEach(q => { x0 = Math.min(x0, q[0] - 26); y0 = Math.min(y0, q[1] - 26); x1 = Math.max(x1, q[0] + 26); }));
-  return [x0, y0, x1, 484];
+  const full = play.court === "full";
+  let x0 = -14, y0 = -14, x1 = 514, y1 = courtEnd(play) + 14;
+  play.res.forEach(r => Object.values(r).forEach(q => {
+    x0 = Math.min(x0, q[0] - 26); y0 = Math.min(y0, q[1] - 26); x1 = Math.max(x1, q[0] + 26);
+    if (full) y1 = Math.max(y1, q[1] + 26);
+  }));
+  return [x0, y0, x1, y1];
+}
+/* A full court is too tall to show at once, so the page shows a window as tall as the half court, centered on y
+   (where the ball is) and kept on the court. A half court always shows all of it. */
+export const WINDOW_H = 498;
+export function cameraView(play, y) {
+  const v = courtView(play);
+  if (play.court !== "full") return v;
+  const y0 = Math.max(v[1], Math.min(v[3] - WINDOW_H, y - WINDOW_H / 2));
+  return [v[0], y0, v[2], y0 + WINDOW_H];
 }
 
 /* Timeline position p → step k and time t (0..1) within it. p = 0 is the setup. */
@@ -137,7 +154,11 @@ export function stepPaths(play, j, follow = "") {
     const type = screeners.includes(id) ? "screen" : dribbler === id ? "dribble" : "cut";
     h += wrap([id], drawMove(sampleQ(a[id], c[id], b[id]), type, { team: id[0] }));
   });
-  if (bl.pass) { const [x, y] = bl.pass; h += wrap(bl.pass, drawMove(sampleQ(a[x], bl.lob ? lobBend(a[x], b[y]) : null, b[y], bl.lob ? 30 : 10), "pass", { bounce: bl.bounce })); }
+  if (bl.pass) {
+    // A stolen pass ends where the stealer grabs it
+    const [x] = bl.pass, y = bl.stolen || bl.pass[1];
+    h += wrap([...bl.pass, y], drawMove(sampleQ(a[x], bl.lob ? lobBend(a[x], b[y]) : null, b[y], bl.lob ? 30 : 10), "pass", { bounce: bl.bounce }));
+  }
   if (bl.handoff) {
     const [x, y] = bl.handoff, t = play.handoffT[j];
     h += wrap(bl.handoff, handoffMark(posAt(play, j, t, x), posAt(play, j, t, y)));
@@ -157,15 +178,27 @@ export function pathsUpTo(play, stepIdx, follow = "") {
 
 /* Where the ball sits next to player q: on their right (side 1) or left (side -1) */
 export const handG = (q, side = 1) => [q[0] + 12 * side, q[1] + 6];
+/* The same for player id during step k at time t, for a player who faces a way ("face"): held out in front of them,
+   a little to the side of the hand it's in, so a player who turns their back to a defender keeps the ball away from
+   them. It's held low and clear of the circle, because the ball is drawn lifted by its height. A dribble stays at
+   their side. */
+const faced = (play, k, t, id) => faceAt(play, k, t, id) !== null;
+function handAt(play, k, t, P, id, side = 1, dribble = false) {
+  const a = faceAt(play, k, t, id), q = P[id];
+  if (a === null) return handG(q, side);
+  const r = a + side * (dribble ? Math.PI / 2 : .5), d = dribble ? 13 : 21;
+  return [q[0] + d * Math.cos(r), q[1] + d * Math.sin(r)];
+}
 /* Where the ball is during step k at time t: ground spot g, height h, scale s, and who holds it (if anyone).
    P holds everyone's position at that moment; now (ms) makes a dribble bounce. */
 export function ballState(play, k, t, P, now = 0) {
   const b = play.frames[k].ball, e = ease(t), side = k > 0 && play.hand ? play.hand[k - 1] : 1;
+  const hand = (id, sd = 1) => handAt(play, k, t, P, id, sd);
   let g, h, s = 1, holder = null;
   if (typeof b === "string" || b.dribble) {
     holder = typeof b === "string" ? b : b.dribble;
-    g = handG(P[holder], side);
-    h = b.dribble ? 15 * Math.abs(Math.sin(now / 190)) : 13;
+    g = handAt(play, k, t, P, holder, side, !!b.dribble);
+    h = b.dribble ? 15 * Math.abs(Math.sin(now / 190)) : faced(play, k, t, holder) ? 3 : 13;
     if (b.cross) {
       // Crossover: early in the step the ball bounces low across the front of the body to the other hand
       const u = Math.max(0, Math.min(1, (t - .1) / .3)), q = P[holder];
@@ -176,25 +209,26 @@ export function ballState(play, k, t, P, now = 0) {
     // Shot fake: the ball goes up like a shot, then comes right back down, and the holder keeps it
     holder = b.fake;
     const u = Math.max(0, Math.min(1, t / .6)), up = Math.sin(Math.PI * u);
-    g = handG(P[holder], side);
+    g = hand(holder, side);
     h = 13 + 30 * up; s = 1 + .2 * up;
   } else if (b.pass) {
-    const ga = handG(P[b.pass[0]], side), gc = handG(P[b.pass[1]]);
+    // A stolen pass flies to the stealer instead of the teammate it was meant for
+    const to = b.stolen || b.pass[1], ga = hand(b.pass[0], side), gc = hand(to);
     g = [ga[0] + (gc[0] - ga[0]) * e, ga[1] + (gc[1] - ga[1]) * e];
     h = b.bounce ? (e < .6 ? 13 * (1 - e / .6) : 13 * (e - .6) / .4) : 13 + (b.lob ? 60 : 6) * Math.sin(Math.PI * e);
     if (b.lob) s = 1 + .35 * Math.sin(Math.PI * e);
-    holder = t < .03 ? b.pass[0] : (t > .97 ? b.pass[1] : null);
+    holder = t < .03 ? b.pass[0] : (t > .97 ? to : null);
   } else if (b.handoff) {
     // The ball changes hands around the moment the two are closest
     const T = play.handoffT[k], u = Math.max(0, Math.min(1, (t - T + .06) / .12));
-    const ga = handG(P[b.handoff[0]], side), gc = handG(P[b.handoff[1]]);
+    const ga = hand(b.handoff[0], side), gc = hand(b.handoff[1]);
     g = [ga[0] + (gc[0] - ga[0]) * u, ga[1] + (gc[1] - ga[1]) * u];
     h = 13 + 3 * Math.sin(Math.PI * u);
     holder = u <= 0 ? b.handoff[0] : u >= 1 ? b.handoff[1] : null;
   } else if (b.shot) {
     // A miss flies to the rim like a shot, then pops up and off toward the rebounder
     const tt = b.miss ? Math.min(1, t / .75) : t;
-    const gs = handG(P[b.shot], side), d = dist(gs, B), H = Math.min(95, 22 + d * .28);
+    const gs = hand(b.shot, side), d = dist(gs, B), H = Math.min(95, 22 + d * .28);
     g = [gs[0] + (B[0] - gs[0]) * tt, gs[1] + (B[1] - gs[1]) * tt];
     h = 13 * (1 - tt) + H * Math.sin(Math.PI * tt);
     s = (1 + .45 * Math.sin(Math.PI * tt) * (H / 95)) * (1 - .12 * tt);
@@ -205,7 +239,7 @@ export function ballState(play, k, t, P, now = 0) {
     }
     holder = t < .03 ? b.shot : null;
   } else if (b.rebound) {
-    const u = Math.min(1, t / .7), eu = ease(u), m = play.missAt[k - 1], gr = handG(P[b.rebound]);
+    const u = Math.min(1, t / .7), eu = ease(u), m = play.missAt[k - 1], gr = hand(b.rebound);
     g = [m[0] + (gr[0] - m[0]) * eu, m[1] + (gr[1] - m[1]) * eu];
     h = 34 * (1 - eu) + 13 * eu + 10 * Math.sin(Math.PI * eu);
     holder = u >= 1 ? b.rebound : null;
@@ -233,34 +267,61 @@ export function wallsSVG(list, P) {
     return `<line class="wall-u" ${xy}/><line class="wall" ${xy}/>`;
   }).join("");
 }
-/* Bubbles showing at p, and how faded in they are: they pop up 30% into their step */
+/* Bubbles showing at p, how faded in they are (they pop up 30% into their step), and where everyone stands at the
+   end of that step (at, for bubbleBoxes) */
 export function bubblesAt(play, p) {
-  if (p <= 0) return { bub: play.frames[0].bub, op: 1 };
+  if (p <= 0) return { bub: play.frames[0].bub, op: 1, at: play.res[0] };
   const { k, t } = stepAt(p);
-  return t > .3 ? { bub: play.frames[k].bub, op: Math.min(1, (t - .3) / .15) } : { bub: null, op: 1 };
+  return t > .3 ? { bub: play.frames[k].bub, op: Math.min(1, (t - .3) / .15), at: play.res[k] } : { bub: null, op: 1, at: play.res[k] };
 }
 function bubblePath(x, y, w, h, px, up) {
   const r = 11; px = Math.max(x + r + 7, Math.min(x + w - r - 7, px));
   if (!up) return `M${x + r} ${y} H${x + w - r} Q${x + w} ${y} ${x + w} ${y + r} V${y + h - r} Q${x + w} ${y + h} ${x + w - r} ${y + h} H${px + 6} L${px} ${y + h + 7} L${px - 6} ${y + h} H${x + r} Q${x} ${y + h} ${x} ${y + h - r} V${y + r} Q${x} ${y} ${x + r} ${y} Z`;
   return `M${x + r} ${y} H${px - 6} L${px} ${y - 7} L${px + 6} ${y} H${x + w - r} Q${x + w} ${y} ${x + w} ${y + r} V${y + h - r} Q${x + w} ${y + h} ${x + w - r} ${y + h} H${x + r} Q${x} ${y + h} ${x} ${y + h - r} V${y + r} Q${x} ${y} ${x + r} ${y} Z`;
 }
-/* Speech bubbles above (or, near the top of the view, below) each speaker, kept inside view vb */
-export function bubblesSVG(bub, P, vb, op = 1) {
-  return Object.keys(bub || {}).map(id => {
-    const q = P[id], txt = bub[id], bw = txt.length * 7.2 + 20, bh = 25;
-    let x = Math.max(vb[0] + 4, Math.min(vb[2] - 4 - bw, q[0] - bw / 2)), y = q[1] - 54, up = false;
-    if (y < vb[1] + 4) { y = q[1] + 29; up = true; }
-    return `<g class="bub ${id[0]}" opacity="${f1(op)}"><path d="${bubblePath(x, y, bw, bh, q[0], up)}"/><text x="${f1(x + bw / 2)}" y="${f1(y + bh / 2 + .5)}" text-anchor="middle" dominant-baseline="central">${esc(txt)}</text></g>`;
-  }).join("");
+/* Where each speech bubble goes, kept inside view vb: above its speaker if there's room, else below. When two
+   players stand close, a bubble would cover the other player or their bubble, so it tries below, then a little to
+   either side, and keeps the spot that covers the least. The spots are picked from where everyone stands at the
+   end of the step (at), so a bubble doesn't jump around while its speaker runs, then placed at P. */
+export function bubbleBoxes(bub, P, vb, at = P) {
+  const h = 25, placed = [], picked = [];
+  const box = (id, q, shift, up) => {
+    const w = bub[id].length * 7.2 + 20, y = up ? q[1] + 29 : q[1] - 54;
+    return { id, txt: bub[id], q, w, h, up, y: Math.max(vb[1] + 4, Math.min(vb[3] - 4 - h, y)), x: Math.max(vb[0] + 4, Math.min(vb[2] - 4 - w, q[0] - w / 2 + shift * w)) };
+  };
+  const cover = (a, x, y, w, hh) => Math.max(0, Math.min(a.x + a.w, x + w) - Math.max(a.x, x)) * Math.max(0, Math.min(a.y + a.h, y + hh) - Math.max(a.y, y));
+  Object.keys(bub || {}).forEach(id => {
+    const q = at[id] || P[id];
+    let best = null;
+    [0, -.35, .35].forEach((shift, si) => [false, true].forEach(up => {
+      const room = up ? q[1] + 29 + h <= vb[3] - 4 : q[1] - 54 >= vb[1] + 4;
+      if (!room && (up || q[1] + 29 + h <= vb[3] - 4)) return;  // no room above: use below, unless there's no room there either
+      const b = box(id, q, shift, up);
+      let score = si + (up ? .5 : 0);  // ties go to above, then to the middle
+      Object.entries(at).forEach(([pid, p]) => { if (pid !== id) score += cover(b, p[0] - 19, p[1] - 19, 38, 38); });
+      picked.forEach(o => { score += 2 * cover(b, o.x - 6, o.y - 6, o.w + 12, o.h + 12); });
+      if (!best || score < best.score) best = { ...b, shift, score };
+    }));
+    picked.push(best);
+    placed.push(box(id, P[id], best.shift, best.up));
+  });
+  return placed;
+}
+export function bubblesSVG(bub, P, vb, op = 1, at = P) {
+  return bubbleBoxes(bub, P, vb, at).map(({ id, txt, q, x, y, w, h, up }) =>
+    `<g class="bub ${id[0]}" opacity="${f1(op)}"><path d="${bubblePath(x, y, w, h, q[0], up)}"/><text x="${f1(x + w / 2)}" y="${f1(y + h / 2 + .5)}" text-anchor="middle" dominant-baseline="central">${esc(txt)}</text></g>`
+  ).join("");
 }
 
 /* ---------- Players ---------- */
 
-/* A player's circle. The page moves it with a transform; static pictures pass the spot as at. */
-export function playerSVG(id, at, cls = "") {
+/* A player's circle, with a nose that points the way they face (hidden for a player with no "face"). The page moves
+   and turns it with transforms; static pictures pass the spot as at and the facing angle as face. */
+export function playerSVG(id, at, cls = "", face = null) {
   const off = id[0] === "o", num = id.slice(1);
   return `<g class="pl ${off ? "po" : "pd"}${cls ? " " + cls : ""}" data-id="${id}"${at ? ` transform="translate(${f1(at[0])} ${f1(at[1])})"` : ""}><g class="in">` +
-    `<circle class="halo" r="25"/>${off ? '<circle class="ring" r="24"/>' : ""}<circle class="sh" cx="1.5" cy="3.5" r="17"/><circle class="body" r="17"/>` +
+    `<circle class="halo" r="25"/>${off ? '<circle class="ring" r="24"/>' : ""}<circle class="sh" cx="1.5" cy="3.5" r="17"/>` +
+    `<path class="face" d="M12 -9.5 L29 0 L12 9.5 Z"${face === null ? ' display="none"' : ` transform="rotate(${f1(face * 180 / Math.PI)})"`}/><circle class="body" r="17"/>` +
     `<text class="lbl" y="1" text-anchor="middle" dominant-baseline="central">${off ? num : "X" + num}</text></g></g>`;
 }
 export function ballSVG(bs) {
@@ -271,14 +332,15 @@ export function ballSVG(bs) {
 }
 
 /* A still picture of the play at timeline position p, as a complete <svg>: used by the print sheet and the editor.
-   lines: draw movement lines; bubbles: draw speech bubbles; follow: fade everyone else. */
-export function renderCourt(play, p, { lines = true, bubbles = true, follow = "", label = "" } = {}) {
-  const { k, t } = stepAt(p), stepIdx = p <= 0 ? 0 : k, P = playersAt(play, k, t), vb = courtView(play);
+   lines: draw movement lines; bubbles: draw speech bubbles; follow: fade everyone else; view: the part of the
+   court to show as [x0, y0, x1, y1] (all of it, if left out). */
+export function renderCourt(play, p, { lines = true, bubbles = true, follow = "", label = "", view = null } = {}) {
+  const { k, t } = stepAt(p), stepIdx = p <= 0 ? 0 : k, P = playersAt(play, k, t), vb = view || courtView(play);
   let bs = null;
   try { bs = ballState(play, k, t, P); } catch { /* an unfinished play in the editor can have a broken ball */ }
-  const players = play.cast.map(id => playerSVG(id, P[id], [bs && bs.holder === id ? "has" : "", follow && follow !== id ? "dim" : ""].filter(Boolean).join(" "))).join("");
+  const players = play.cast.map(id => playerSVG(id, P[id], [bs && bs.holder === id ? "has" : "", follow && follow !== id ? "dim" : ""].filter(Boolean).join(" "), faceAt(play, k, t, id))).join("");
   const b = bubbles ? bubblesAt(play, p) : { bub: null };
   return `<svg xmlns="http://www.w3.org/2000/svg" class="court" viewBox="${vb[0]} ${vb[1]} ${vb[2] - vb[0]} ${vb[3] - vb[1]}" role="img"${label ? ` aria-label="${esc(label)}"` : ""}>` +
-    courtBackground() + (lines ? pathsUpTo(play, stepIdx, follow) : "") + wallsSVG(screensAt(play, p), P) + players +
-    (bs ? ballSVG(bs) : "") + (b.bub ? bubblesSVG(b.bub, P, vb, b.op) : "") + `</svg>`;
+    courtBackground(false, play.court === "full") + (lines ? pathsUpTo(play, stepIdx, follow) : "") + wallsSVG(screensAt(play, p), P) + players +
+    (bs ? ballSVG(bs) : "") + (b.bub ? bubblesSVG(b.bub, P, vb, b.op, b.at) : "") + `</svg>`;
 }

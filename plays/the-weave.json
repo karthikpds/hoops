@@ -26,6 +26,7 @@
     {
       "pos": { "o2": [385, 200], "o1": [270, 120], "o3": [130, 175] },
       "ball": { "handoff": ["o2", "o1"] },
+      "where": "o1",
       "say": "{2} hands it to {1}, who is running straight at the basket."
     },
     {

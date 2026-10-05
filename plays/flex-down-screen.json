@@ -26,18 +26,23 @@
       "say": "*Flex screen:* {5} steps out from the block and screens {X3}."
     },
     {
-      "pos": { "o3": [182, 90, 420, 40], "d4": [165, 265] },
+      "pos": { "o3": [325, 88, 410, 50] },
       "ball": "o4",
       "scr": [["o5", "d3"]],
-      "bub": { "d4": "No pass!" },
-      "say": "{3} cuts along the baseline, but {X4} jumps in the way with hands up. {4} can't pass inside."
+      "say": "{3} cuts along the baseline, right past {5}, and {X3} bumps into the screen."
     },
     {
-      "pos": { "o1": [375, 195, 395, 270], "o5": [345, 290, 488, 250], "d3": [215, 112, 470, 30], "d1": [352, 225] },
+      "pos": { "o3": [182, 90, 255, 70], "d4": [165, 265], "d3": [372, 62, 470, 45] },
+      "ball": "o4",
+      "bub": { "d4": "No pass!" },
+      "say": "But {X4} jumps in the way with hands up, so {4} can't pass inside to {3}. {X3} gets around the screen."
+    },
+    {
+      "pos": { "o1": [375, 195, 395, 270], "o5": [345, 290, 488, 250], "d3": [215, 112, 290, 70], "d1": [352, 225] },
       "ball": "o4",
       "scr": [["o1", "d5"]],
       "bub": { "o5": "Open!", "d5": "Stuck!" },
-      "say": "*Down screen:* {1} runs down and screens {X5}, and {5} pops up to the top. {X5} is stuck, and {X3} runs back to {3}."
+      "say": "*Down screen:* {1} runs down and screens {X5}, and {5} pops up to the top. {X5} is stuck, and {X3} catches up to {3}."
     },
     {
       "ball": { "pass": ["o4", "o5"] },

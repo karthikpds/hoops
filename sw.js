@@ -3,7 +3,7 @@
 // Online, every request goes to the network first, so a new deploy shows up right away; the saved copy is used
 // when the network fails or takes longer than NET_WAIT. Registered by saveForOffline() in js/library.js.
 
-const CACHE = "hoops-v1";        // the site's files; change the name to throw the old copy away
+const CACHE = "hoops-v2";        // the site's files; change the name to throw the old copy away
 const FONTS = "hoops-fonts-v1";  // Google Fonts' CSS and font files
 const NET_WAIT = 4000;           // ms to wait for the network before using the saved copy
 
@@ -52,7 +52,8 @@ self.addEventListener("fetch", event => {
 });
 
 /* The network's answer when it comes in time (and save it), else the saved copy. A page that was never saved
-   gets the saved home page, so the play list still opens offline. */
+   gets the saved home page, so the play list still opens offline; a play's share page (p/<id>/, from tools/share.js)
+   goes straight to the play instead, since the home page's links wouldn't work from that folder. */
 async function networkFirst(req) {
   const cache = await caches.open(CACHE);
   const net = fetch(req).then(res => {
@@ -61,8 +62,11 @@ async function networkFirst(req) {
   });
   const res = await Promise.race([net, new Promise(ok => setTimeout(ok, NET_WAIT, null))]).catch(() => null);
   if (res) return res;
-  const saved = await cache.match(req, { ignoreSearch: true }) || (req.mode === "navigate" ? await cache.match("./") : undefined);
-  return saved || net;  // nothing saved: keep waiting for the network
+  const saved = await cache.match(req, { ignoreSearch: true });
+  if (saved || req.mode !== "navigate") return saved || net;  // nothing saved: keep waiting for the network
+  const play = new URL(req.url).pathname.match(/\/p\/([a-z0-9-]+)\/(index\.html)?$/);
+  if (play) return new Response(`<!doctype html><meta charset="utf-8"><script>location.replace("../../#${play[1]}")</script>`, { headers: { "content-type": "text/html; charset=utf-8" } });
+  return await cache.match("./") || net;
 }
 
 /* Fonts never change, so use the saved copy when there is one */

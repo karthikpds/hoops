@@ -1,7 +1,7 @@
 // The play editor (editor.html): drag players step by step, set the ball, screens, bubbles and captions,
 // check the play with the same rules as npm run build, and save it as a plays/<id>.json file.
 // Nothing is kept in the browser: the play lives in this page until it's copied or downloaded.
-import { SPOTS, askList, ballKind, checkPlay, dist, endHolder, formatPlay, lintPlay, normalize, resolvePlay, teamWithBall } from "./playbook.js";
+import { DATA_FILES, SPOTS, askList, ballKind, checkPlay, dist, endHolder, formatPlay, idError, lintPlay, normalize, resolvePlay, teamWithBall } from "./playbook.js";
 import { renderCourt } from "./court.js";
 import { loadLibrary, saveForOffline } from "./library.js";
 
@@ -44,13 +44,14 @@ const options = (ids, cur, extra = []) => [...extra, ...ids.map(id => [id, name(
 
 /* ---------- The play as a file ---------- */
 
-/* What gets saved: no empty pos, bub or scr, no empty tags, and no "side" for an offense play */
+/* What gets saved: no empty pos, face, bub or scr, no empty tags, no "side" for an offense play and no "court" for a half court */
 function cleaned() {
   const p = structuredClone(play);
   if (!p.tags || !p.tags.length) delete p.tags;
   if (p.side !== "defense") delete p.side;
+  if (p.court !== "full") delete p.court;
   p.frames.forEach(fr => {
-    ["pos", "bub"].forEach(k => { if (fr[k] && !Object.keys(fr[k]).length) delete fr[k]; });
+    ["pos", "face", "bub"].forEach(k => { if (fr[k] && !Object.keys(fr[k]).length) delete fr[k]; });
     if (fr.scr && !fr.scr.length) delete fr.scr;
   });
   return p;
@@ -70,7 +71,12 @@ function safeBall(b, d, j) {
   if (kind === "hold") return off(b) ? b : fallback;
   if (kind === "dribble") return !off(b.dribble) ? fallback : j === 0 && b.cross ? { dribble: b.dribble } : b;
   if (kind === "fake") return off(b.fake) ? b : fallback;
-  if (kind === "pass" || kind === "handoff") return Array.isArray(b[kind]) && b[kind].length === 2 && b[kind].every(off) && b[kind][0] !== b[kind][1] ? b : fallback;
+  if (kind === "pass" || kind === "handoff") {
+    if (!(Array.isArray(b[kind]) && b[kind].length === 2 && b[kind].every(off) && b[kind][0] !== b[kind][1])) return fallback;
+    if (b.stolen === undefined || (inCast(b.stolen) && b.stolen[0] !== tm)) return b;
+    const { stolen, ...rest } = b;  // a stealer who isn't on the other team: draw a plain pass
+    return rest;
+  }
   if (kind === "shot") {
     if (!off(b.shot) || tm !== "o") return fallback;
     const nb = d.frames[j + 1] && d.frames[j + 1].ball, rebound = !!nb && typeof nb === "object" && inCast(nb.rebound);
@@ -97,6 +103,8 @@ function drawable() {
     });
     fr.scr = (fr.scr || []).filter(s => Array.isArray(s) && s.length === 2 && s.every(inCast) && s[0] !== s[1]);
     fr.bub = Object.fromEntries(Object.entries(fr.bub || {}).filter(([id, t]) => inCast(id) && typeof t === "string" && t));
+    fr.face = Object.fromEntries(Object.entries(fr.face || {}).filter(([id, v]) => inCast(id) && v !== id &&
+      (inCast(v) || v === "HOOP" || (okPoint(v) && (typeof v === "string" || v.length === 2)))));
     fr.say = typeof fr.say === "string" ? fr.say : "";
     fr.ball = safeBall(fr.ball, d, j);
   });
@@ -134,7 +142,7 @@ function svgPoint(e) {
 }
 /* Round, keep on (or just off) the court, and snap to a named spot when close to one */
 function placeAt(q) {
-  const v = [Math.round(Math.max(-40, Math.min(540, q[0]))), Math.round(Math.max(-40, Math.min(470, q[1])))];
+  const v = [Math.round(Math.max(-40, Math.min(540, q[0]))), Math.round(Math.max(-40, Math.min(play.court === "full" ? 980 : 470, q[1])))];
   const spot = Object.keys(SPOTS).find(s => dist(v, SPOTS[s]) < 9);
   return spot || v;
 }
@@ -242,34 +250,42 @@ function deleteStep() {
 /* ---------- This step's form ---------- */
 
 const KINDS = [["hold", "Holds it"], ["dribble", "Dribbles"], ["cross", "Crossover dribble"], ["fake", "Shot fake"], ["pass", "Passes"],
-  ["bounce", "Bounce pass"], ["lob", "Lob pass"], ["handoff", "Hands it off"], ["shot", "Shoots and scores"], ["miss", "Shoots and misses"], ["rebound", "Grabs the rebound"]];
+  ["bounce", "Bounce pass"], ["lob", "Lob pass"], ["steal", "Pass gets stolen"], ["handoff", "Hands it off"], ["shot", "Shoots and scores"], ["miss", "Shoots and misses"], ["rebound", "Grabs the rebound"]];
 function kindOf(b) {
   let k = null;
   try { k = ballKind(b); } catch { return "hold"; }
+  if (k === "pass" && b.stolen) return "steal";
   if (k === "pass" && b.bounce) return "bounce";
   if (k === "pass" && b.lob) return "lob";
   if (k === "dribble" && b.cross) return "cross";
   if (k === "shot" && b.miss) return "miss";
   return k || "hold";
 }
-const twoPlayers = k => k === "pass" || k === "bounce" || k === "lob" || k === "handoff";
+const twoPlayers = k => k === "pass" || k === "bounce" || k === "lob" || k === "steal" || k === "handoff";
 function ballPlayers(b) {
   if (typeof b === "string") return [b];
   if (!b || typeof b !== "object") return [];
   return b.pass || b.handoff || [b.dribble || b.shot || b.rebound || b.fake];
 }
-function makeBall(kind, a, b) {
+function makeBall(kind, a, b, c) {
   return { hold: a, dribble: { dribble: a }, cross: { dribble: a, cross: true }, fake: { fake: a }, pass: { pass: [a, b] }, bounce: { pass: [a, b], bounce: true }, lob: { pass: [a, b], lob: true },
-    handoff: { handoff: [a, b] }, shot: { shot: a }, miss: { shot: a, miss: true }, rebound: { rebound: a } }[kind];
+    steal: { pass: [a, b], stolen: c }, handoff: { handoff: [a, b] }, shot: { shot: a }, miss: { shot: a, miss: true }, rebound: { rebound: a } }[kind];
 }
 
 function renderStepForm() {
   const fr = play.frames[sel], form = $("stepForm");
   // offense here means the team with the ball at this step: blue, or red after a red rebound (red can't shoot)
   const red = teamWithBall(play.frames, sel) === "d", offense = play.cast.filter(id => id[0] === (red ? "d" : "o"));
-  const kind = kindOf(fr.ball), [a, b] = ballPlayers(fr.ball);
-  const kinds = sel === 0 ? KINDS.slice(0, 2) : red ? KINDS.filter(([k]) => !["fake", "shot", "miss"].includes(k)) : KINDS;
-  const setBall = (k, x, y) => { fr.ball = makeBall(k, x, y); changed(true); };
+  const others = play.cast.filter(id => id[0] !== (red ? "d" : "o"));  // who can steal a pass
+  const kind = kindOf(fr.ball), [a, b] = ballPlayers(fr.ball), c = fr.ball && fr.ball.stolen || others[0];
+  const kinds = (sel === 0 ? KINDS.slice(0, 2) : red ? KINDS.filter(([k]) => !["fake", "shot", "miss"].includes(k)) : KINDS)
+    .filter(([k]) => k !== "steal" || others.length);
+  const setBall = (k, x, y, z = c) => {
+    const old = fr.ball;
+    fr.ball = makeBall(k, x, y, z);
+    if (k === "steal" && old && (old.lob || old.bounce)) fr.ball[old.lob ? "lob" : "bounce"] = true;  // a stolen lob stays a lob
+    changed(true);
+  };
   const who = kind === "rebound" ? play.cast : offense;
 
   const ballRow = h("div", { class: "ed-row" },
@@ -285,7 +301,9 @@ function renderStepForm() {
     h("label", { class: "ed-field ed-inline" }, h("span", {}, twoPlayers(kind) ? "From" : "Player"),
       h("select", { onchange: e => setBall(kind, e.target.value, b) }, options(who, a))),
     twoPlayers(kind) ? h("label", { class: "ed-field ed-inline" }, h("span", {}, "To"),
-      h("select", { onchange: e => setBall(kind, a, e.target.value) }, options(offense, b))) : null);
+      h("select", { onchange: e => setBall(kind, a, e.target.value) }, options(offense, b))) : null,
+    kind === "steal" ? h("label", { class: "ed-field ed-inline" }, h("span", {}, "Stolen by"),
+      h("select", { onchange: e => setBall(kind, a, b, e.target.value) }, options(others, c))) : null);
 
   // One question per step: "ask" (who's open for this pass) or "where" (where does a player on your team run this step)
   const mine = play.cast.filter(id => id[0] === (play.side === "defense" ? "d" : "o"));
@@ -325,6 +343,21 @@ function renderStepForm() {
     fr.bub = { ...bub, [id]: "Open!" }; changed(true);
   } }, "+ Add a speech bubble");
 
+  // Facing: a player turns toward another player, the hoop or a spot (a nose on their circle shows which way)
+  const face = fr.face || {};
+  const targets = id => [["HOOP", "the hoop"], ...play.cast.filter(x => x !== id).map(x => [x, name(x)]), ...SPOT_ORDER.map(s => [s, s])];
+  const faceRows = Object.entries(face).map(([id, v]) => h("div", { class: "ed-row" },
+    h("select", { "aria-label": "Who turns", onchange: e => { const nv = e.target.value; if (nv !== id && !(nv in face)) { delete face[id]; face[nv] = v === nv ? "HOOP" : v; } changed(true); } }, options(play.cast, id)),
+    h("span", {}, "faces"),
+    h("select", { "aria-label": "What they turn toward", onchange: e => { face[id] = e.target.value; changed(true); } },
+      ...(Array.isArray(v) ? [h("option", { value: "", selected: true, disabled: true }, `[${v.join(", ")}]`)] : []),
+      targets(id).map(([val, t]) => h("option", { value: val, selected: val === v }, t))),
+    h("button", { type: "button", class: "ed-x", "aria-label": "Remove this facing", onclick: () => { delete face[id]; changed(true); } }, "✕")));
+  const addFace = h("button", { type: "button", class: "linkbtn", onclick: () => {
+    const id = play.cast.find(x => !(x in face) && x[0] === "o") || play.cast.find(x => !(x in face)); if (!id) return;
+    fr.face = { ...face, [id]: "HOOP" }; changed(true);
+  } }, "+ Turn a player to face somewhere");
+
   const moved = Object.keys(fr.pos || {}).filter(id => play.cast.includes(id));
   const moves = sel === 0
     ? h("div", { class: "ed-row" }, h("button", { type: "button", class: "linkbtn", onclick: () => {
@@ -341,6 +374,7 @@ function renderStepForm() {
       h("small", {}, "Type {1} for a blue player, {X1} for a red one, and *word* to highlight a word.")),
     h("h4", {}, "Screens and box outs"), ...scrRows, addScr,
     h("h4", {}, "Speech bubbles"), ...bubRows, addBub,
+    h("h4", {}, "Which way players face"), ...faceRows, addFace,
     h("h4", {}, "Who moves"), moves,
     h("div", { class: "ed-row ed-step-actions" },
       h("button", { type: "button", class: "btn", onclick: addStep }, "Add a step after this"),
@@ -353,6 +387,7 @@ function renderStepForm() {
 function fillPlayForm() {
   $("fName").value = play.name || ""; $("fId").value = fileId; $("fEmoji").value = play.emoji || "";
   $("fLevel").value = String(play.level || 1); $("fSide").value = play.side === "defense" ? "defense" : "offense";
+  $("fCourt").value = play.court === "full" ? "full" : "half";
   $("fTags").value = (play.tags || []).join(", ");
   $("fIdea").value = play.idea || ""; $("fWhy").value = play.why || ""; $("fTry").value = play.tryit || "";
   $("cast").replaceChildren(...IDS.map(id => h("label", { class: `ed-check ${id[0]}` },
@@ -384,6 +419,7 @@ bind("fId", v => { fileId = v.trim(); idTouched = true; });
 bind("fEmoji", v => { play.emoji = v; });
 bind("fLevel", v => { play.level = +v; });
 bind("fSide", v => { play.side = v; });
+bind("fCourt", v => { if (v === "full") play.court = "full"; else delete play.court; });
 bind("fTags", v => { play.tags = v.split(",").map(t => t.trim()).filter(Boolean); });
 bind("fIdea", v => { play.idea = v; });
 bind("fWhy", v => { play.why = v; });
@@ -392,8 +428,8 @@ bind("fTry", v => { play.tryit = v; });
 /* ---------- Checks and the file ---------- */
 
 function check() {
-  const p = cleaned(), list = [];
-  if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(fileId)) list.push(["error", `file name must be lowercase words joined by dashes, like "pick-and-roll"`]);
+  const p = cleaned(), list = [], bad = idError(fileId);
+  if (bad) list.push(["error", bad]);
   const errs = checkPlay(p);
   errs.forEach(m => list.push(["error", m]));
   if (!errs.length) {
@@ -442,6 +478,8 @@ $("btnCopy").addEventListener("click", async () => {
   catch { $("out").select(); $("saveTip").textContent = "Press Ctrl+C (or ⌘C) to copy"; }
 });
 $("btnDownload").addEventListener("click", () => {
+  // A file named like paths.json would overwrite the site's own file when it's saved into plays/
+  if (DATA_FILES.includes(`${fileId}.json`)) { $("saveTip").textContent = `Pick another file name: ${fileId}.json is taken`; return; }
   const url = URL.createObjectURL(new Blob([$("out").value], { type: "application/json" }));
   const a = h("a", { href: url, download: `${fileId || "my-play"}.json` });
   document.body.append(a); a.click(); a.remove();

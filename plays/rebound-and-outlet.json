@@ -39,7 +39,7 @@
       "say": "*Outlet pass:* {X5} throws it out to {X1}, right away."
     },
     {
-      "pos": { "d1": [440, 420], "d2": [125, 420, 150, 290], "d5": [262, 330, 270, 200] },
+      "pos": { "d1": [440, 420], "d2": [125, 420, 150, 290], "d5": [262, 322, 270, 200] },
       "ball": { "dribble": "d1" },
       "bub": { "d1": "Go!" },
       "say": "{X1} dribbles up the court fast, and {X2} and {X5} race up too. Rebound, outlet, go: that's how a fast break starts!"

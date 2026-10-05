@@ -3,7 +3,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { checkPlay, dist, resolvePlay } from "../js/playbook.js";
-import { ballState, courtView, pathsUpTo, playersAt, renderCourt, screensAt, stepAt, stepPaths } from "../js/court.js";
+import { WINDOW_H, ballState, bubbleBoxes, cameraView, courtBackground, courtView, pathsUpTo, playersAt, renderCourt, screensAt, stepAt, stepPaths } from "../js/court.js";
 
 const load = id => resolvePlay(JSON.parse(readFileSync(new URL(`../plays/${id}.json`, import.meta.url), "utf8")), id);
 const count = (s, part) => s.split(part).length - 1;
@@ -116,4 +116,51 @@ test("renderCourt draws a complete still picture", () => {
   assert.ok(!svg.includes('id="net"'), "copies don't repeat the page's ids");
   assert.equal(count(renderCourt(play, 3, { lines: false }), 'class="mv '), 0);
   assert.ok(renderCourt(play, 3).includes('class="wall"'));
+});
+
+test("a stolen pass flies to the stealer, and its line ends there", () => {
+  const stolen = { ...raw, side: "offense", frames: [raw.frames[0], { pos: { d2: [370, 260] }, ball: { pass: ["o1", "o2"], stolen: "d2" }, say: "Steal." }] };
+  assert.deepEqual(checkPlay(stolen), []);
+  const p = resolvePlay(stolen, "s"), end = ballState(p, 1, 1, playersAt(p, 1, 1));
+  assert.equal(end.holder, "d2");
+  assert.ok(dist(end.g, [370, 260]) < 15, "the ball ends in the stealer's hands");
+  const line = stepPaths(p, 1).match(/class="mv pass" d="([^"]+)"/)[1].split(" L").pop().split(" ").map(Number);
+  assert.ok(dist(line, [370, 260]) < 30, "the pass line points at the stealer");
+});
+
+test("a full court draws both halves, and the page's view follows the ball", () => {
+  const full = load("press-break");
+  assert.equal(count(courtBackground(false, true), 'class="rim"'), 2, "two hoops");
+  assert.equal(count(courtBackground(), 'class="rim"'), 1);
+  assert.ok(courtBackground(true, true).includes('id="net"') && count(courtBackground(true, true), 'id="net"') === 1, "only the top net swishes");
+  const v = courtView(full);
+  assert.ok(v[3] >= 954, "the whole court, down to past the far baseline");
+  const low = cameraView(full, 900), high = cameraView(full, 60);
+  assert.equal(low[3] - low[1], WINDOW_H); assert.equal(high[3] - high[1], WINDOW_H);
+  assert.equal(low[3], v[3], "near the far baseline the view stops at the bottom");
+  assert.equal(high[1], v[1], "near the hoop it stops at the top");
+  assert.deepEqual(cameraView(load("give-and-go"), 200), courtView(load("give-and-go")), "a half court always shows all of it");
+  assert.match(renderCourt(full, 0), /viewBox="-14 -14 528 \d+"/);
+});
+
+test("a player who faces a way gets a nose, and holds the ball in front", () => {
+  const p = load("pivot-and-protect");
+  assert.ok(renderCourt(p, 0).includes('class="face" d="M12 -9.5 L29 0 L12 9.5 Z" transform="rotate(-90.0)"'), "facing the hoop at the start");
+  assert.equal(count(renderCourt(p, 0), 'class="face" d="M12 -9.5 L29 0 L12 9.5 Z" display="none"'), 3, "the others have no nose");
+  const at = (k, t) => { const P = playersAt(p, k, t); return [ballState(p, k, t, P).g, P.o1, P.d1]; };
+  const [b0, o0, d0] = at(1, 1), [b2, o2, d2] = at(2, 1);
+  assert.ok(dist(b0, d0) < dist(o0, d0), "facing the defender, the ball is closer to them than the player is");
+  assert.ok(dist(b2, d2) > dist(o2, d2), "after the pivot, the player's body is between them and the ball");
+});
+
+test("speech bubbles don't cover each other or a nearby player", () => {
+  const vb = [-14, -14, 514, 484], P = { o1: [250, 300], d1: [250, 266], o2: [100, 300] };
+  const [a] = bubbleBoxes({ o2: "Open!" }, P, vb);
+  assert.equal(a.up, false, "a bubble goes above its speaker when there's room");
+  const [b, c] = bubbleBoxes({ o1: "This way!", d1: "Slide!" }, P, vb);
+  const hit = (r, q) => r.x < q[0] + 17 && q[0] - 17 < r.x + r.w && r.y < q[1] + 17 && q[1] - 17 < r.y + r.h;
+  assert.ok(!hit(b, P.d1), "o1's bubble moves off the defender standing right above");
+  assert.ok(!(b.x < c.x + c.w && c.x < b.x + b.w && b.y < c.y + c.h && c.y < b.y + b.h), "and off d1's bubble");
+  const near = { o1: [250, 300], d1: [250, 266] }, far = { o1: [250, 300], d1: [400, 266] };
+  assert.equal(bubbleBoxes({ o1: "Hi" }, far, vb, near)[0].up, bubbleBoxes({ o1: "Hi" }, near, vb)[0].up, "the spot is picked from where players end the step");
 });

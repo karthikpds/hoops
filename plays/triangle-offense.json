@@ -18,9 +18,15 @@
       "say": "{1} passes to {2} on the wing."
     },
     {
-      "pos": { "o1": [472, 92, 310, 190], "o5": [325, 137], "o3": "TOP", "o4": [150, 165] },
+      "pos": { "o1": [360, 200, 320, 270], "o5": [325, 137] },
       "ball": "o2",
-      "say": "*Inside cut:* {1} cuts to the corner. {5} slides over to the post, {3} fills the top, and {4} moves to the other side."
+      "say": "*Inside cut:* {1} cuts inside, between {2} and the basket. {5} slides over to the post."
+    },
+    {
+      "pos": { "o1": "RC", "o3": "TOP", "o4": [150, 165] },
+      "ball": "o2",
+      "where": "o1",
+      "say": "{1} keeps going to the corner. {3} fills the top, and {4} moves to the other side."
     },
     {
       "ball": "o2",

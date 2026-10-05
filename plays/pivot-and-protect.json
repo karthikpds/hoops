@@ -1,0 +1,48 @@
+{
+  "name": "Pivot & Protect",
+  "emoji": "🔄",
+  "level": 1,
+  "tags": ["pivot", "protect the ball", "jump stop", "footwork", "fundamentals", "passing"],
+  "idea": "When a defender is right on you, keep one foot still, spin on it, and keep your body between the defender and the ball.",
+  "why": "After a jump stop you can't take a step, but you can pivot: one foot stays glued to the floor while the other steps around it. Turning your back to the defender puts your whole body between their hands and the ball, and gives you time to find a teammate.",
+  "tryit": "Jump stop, then pick one foot to be your pivot foot. With a partner reaching for the ball, pivot so your back is to them, keeping the ball tight to your chest. Then pivot to face a teammate and pass.",
+  "cast": ["d1", "d2", "o1", "o2"],
+  "frames": [
+    {
+      "pos": { "o1": [250, 300], "o2": "LW", "d1": [252, 250] },
+      "face": { "o1": "HOOP" },
+      "ball": "o1",
+      "say": "{1} just caught the ball with a *jump stop*, facing the hoop. Now {1} can't take a step, and {X1} is close."
+    },
+    {
+      "pos": { "d1": [253, 266] },
+      "ball": "o1",
+      "bub": { "d1": "Mine!" },
+      "say": "{X1} steps in and reaches. Look: the ball is right in front of {1}, close to {X1}'s hands."
+    },
+    {
+      "face": { "o1": [250, 470] },
+      "ball": "o1",
+      "bub": { "o1": "Pivot!" },
+      "say": "*Pivot:* {1} keeps one foot still and spins on it, turning their back to {X1}. Now the ball is on the far side of {1}."
+    },
+    {
+      "pos": { "d1": [290, 300, 292, 262] },
+      "face": { "o1": [150, 300] },
+      "ball": "o1",
+      "bub": { "d1": "Hey!", "o1": "Protect!" },
+      "say": "{X1} reaches around, so {1} pivots again to keep the ball away. That's *protecting* the ball: keep your body between it and the defender."
+    },
+    {
+      "pos": { "o2": [115, 345] },
+      "face": { "o1": "o2" },
+      "ball": "o1",
+      "bub": { "o2": "Here!" },
+      "say": "{2} steps out to get open, and {1} pivots to face {2}, still keeping one foot down."
+    },
+    {
+      "ball": { "pass": ["o1", "o2"], "bounce": true },
+      "say": "{1} bounce-passes to {2}. Pivot, protect the ball, then find a teammate!"
+    }
+  ]
+}

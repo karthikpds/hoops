@@ -18,9 +18,14 @@
       "say": "{2} passes into the *post* to {5}."
     },
     {
-      "pos": { "o1": [105, 70, 300, -10], "d1": [150, 100, 300, 66] },
+      "pos": { "o1": [300, 30, 430, 22], "d1": [355, 68] },
       "ball": "o5",
-      "say": "{1} cuts along the baseline to the other side, and {X1} has to chase."
+      "say": "*Baseline cut:* {1} runs along the baseline, right under the basket, and {X1} has to chase."
+    },
+    {
+      "pos": { "o1": [105, 70, 200, 20], "d1": [150, 100, 255, 78] },
+      "ball": "o5",
+      "say": "{1} keeps going, all the way to the other side. {X1} follows, so nobody can help on {5}."
     },
     {
       "pos": { "o2": [200, 170, 360, 200], "d2": [330, 240] },

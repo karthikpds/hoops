@@ -1,0 +1,44 @@
+{
+  "name": "Diamond Press",
+  "emoji": "💎",
+  "level": 3,
+  "side": "defense",
+  "court": "full",
+  "tags": ["defense", "press", "full court", "trap", "passing lane", "steal", "team defense"],
+  "idea": "Guard the whole court in a diamond, called a 1-2-1-1 press: let the pass come in, trap it in the corner, and steal the pass that comes out.",
+  "why": "A trapped player can't dribble, and it's hard to see over two defenders. The only way out is a long, high pass, and long passes are slow. With every other red player guarding a passing lane, someone gets there first.",
+  "tryit": "Walk through the five spots first: one on the ball, two wings, one in the middle and one deep. When the pass goes into the corner, the closest two trap, and the other three each slide to guard a passing lane.",
+  "cast": ["d1", "d2", "d3", "d4", "d5", "o1", "o2", "o3", "o4", "o5"],
+  "frames": [
+    {
+      "pos": { "o4": [330, 966], "o1": [160, 860], "o2": [370, 830], "o5": [250, 650], "o3": [70, 560], "d4": [300, 912], "d1": [175, 800], "d2": [360, 770], "d5": [250, 590], "d3": [250, 330] },
+      "ball": "o4",
+      "bub": { "d4": "Front", "d5": "Middle", "d3": "Deep" },
+      "say": "You’re on defense, and red just scored at its hoop, at the far end. Now red *presses* in a diamond: {X4} in front, {X1} and {X2} on the wings, {X5} in the middle and {X3} deep."
+    },
+    {
+      "pos": { "o1": [95, 885], "d1": [140, 840] },
+      "ball": { "pass": ["o4", "o1"] },
+      "say": "Red lets the pass come in to the corner. That's where red wants the ball!"
+    },
+    {
+      "pos": { "d4": [140, 915], "d1": [125, 845], "o4": [290, 900], "d5": [105, 680], "d2": [280, 730], "d3": [200, 430] },
+      "ball": "o1",
+      "where": "d4",
+      "bub": { "d4": "Trap!", "d1": "Trap!" },
+      "say": "*Trap!* {X4} and {X1} trap {1} in the corner. {X5} slides to the sideline, {X2} to the middle, and {X3} stays deep."
+    },
+    {
+      "pos": { "d5": [82, 618] },
+      "ball": { "pass": ["o1", "o3"], "lob": true, "stolen": "d5" },
+      "bub": { "d5": "Mine!" },
+      "say": "{1} is stuck, so {1} throws a long, high pass up the sideline. {X5} is right in the *passing lane* and *steals* it!"
+    },
+    {
+      "pos": { "d5": [190, 790, 120, 730], "d2": [250, 860] },
+      "ball": { "dribble": "d5" },
+      "bub": { "d5": "Go!" },
+      "say": "Now red has the ball, right by its own hoop! {X5} dribbles in and {X2} runs to the hoop. That's how a press turns a trap into easy points."
+    }
+  ]
+}

@@ -16,11 +16,16 @@
       "say": "You’re on defense, and blue just stole the ball! Now blue is racing toward our basket."
     },
     {
+      "pos": { "o1": [250, 385], "o2": [98, 350], "o3": [402, 350], "d1": [268, 290, 305, 390], "d2": [148, 320], "d3": [352, 320] },
+      "ball": { "dribble": "o1" },
+      "bub": { "d1": "Back!" },
+      "say": "*Sprint back!* Red turns and runs the moment blue gets the ball. {X1} races past {1}."
+    },
+    {
       "pos": { "o1": [250, 300], "o2": [95, 250], "o3": [405, 250], "d1": [250, 140], "d2": [150, 200], "d3": [350, 200] },
       "ball": { "dribble": "o1" },
       "where": "d1",
-      "bub": { "d1": "Back!" },
-      "say": "*Sprint back!* Red runs back faster than the ball. {X1} races all the way to the basket."
+      "say": "Red runs back faster than the ball. {X1} goes all the way to the basket."
     },
     {
       "pos": { "o1": [250, 232], "o2": [70, 160], "o3": [430, 160], "d1": [250, 198], "d2": [99, 143], "d3": [401, 143] },

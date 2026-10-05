@@ -50,7 +50,7 @@
         <span class="pp-lbl">Path</span>
         <select id="pathSel" aria-label="Learning path"><option value="">All plays</option></select>
       </label>
-      <p class="pathabout" id="pathAbout" hidden></p>
+      <p class="pathabout" id="pathAbout" hidden><span id="pathAboutTxt"></span> <button type="button" class="linkbtn" id="btnPathLink">Copy a link to this path</button></p>
       <span class="count" id="count" aria-live="polite"></span>
       <p class="wordcard" id="wordCard" hidden></p>
     </div>
@@ -66,7 +66,7 @@
       <section class="stage" aria-label="Play animation">
         <div class="courtwrap">
           <svg id="court" viewBox="-14 -14 528 498" role="img" aria-label="Basketball half court showing the play">
-            <!-- floor, lines and hoop are added by js/court.js -->
+            <g id="lyCourt"><!-- floor, lines and hoops are drawn by js/court.js --></g>
             <g id="lyPaths"></g>
             <g id="lyWalls"></g>
             <g id="lyPlayers"></g>

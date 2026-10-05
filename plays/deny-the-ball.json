@@ -22,7 +22,7 @@
       "say": "{2} runs out to get the ball, but {X2} stays in the passing lane, hand out."
     },
     {
-      "pos": { "o2": [290, 90, 440, 160], "d2": [284, 124] },
+      "pos": { "o2": [292, 94, 416, 182], "d2": [284, 124] },
       "ball": "o1",
       "where": "d2",
       "bub": { "o2": "Backdoor!", "d2": "I see you!" },

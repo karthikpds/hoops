@@ -15,11 +15,17 @@
       "say": "{3} passes the ball in from the sideline. {4} and {5} stand one after the other to make two screens in a row, called a *stagger*."
     },
     {
-      "pos": { "o2": [380, 290, 230, 240], "d2": [212, 140] },
+      "pos": { "o2": [270, 200, 200, 220], "d2": [212, 140] },
+      "ball": "o3",
+      "scr": [["o4", "d2"], ["o5", "d2"]],
+      "say": "{2} runs up past {4}, the first screen. {X2} runs into {4} and gets stuck!"
+    },
+    {
+      "pos": { "o2": [380, 290, 300, 300] },
       "ball": "o3",
       "scr": [["o4", "d2"], ["o5", "d2"]],
       "bub": { "o2": "Open!" },
-      "say": "{2} runs off both screens toward the ball. {X2} runs into {4}'s screen and gets stuck!"
+      "say": "Then {2} runs past {5}, the second screen, toward the ball."
     },
     {
       "pos": { "d2": [300, 262, 180, 260] },

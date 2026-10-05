@@ -23,7 +23,7 @@
       "say": "{3} passes to {4} at the high post..."
     },
     {
-      "pos": { "o3": [255, 92, 340, 240], "d3": [280, 230] },
+      "pos": { "o3": [260, 100, 318, 232], "d3": [280, 230] },
       "ball": "o4",
       "bub": { "o3": "Open!" },
       "say": "...and cuts hard right past {4}. {X3} is a step behind!"

@@ -28,6 +28,7 @@
     {
       "pos": { "o1": [300, 90, 402, 188], "d1": [312, 172] },
       "ball": { "dribble": "o1" },
+      "where": "o1",
       "bub": { "o1": "Fast!", "d1": "Hey!" },
       "say": "Then {1} speeds up and zooms right past. {X1} was standing still and can't catch up!"
     },

@@ -1,58 +1,38 @@
 # Pending work
 
-What's left after the October 2026 work on the review's suggestions (learning paths, glossary, bundling, questions,
-offline, red passing the ball, 29 new plays). Delete items as they're done.
+What's left after the October 2026 work: Muse's feedback on players zooming across the court, then everything that
+was pending (full court, steals, Pivot & Protect, bubbles, the smoke test, questions, path links, print questions,
+reserved names, link previews per play). Delete items as they're done.
 
-## 1. Full court (the last engine change)
+## 1. Check on the live site
 
-Plays waiting for it:
+At https://karthikpds.github.io/hoops/, after the deploy. The smoke test checks all of these on localhost, but not on
+a phone or in a real messaging app.
 
-- **Press break**, against a 1-2-1-1 press (offense, tricky).
-- **Diamond Press 1-2-1-1** (defense, tricky). Corner Trap stands in for it now.
+- **Offline on a phone:** open the site once, wait a few seconds, switch to airplane mode, then reload. It should
+  still work, with the "No internet right now" note. The cache name changed to `hoops-v2`, so this is also the first
+  real test of an update replacing the old copy.
+- **A play's preview card:** "Copy link" now copies `…/p/<id>/` once the page finds the share pages. Paste one into a
+  messaging app: the card should show that play's name, idea and picture, and tapping it should open the play.
+- **The full-court plays on a phone:** Press Break and Diamond Press, at normal speed, to see that the view following
+  the ball is easy to watch on a small screen.
 
-Everything assumes one half court with the basket at the top:
+## 2. Ideas that came up
 
-- `pointError` in `playbook.js` allows y up to 470 (the half-court line), and `onCourt()` is the half court.
-- `courtView` and `courtBackground` in `court.js` draw `-14 -14 528 498`, with one basket at (250, 52.5).
-- `isThree`, shots and missed-shot bounces all use that one basket.
-
-One way to do it: an optional play field `"court": "full"` that extends y to 940, draws the other half with the
-second basket, and lets the view follow the ball. Half-court plays stay exactly as they are. Red still never shoots.
-
-## 2. Engine ideas that came up
-
-- **Steals.** Corner Trap ends with X3 "getting there in time" because there's no steal. Now that red can have the
-  ball, something like `{ "pass": ["o1", "o3"], "stolen": "d3" }` could hand the ball to red mid-pass.
-- **Pivot & Protect** (easy). Skipped because players are circles with no front or back. It would need a facing
-  marker on the player circle, plus a way to keep the ball on the side away from the defender.
-- **Overlapping speech bubbles** when two speakers stand close, as in Stance and Slide step 2 and the Transition
-  Defense setup. `bubblesSVG` in `court.js` could nudge bubbles apart.
-
-## 3. Tests and checks
-
-- **The editor has no automated tests.** A runtime error that crashed it on load passed all the unit tests and was
-  only caught by opening it in the browser. The page's question code (`app.js`) isn't covered either. Options: a
-  small smoke test that loads both pages in headless Chrome (the same Chrome command that makes `img/share.png`)
-  and fails on any console error, or keep checking them by hand after every change.
-- **Check these on the live site** at https://karthikpds.github.io/hoops/:
-  - Offline: open the site once, wait a few seconds, switch to airplane mode, then reload. It should still work,
-    with the "No internet right now" note. Only tested on localhost so far.
-  - A shared link's preview card, in a messaging app.
-  - The new plays animating at normal speed. Most were checked step by step on the print sheet.
-
-## 4. Smaller ideas
-
-- **Questions for the last 7 plays.** Box Out, Jab Step, The Weave, Box Inbound, Switch!, Hesitation and Triangle
-  Offense have none. Each was left out for a reason, like no pass to ask about or no clear answer, so check before
-  adding one.
-- **A link to a learning path**, like `#path=defense`. Right now a path can't be shared.
-- **Questions on the print sheet**, so a coach can ask them at practice.
-- **Reserved names in the editor.** It will happily name a play `Paths` or `Glossary` and download it as
-  `paths.json` or `glossary.json`. Saved into `plays/`, that would overwrite the real file and break the build.
-- **A link preview for each play.** Crawlers don't run the script, so every `#play` link shows the same card. The
-  build could write a small HTML page per play with its own `og:` tags.
+- **Red can't shoot,** so Diamond Press and Corner Trap end with the steal instead of points. On a full court, red
+  could shoot at its own hoop, at (250, 887.5): shots, `isThree`, missed-shot bounces and the celebration would need
+  to know which hoop.
+- **Facing for defenders.** Only Pivot & Protect uses `face`. Defense plays could show defenders facing their player,
+  or turning to see both the ball and their player in Deny the Ball and Help Side.
+- **Questions on the full court.** The view frames the ball and a "where" answer, but a "Who's open?" answer far up
+  the court could be outside it. Press Break avoids that by asking "where"; a new full-court play with "ask" should be
+  checked on a phone.
+- **Bubbles:** 5 of 244 still touch a player a little (Beat the Box-and-One step 5, Horns Twist step 1, Pick and Pop
+  step 5, UCLA Cut step 2, Zipper step 6). Small, but `bubbleBoxes` could try more spots.
 
 ## Decided against
 
 - **Saving progress** (watched ✓, quiz scores): not wanted. Nothing about the user is stored in the browser.
 - **Curl Cut** as its own play: Down Screen already teaches the curl read.
+- **Questions for Jab Step and Switch!** Jab Step's moves are too short to tap (a "where" needs more than 70 units),
+  and in Switch! the right spot for X1 depends on where 2 rolls, which kids haven't seen yet.

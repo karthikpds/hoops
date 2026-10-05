@@ -1,22 +1,22 @@
 // The page: loads the library (library.js), runs it (search, level filter, paths, glossary, links)
 // and animates the selected play on the court. The court drawing itself lives in court.js.
-import { BASKET, LEVELS as LV, WHERE_RADIUS, askList, checkGlossary, checkPaths, checkPlay, dist, isThree, lookUp, normalize, resolvePlay, searchPlays, startHolder, teamWithBall } from "./playbook.js";
+import { BASKET, LEVELS as LV, WHERE_RADIUS, askList, checkGlossary, checkPaths, checkPlay, dist, faceAt, isThree, lookUp, normalize, resolvePlay, searchPlays, startHolder, teamWithBall } from "./playbook.js";
 import { loadLibrary, saveForOffline } from "./library.js";
-import { ballState, bubblesAt, bubblesSVG, courtBackground, courtView, esc, f1, pathsUpTo, playerSVG, playersAt, renderCourt, screensAt, stepAt, wallsSVG } from "./court.js";
+import { ballState, bubblesAt, bubblesSVG, cameraView, courtBackground, courtView, esc, f1, pathsUpTo, playerSVG, playersAt, renderCourt, screensAt, stepAt, wallsSVG } from "./court.js";
 
 const NS="http://www.w3.org/2000/svg";
 
 /* DOM */
 const $=id=>document.getElementById(id);
-$("lyPaths").insertAdjacentHTML("beforebegin",courtBackground(true));
-const lyPaths=$("lyPaths"),lyWalls=$("lyWalls"),lyPlayers=$("lyPlayers"),lyBub=$("lyBub"),lyFx=$("lyFx");
-const ballEl=$("ball"),shadowEl=$("bshadow"),netEl=$("net");
+const lyCourt=$("lyCourt"),lyPaths=$("lyPaths"),lyWalls=$("lyWalls"),lyPlayers=$("lyPlayers"),lyBub=$("lyBub"),lyFx=$("lyFx");
+const ballEl=$("ball"),shadowEl=$("bshadow");
+let netEl=null;  // the top hoop's net, which swishes on a made shot
 const capEl=$("caption"),badgeEl=$("badge"),dotsEl=$("dots"),playsEl=$("plays");
 const btnPlay=$("btnPlay"),btnBack=$("btnBack"),btnNext=$("btnNext"),btnRestart=$("btnRestart"),nextPlayBtn=$("nextPlay");
 const playIcon=$("playIcon"),playTxt=$("playTxt");
 const qEl=$("q"),countEl=$("count"),shareBtn=$("btnShare"),printBtn=$("btnPrint"),courtEl=$("court");
 const quizEl=$("quiz"),choicesEl=$("choices"),followEl=$("follow"),printEl=$("printSheet"),speakBtn=$("togS"),surpriseBtn=$("btnSurprise");
-const pathPick=$("pathPick"),pathSel=$("pathSel"),pathAbout=$("pathAbout");
+const pathPick=$("pathPick"),pathSel=$("pathSel"),pathAbout=$("pathAbout"),pathAboutTxt=$("pathAboutTxt"),pathLinkBtn=$("btnPathLink");
 const wordCard=$("wordCard"),glossaryEl=$("glossary"),glList=$("glList");
 const ICON_PLAY='<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M7 4.8v14.4a1 1 0 0 0 1.52.85l11.3-7.2a1 1 0 0 0 0-1.7L8.52 3.95A1 1 0 0 0 7 4.8z"/></svg>';
 const ICON_PAUSE='<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><rect x="5.5" y="4.5" width="4.6" height="15" rx="1.6"/><rect x="13.9" y="4.5" width="4.6" height="15" rx="1.6"/></svg>';
@@ -26,9 +26,11 @@ const ICON_AGAIN='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" st
 let plays=[],view=[],query="",level=0,listVer=0;
 let paths=[],path=null;  // learning paths from plays/paths.json; path is the one picked, if any
 let glossary=[];  // basketball words from plays/glossary.json
+let sharePages=false;  // whether the site has a page per play for link previews (p/<id>/, from tools/share.js)
 let cur=0,p=0,target=0,playing=false,holdUntil=0,speed=1,showD=true,showL=true;
-let els={},lastPathKey="",lastCapKey="",lastUI="",lastT=performance.now(),shareTimer=0;
+let els={},noses={},lastPathKey="",lastCapKey="",lastUI="",lastT=performance.now(),shareTimer=0,pathLinkTimer=0;
 let vb=[-14,-14,514,484];  // court view as x0,y0,x1,y1
+let courtKind="",cam=null,lastCam=0;  // which court is drawn; on a full court, the y the view is centered on
 let quizOn=true,quiz=null,answered=new Set(),curP={};  // questions on or off; quiz is the question on screen, if any
 let follow="";  // the one player being followed; everyone else fades
 let speakOn=false,speakUntil=0,speakTok=0;  // read aloud; speakUntil is when the current caption should be done
@@ -68,13 +70,15 @@ function buildPaths(){
   pathSel.insertAdjacentHTML("beforeend",paths.map(pa=>`<option value="${esc(pa.id)}">${esc(pa.emoji||"")} ${esc(pa.name)}</option>`).join(""));
   pathPick.hidden=!paths.length;
 }
-/* Picking a path shows its plays in order and clears the search and level, so the whole path is on screen */
-function setPath(id){
+/* Picking a path shows its plays in order and clears the search and level, so the whole path is on screen.
+   updateUrl=false leaves the address alone (on first load, and when the address itself picked the path). */
+function setPath(id,updateUrl=true){
   path=paths.find(pa=>pa.id===id)||null;
   pathSel.value=path?path.id:"";
   pathPick.classList.toggle("on",!!path);
-  pathAbout.hidden=!path;pathAbout.textContent=path?path.about:"";
+  pathAbout.hidden=!path;pathAboutTxt.textContent=path?path.about:"";
   qEl.value="";query="";setLevel(0);
+  if(updateUrl&&plays[cur])history.replaceState(null,"",hashFor(plays[cur]));
 }
 
 /* Glossary: "Words to know" for the play on screen (from its tags), a word card when the search is a glossary word
@@ -137,7 +141,7 @@ function revealChip(pl,smooth){
 
 function buildPlayers(){
   lyPlayers.innerHTML=plays[cur].cast.map(id=>playerSVG(id)).join("");
-  els={};lyPlayers.querySelectorAll(".pl").forEach(g=>{els[g.dataset.id]=g;});
+  els={};noses={};lyPlayers.querySelectorAll(".pl").forEach(g=>{els[g.dataset.id]=g;noses[g.dataset.id]=g.querySelector(".face");});
 }
 
 function buildDots(){
@@ -187,24 +191,49 @@ function selectPlay(i,updateUrl=true){
   lyFx.innerHTML="";lastPathKey="";lastCapKey="";lastUI="";
   playsEl.querySelectorAll(".pick").forEach(c=>c.setAttribute("aria-pressed",String(c.dataset.id===plays[i].id)));
   revealChip(plays[i],updateUrl);  // smooth when someone picks a play, instant on first load
-  if(updateUrl)history.replaceState(null,"","#"+plays[i].id);
+  if(updateUrl)history.replaceState(null,"",hashFor(plays[i]));
   document.title=`${plays[i].name} · Hoops Playbook`;
 }
 function frameCourt(play){
-  vb=courtView(play);
-  courtEl.setAttribute("viewBox",`${vb[0]} ${vb[1]} ${vb[2]-vb[0]} ${vb[3]-vb[1]}`);
+  const kind=play.court==="full"?"full":"half";
+  if(kind!==courtKind){lyCourt.innerHTML=courtBackground(true,kind==="full");netEl=$("net");courtKind=kind;}
+  cam=null;setView(kind==="full"?cameraView(play,ballState(play,1,0,playersAt(play,1,0)).g[1]):courtView(play));
 }
-function indexFromHash(){
-  let id="";try{id=decodeURIComponent(location.hash.slice(1));}catch{}
-  return plays.findIndex(pl=>pl.id===id);
+function setView(v){
+  if(v.every((x,i)=>Math.abs(x-vb[i])<.05)&&courtEl.hasAttribute("viewBox"))return;
+  vb=v;courtEl.setAttribute("viewBox",`${f1(vb[0])} ${f1(vb[1])} ${f1(vb[2]-vb[0])} ${f1(vb[3]-vb[1])}`);
+}
+/* On a full court the view follows the ball, looking ahead to where the ball is going this step (or in the step a
+   question is about; for "Where should … go?", to the spot the answer is), and glides there instead of jumping */
+function followBall(play,k,bs,now){
+  const nk=quiz?quiz.k:k,end=quiz&&quiz.kind==="where"?quiz.spot[1]:ballState(play,nk,1,playersAt(play,nk,1)).g[1],target=(bs.g[1]+end)/2;
+  cam=cam===null?target:cam+(target-cam)*Math.min(1,(now-lastCam)/400);lastCam=now;
+  setView(cameraView(play,cam));
+}
+/* The address: "#pick-and-roll" is a play, "#path=defense" is a learning path from its first play, and
+   "#path=defense&play=close-out" is a play in a path. */
+function readHash(){
+  let h="";try{h=decodeURIComponent(location.hash.slice(1));}catch{}
+  if(!h.includes("="))return {play:h,path:""};
+  const q=new URLSearchParams(h);return {play:q.get("play")||"",path:q.get("path")||""};
+}
+const hashFor=pl=>path&&path.list.includes(pl)?`#path=${path.id}&play=${pl.id}`:"#"+pl.id;
+const siteURL=()=>location.href.split("#")[0];
+/* Follows the address: picks its path (or leaves the path when it names none) and its play, or the path's first play */
+function followHash(){
+  const h=readHash();
+  if((path?path.id:"")!==h.path&&(!h.path||paths.some(pa=>pa.id===h.path)))setPath(h.path,false);
+  let i=plays.findIndex(pl=>pl.id===h.play);
+  if(i<0&&path)i=plays.indexOf(view[0]);
+  return i;
 }
 
 /* Screens, box outs and speech bubbles. Bubbles stay hidden while a question is up, so "I'm open!" doesn't give the answer away. */
 function drawOverlay(play,P){
   lyWalls.innerHTML=wallsSVG(screensAt(play,p),P);
-  const {bub,op}=quiz?{bub:null,op:1}:bubblesAt(play,p);
-  const shown=bub&&Object.fromEntries(Object.entries(bub).filter(([id])=>showD||id[0]!=="d"));
-  lyBub.innerHTML=shown?bubblesSVG(shown,P,vb,op):"";
+  const {bub,op,at}=quiz?{bub:null,op:1}:bubblesAt(play,p),seen=([id])=>showD||id[0]!=="d";
+  const shown=bub&&Object.fromEntries(Object.entries(bub).filter(seen));
+  lyBub.innerHTML=shown?bubblesSVG(shown,P,vb,op,Object.fromEntries(Object.entries(at).filter(seen))):"";
 }
 
 /* Score celebration */
@@ -339,13 +368,24 @@ function tapCourt(e){
   if(best){if(ask)answer(best);else setFollow(best);}
 }
 
+/* The question a coach can ask looking at picture k-1 of the print sheet, before step k plays, with its answer */
+function printQuestion(pl,k){
+  const fr=pl.frames[k];if(!fr)return "";
+  if(fr.where)return `Ask: where should ${chipOf(fr.where)} ${fr.ball.dribble===fr.where?"dribble":"go"} next? (Answer: step ${k}.)`;
+  const open=askList(fr.ask);if(!open.length)return "";
+  return `Ask: who’s open${fr.ball.pass?` for ${chipOf(startHolder(fr.ball))}’s pass`:""}? (Answer: ${open.map(chipOf).join(" or ")}.)`;
+}
 /* Print sheet: every step of the play as a small court with its caption, built for the current play right before printing */
 function buildPrintSheet(){
   if(!plays.length)return;
-  const pl=plays[cur],link=location.href.split("#")[0]+"#"+pl.id,words=lookUp(glossary,pl.tags);
+  const pl=plays[cur],link=siteURL()+"#"+pl.id,words=lookUp(glossary,pl.tags);
   printEl.innerHTML=`<header><span class="ps-emoji">${esc(pl.emoji)}</span><div><h1>${esc(pl.name)}</h1><p>${LV[pl.level]}${pl.side==="defense"?" · Defense play":""}</p></div></header>`+
     `<p class="ps-idea">${esc(pl.idea)}</p><div class="ps-grid">`+
-    pl.frames.map((fr,j)=>`<figure>${renderCourt(pl,j,{label:`${pl.name}, ${j?"step "+j:"start"}`})}<figcaption><b>${j?"Step "+j:"Start"}</b> ${fmt(fr.say)}</figcaption></figure>`).join("")+
+    pl.frames.map((fr,j)=>{
+      const q=printQuestion(pl,j+1);
+      return `<figure>${renderCourt(pl,j,{label:`${pl.name}, ${j?"step "+j:"start"}`})}<figcaption><b>${j?"Step "+j:"Start"}</b> ${fmt(fr.say)}`+
+        (q?`<span class="ps-q"><span aria-hidden="true">❓</span> ${fmt(q)}</span>`:"")+`</figcaption></figure>`;
+    }).join("")+
     `</div><div class="ps-notes"><div><h2>💡 Why it works</h2><p>${esc(pl.why)}</p></div><div><h2>🏀 Try it at practice</h2><p>${esc(pl.tryit)}</p></div></div>`+
     (words.length?`<div class="ps-words"><h2>📖 Words to know</h2><dl class="wl">${wordsHTML(words)}</dl></div>`:"")+
     `<p class="ps-foot">Hoops Playbook · ${esc(link)}</p>`;
@@ -356,10 +396,13 @@ const capText=()=>{const play=plays[cur];return quiz?quiz.msg:play.frames[p<=0?0
 function render(now){
   const play=plays[cur],n=play.frames.length-1,{k,t}=stepAt(p),P=playersAt(play,k,t);curP=P;
   play.cast.forEach(id=>{
-    const q=P[id],g=els[id];g.setAttribute("transform",`translate(${f1(q[0])} ${f1(q[1])})`);
+    const q=P[id],g=els[id],a=faceAt(play,k,t,id);g.setAttribute("transform",`translate(${f1(q[0])} ${f1(q[1])})`);
     if(id[0]==="d")g.style.display=showD?"":"none";
+    if(a===null)noses[id].setAttribute("display","none");
+    else{noses[id].removeAttribute("display");noses[id].setAttribute("transform",`rotate(${f1(a*180/Math.PI)})`);}
   });
   const bs=ballState(play,k,t,P,now);
+  if(play.court==="full")followBall(play,k,bs,now);
   ballEl.setAttribute("transform",`translate(${f1(bs.g[0])} ${f1(bs.g[1]-bs.h)}) scale(${bs.s.toFixed(3)})`);
   shadowEl.setAttribute("cx",f1(bs.g[0]));shadowEl.setAttribute("cy",f1(bs.g[1]+2));
   const sh=Math.max(.35,1-bs.h/110);
@@ -422,11 +465,12 @@ function stepDur(play,k){
   const moved=play.cast.some(id=>dist(play.res[k-1][id],play.res[k][id])>3);
   return moved||b.rebound?1800:b.fake||b.cross?1300:1000;
 }
-/* End-of-step effects: points for a made shot, "Rebound!" for a rebound */
+/* End-of-step effects: points for a made shot, "Rebound!" for a rebound, "Steal!" for a steal */
 function stepEnded(play,k){
   const b=play.frames[k].ball;
   if(b.shot&&!b.miss)celebrate(isThree(play.res[k][b.shot])?3:2);
   if(b.rebound)cheer(play.res[k][b.rebound],"Rebound!");
+  if(b.stolen)cheer(play.res[k][b.stolen],"Steal!");
 }
 function tick(now){
   const dt=Math.min(60,now-lastT);lastT=now;
@@ -527,14 +571,24 @@ $("piTags").addEventListener("click",e=>{
   setPath("");setQuery(t.textContent);
   document.querySelector(".library").scrollIntoView({block:"nearest",behavior:"smooth"});
 });
+/* The link to share a play: its share page when the site has them, so the link preview shows that play */
+const playLink=pl=>sharePages?new URL(`p/${pl.id}/`,location.href).href:siteURL()+"#"+pl.id;
 shareBtn.addEventListener("click",async()=>{
   const tip=$("shareTip");
-  try{await navigator.clipboard.writeText(location.href.split("#")[0]+"#"+plays[cur].id);tip.textContent="Link copied!";}
+  try{await navigator.clipboard.writeText(playLink(plays[cur]));tip.textContent="Link copied!";}
   catch{history.replaceState(null,"","#"+plays[cur].id);tip.textContent="Copy it from the address bar";}
   shareBtn.classList.add("copied");
   clearTimeout(shareTimer);shareTimer=setTimeout(()=>shareBtn.classList.remove("copied"),1800);
 });
-window.addEventListener("hashchange",()=>{const i=indexFromHash();if(i>=0&&i!==cur)selectPlay(i);});
+/* A link to the path: it opens the path at its first play */
+pathLinkBtn.addEventListener("click",async()=>{
+  if(!path)return;
+  const link=siteURL()+"#path="+path.id;
+  try{await navigator.clipboard.writeText(link);pathLinkBtn.textContent="Link copied!";}
+  catch{history.replaceState(null,"","#path="+path.id);pathLinkBtn.textContent="Copy it from the address bar";}
+  clearTimeout(pathLinkTimer);pathLinkTimer=setTimeout(()=>{pathLinkBtn.textContent="Copy a link to this path";},1800);
+});
+window.addEventListener("hashchange",()=>{const i=followHash();if(i>=0&&i!==cur)selectPlay(i);});
 
 document.addEventListener("keydown",e=>{
   if(e.metaKey||e.ctrlKey||e.altKey||glossaryEl.open)return;
@@ -567,7 +621,9 @@ if(!plays.length){
 } else {
   buildPaths();buildGlossary();
   refreshList();
-  const i=indexFromHash();selectPlay(Math.max(i,0),false);
+  const i=followHash();selectPlay(Math.max(i,0),false);
   btnPlay.disabled=false;btnRestart.disabled=false;shareBtn.hidden=false;printBtn.hidden=false;surpriseBtn.disabled=plays.length<2;
   requestAnimationFrame(t=>{lastT=t;tick(t);});
+  // The deploy and npm start make share pages; another server may not, and then links stay #play
+  fetch(`p/${plays[0].id}/`,{method:"HEAD",cache:"no-store"}).then(r=>{sharePages=r.ok;}).catch(()=>{});
 }

@@ -24,15 +24,29 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # Node 22 or newer has WebSocket built in, which the smoke test uses to drive Chrome.
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
       # Unit tests for the play engine and court drawing (node:test, no dependencies).
       - name: Run unit tests
         run: npm test
+
+      # Opens the page and the play editor in headless Chrome (already on the runner) and fails on any error.
+      - name: Smoke test the pages in Chrome
+        run: npm run smoke
 
       # Fails the run (with the file and problem shown in the Actions log) if any play is broken.
       # Also adds plays that were committed without updating plays/index.json, and writes plays/bundle.json,
       # every play in one file so the site loads them in a single request.
       - name: Check plays, rebuild plays/index.json and bundle the plays
         run: node tools/build.js --bundle
+
+      # A page per play (p/<id>/) with its own link preview and picture, so a shared link shows that play.
+      - name: Make the share pages and pictures
+        if: github.event_name != 'pull_request'
+        run: node tools/share.js --images
 
       - uses: actions/upload-pages-artifact@v5
         if: github.event_name != 'pull_request'

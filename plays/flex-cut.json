@@ -26,11 +26,18 @@
       "say": "*Flex screen:* {5} steps out from the block and stands still next to {X3}."
     },
     {
-      "pos": { "o3": [182, 90, 420, 40] },
+      "pos": { "o3": [325, 88, 410, 50] },
       "ball": "o4",
       "scr": [["o5", "d3"]],
-      "bub": { "o3": "Open!", "d3": "Stuck!" },
+      "bub": { "d3": "Stuck!" },
       "say": "*Flex cut:* {3} sprints along the baseline, right past {5}. {X3} bumps into the screen and gets stuck!"
+    },
+    {
+      "pos": { "o3": [182, 90, 255, 70] },
+      "ball": "o4",
+      "scr": [["o5", "d3"]],
+      "bub": { "o3": "Open!" },
+      "say": "{3} keeps going to the basket, on the same side as the ball."
     },
     {
       "ball": { "pass": ["o4", "o3"] },
